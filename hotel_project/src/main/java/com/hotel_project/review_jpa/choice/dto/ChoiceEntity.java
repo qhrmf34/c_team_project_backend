@@ -12,8 +12,8 @@ import lombok.*;
 public class ChoiceEntity implements IChoice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Id;
+    private Long id;
 
     @Column(nullable = false, length = 30, unique = true)
-    private String name;
+    private String choiceName;
 }

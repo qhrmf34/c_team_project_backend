@@ -1,6 +1,7 @@
 package com.hotel_project.review_jpa.choice.dto;
 
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -14,6 +15,7 @@ public class ChoiceDto implements IChoice{
 
     private Long id;
 
+    @NotBlank(message = "선택 이름은 필수 입력입니다.")
     @Size(min = 1, max = 30, message = "이름은 1자 이상 30자 이하로 입력해야 합니다.")
-    private String name;
+    private String choiceName;
 }
