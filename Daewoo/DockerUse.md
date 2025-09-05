@@ -1,0 +1,1 @@
+docker run -d --name mysite -p 38080:80 mysite:latest

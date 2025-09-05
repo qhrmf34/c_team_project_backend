@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Box Model Practice</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+        background: #f8f9fa;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+      }
+
+      .example {
+        margin-bottom: 40px;
+      }
+
+      .box {
+        width: 200px;
+        height: 100px;
+        background: #0077b6;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+      }
+
+      /* Different variations */
+      .padding {
+        padding: 20px; /* space inside the box */
+        background: #0096c7;
+      }
+
+      .border {
+        border: 10px solid #ffb703;
+        background: #219ebc;
+      }
+
+      .margin {
+        margin: 30px; /* space outside the box */
+        background: #ef476f;
+      }
+
+      /* Border-box fix */
+      .border-box {
+        box-sizing: border-box;
+        width: 200px;
+        height: 100px;
+        padding: 20px;
+        border: 10px solid #06d6a0;
+        background: #118ab2;
+      }
+
+      .container {
+        background: #e0e0e0;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Box Model Practice</h1>
+
+    <div class="example">
+      <h2>1. Normal Box</h2>
+      <div class="box">Content</div>
+    </div>
+
+    <div class="example">
+      <h2>2. With Padding (inside)</h2>
+      <div class="box padding">Padding</div>
+    </div>
+
+    <div class="example">
+      <h2>3. With Border</h2>
+      <div class="box border">Border</div>
+    </div>
+
+    <div class="example">
+      <h2>4. With Margin (outside)</h2>
+      <div class="container">
+        <div class="box margin">Margin</div>
+      </div>
+      <p>The gray area is the parent container. Notice the outside space.</p>
+    </div>
+
+    <div class="example">
+      <h2>5. Border-box (fix width issue)</h2>
+      <div class="border-box">Border + Padding included</div>
+      <p>Box size stays 200×100 even with padding & border.</p>
+    </div>
+  </body>
+</html>
