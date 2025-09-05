@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: hotel_project
+  datasource:
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    url: jdbc:log4jdbc:mysql://localhost:3306/hotel_db2?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: hotel_user
+    password: hotel123
+
+  mustache:
+    suffix: .html
+    servlet:
+      cache: false
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml
+  type-aliases-package: com.hotel_project
+  configuration:
+    map-underscore-to-camel-case: true
