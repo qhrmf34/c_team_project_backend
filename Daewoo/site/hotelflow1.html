@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -19,6 +18,8 @@
             min-height: 100vh;
             margin: 0 auto;
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Header */
@@ -287,6 +288,7 @@
         /* Main Content */
         .main-content {
             padding: 150px 104px 0;
+            flex: 1;
         }
 
         /* Travel Section */
@@ -416,9 +418,10 @@
         .more-travel {
             display: flex;
             gap: 24px;
-            margin-bottom: 250px;
+            margin-bottom: 60px;
             justify-content: center;
             margin-top: -50px;
+            margin-bottom: 250px;
         }
 
         .malaka-tour {
@@ -519,7 +522,6 @@
             background: rgba(141, 211, 187, 1);
             padding: 80px 104px 80px 104px;
             position: relative;
-            z-index: 0;
             height: 422px;
             display: flex;
             flex-direction: column;
@@ -994,7 +996,6 @@
                 <img src="img/twitter.jpg"/>
                 <img src="img/youtube.jpg"/>
                 <img src="img/instagram.jpg"/>
-
             </div>
 
             <div class="footer-links">
@@ -1051,7 +1052,6 @@
                 dropdown.classList.remove('active');
             }
         });
-
     </script>
 </body>
 </html>
