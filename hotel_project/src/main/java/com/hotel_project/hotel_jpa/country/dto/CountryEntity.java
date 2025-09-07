@@ -1,4 +1,4 @@
-package com.hotel_project.hotel_jpa.city.dto;
+package com.hotel_project.hotel_jpa.country.dto;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,18 +11,15 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "city_tbl")
-public class CityEntity implements ICity{
+@Table(name = "country_tbl")
+public class CountryEntity implements ICountry{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false,length = 100, unique = true)
-    private String cityName;
+    private String countryName;
 
-    @Lob
-    @Column(nullable = true)
-    private String cityContent;
 
     @Column(nullable = false,length = 100)
     private String idd;
