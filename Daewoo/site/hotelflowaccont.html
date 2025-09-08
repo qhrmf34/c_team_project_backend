@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Account - Find Steps</title>
+  <style>
+
+:root{
+  --page:1232px;
+  --bg:#FAFBFC; --panel:#fff; --ink:#112211; --muted:#6b7280; --line:#e5e7eb;
+  --brand:#8DD3BB; --brand-ink:#064e3b;
+  --radius:12px; --shadow:0 10px 30px rgba(17,34,17,.08);
+  --footer-h: 220px;
+  --footer-bg: #6BA48F;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Montserrat',system-ui,-apple-system,"Noto Sans KR",Arial,sans-serif;
+  color:var(--ink); background:var(--bg);
+  min-width:1440px; max-width:1440px; margin:0 auto;
+  min-height:100vh; display:flex; flex-direction:column; overflow-x:scroll;
+}
+
+
+.header{
+  position:fixed; inset:0 0 auto 0; height:87px; z-index:1000;
+  background:#fff; box-shadow:0 4px 16px rgba(17,34,17,.05);
+  padding:21px 104px;
+}
+nav{max-width:var(--page); margin:0 auto; display:flex; justify-content:space-between; align-items:center}
+.nav-left,.nav-right{display:flex; align-items:center}
+.nav-right{gap:32px}
+.nav-item,.user-profile{display:flex; align-items:center; gap:4px; color:#112211; text-decoration:none; font-weight:600; font-size:14px}
+.user-avatar{width:45px;height:45px;border-radius:50%;background:#D9D9D9;border:1px solid #000;position:relative}
+.online-dot{position:absolute; width:10px;height:10px; border-radius:50%; background:#112211; right:2px; bottom:2px}
+
+.user-dropdown{
+  position:fixed; top:82px; left:64%; width:329px; z-index:1001;
+  background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.05); padding:32px; display:none;
+}
+.user-dropdown.active{display:block}
+.dropdown-header{display:flex; gap:16px; align-items:center; margin-bottom:24px}
+.dropdown-avatar{width:64px;height:64px;border-radius:50%;background:#D9D9D9}
+.dropdown-info h3{font-weight:600; font-size:16px; margin-bottom:4px}
+.dropdown-info p{font-size:14px; color:#112211; opacity:.75}
+.dropdown-menu{display:flex; flex-direction:column; gap:16px; border-top:.5px solid rgba(17,34,17,.25); padding-top:24px}
+.dropdown-item{display:flex; align-items:center; gap:8px; color:#112211; text-decoration:none; font-weight:500; font-size:14px;}
+
+.container{max-width:var(--page); width:var(--page); margin:0 auto 80px; padding:0;}
+
+.cover{
+  height:260px; margin-top:111px;
+  border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow);
+  background:linear-gradient(135deg,#0ea5e9 0%,#0b7285 25%,#f59e0b 55%,#fbbf24 80%);
+  position:relative;
+}
+.upload{
+  position:absolute; right:18px; bottom:18px;
+  background:#d1fae5; border:1px solid #99f6e4; color:#065f46;
+  padding:10px 14px; border-radius:999px; font-weight:700; cursor:pointer;
+}
+
+.profile{margin-top:-58px; text-align:center}
+.profile .avatar{
+  width:100px;height:100px;border-radius:50%; object-fit:cover;
+  border:4px solid #fff; box-shadow:var(--shadow); position:relative;
+}
+.profile .avatar::after{content:""; position:absolute; right:-6px; bottom:-6px; width:28px; height:28px; border-radius:50%; background:#fca5a5; border:3px solid #fff}
+.name{margin-top:10px; font-weight:700}
+.email{font-size:14px; color:#6b7280}
+
+.tabs{max-width:var(--page); margin:22px auto 10px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.tab{
+  background:#fff; border:1px solid var(--line); border-radius:12px;
+  padding:13px 18px; text-align:center; font-weight:600; color:#111827; position:relative;
+}
+.tab.active::after{content:""; position:absolute; left:18px; right:18px; bottom:-1px; height:4px; border-radius:2px; background:var(--brand)}
+
+.card{max-width:var(--page); margin:10px auto 0; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow)}
+.head{padding:20px 24px; border-bottom:1px solid var(--line); font-weight:800; font-size:20px}
+.body{padding:10px 6px}
+.row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 24px; border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.meta{font-size:12px; color:#6b7280; margin-bottom:4px}
+.value{font-weight:700}
+.btn{padding:10px 14px; border-radius:999px; background:#ecfdf5; border:1px solid #bbf7d0; color:#065f46; font-weight:700; font-size:12px; cursor:pointer}
+
+.newsletter-content{
+  width:var(--page); max-width:var(--page); height:305px; margin:0 auto 40px;
+  display:flex; justify-content:space-between; align-items:center; gap:24px;
+  background:#CDEAE1; border-radius:20px; padding:48px; box-shadow:0 4px 16px rgba(17,34,17,.05);
+}
+.newsletter-left{flex:1; max-width:500px}
+.newsletter-title{font-family:'Noto Sans',sans-serif; font-weight:900; font-size:44px; line-height:54px; color:#112211; margin-bottom:24px}
+.newsletter-info{margin-bottom:24px}
+.newsletter-brand{font-family:Acme,sans-serif; font-size:20px; color:#112211; opacity:.8; margin-bottom:8px}
+.newsletter-desc{font-weight:500; font-size:16px; color:#112211; opacity:.7}
+.newsletter-form{display:flex; gap:16px; align-items:center}
+.newsletter-input{flex:1; height:56px; padding:16px; border:none; border-radius:4px}
+.subscribe-btn{height:56px; padding:16px 24px; background:#112211; color:#fff; border:none; border-radius:4px; font-weight:600}
+
+.mailbox-container{position:relative; width:400px; height:305px; display:flex; justify-content:center; align-items:center}
+.mailbox-back{position:absolute; width:208px; height:191px; top:47px; left:0; background:#65B599; border-top-left-radius:70px; border-top-right-radius:70px; z-index:5}
+.mailbox-base{position:absolute; width:187px; height:179px; top:59px; left:10px; background:#546869; border-top-left-radius:70px; border-top-right-radius:70px; z-index:10}
+.mailbox-front{position:absolute; width:291px; height:191px; top:47px; left:71px; background:#112211; border-top-left-radius:70px; border-top-right-radius:70px; z-index:4}
+.mailbox-flag{position:absolute; width:169px; height:40px; top:154px; left:231px; background:#FF8682; z-index:6}
+.mailbox-flag2{position:absolute; width:39px; height:77px; top:154px; left:361px; background:#FF8682; z-index:6}
+.mailbox-pole{position:absolute; width:47px; height:188px; top:117px; left:194px; background:#A4806D; z-index:3}
+.mailbox-stand-base{position:absolute; width:85px; height:57px; top:212px; left:156px; background:#A4806D; z-index:3}
+.mailbox-stand-front{position:absolute; width:85px; height:188px; top:117px; left:156px; background:#DFAD92; z-index:2}
+
+.footer-content {
+            max-width: 1232px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+            z-index: 1;
+            gap: 64px;
+            padding-bottom: 40px;
+        }
+.social-icons {display: flex; gap: 16px; margin-bottom: 32px;}
+.footer-links {display: flex; gap: 60px;}
+.footer-column {display: flex; flex-direction: column; gap: 12px;}
+.footer-column h4 {font-family: Acme; font-weight: 400; font-size: 16px; line-height: 100%; color: #112211; margin-bottom: 8px;}
+.footer-column a {
+            font-family: Montserrat;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 100%;
+            color: #112211;
+            text-decoration: none;
+            opacity: 0.7;
+        }
+.footer-column a:hover {opacity: 1;}
+</style>
+</head>
+<body>
+  <header class="header">
+        <nav>
+            <div class="nav-left">
+                <a href="#" class="nav-item">
+                    <span><img src="img/hotel.jpg"></span>
+                    Hotels
+                </a>
+            </div>
+            
+            <div class="nav-right">
+                <a href="#" class="nav-item">
+                    <span><img src="img/heart.jpg"></span>
+                    찜하기
+                </a>
+                <span>|</span>
+                <div class="user-profile" onclick="toggleDropdown()">
+                    <div class="user-avatar">
+                        <div class="online-dot"></div>
+                    </div>
+                    <span>Tomhoon</span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+  <main class="container">
+    <section class="cover"><button class="upload">Upload new cover</button></section>
+
+    <section class="profile">
+      <img class="avatar" src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?q=80&w=300&auto=format&fit=crop" alt="프로필" />
+      <h2 class="name">Tomhoon</h2>
+      <div class="email">gnsdj90798@gmail.com</div>
+    </section>
+
+    <div class="tabs">
+      <div class="tab active">계정</div>
+      <div class="tab">내역</div>
+      <div class="tab">결제수단</div>
+    </div>
+
+    <section class="card">
+      <div class="head">Account</div>
+      <div class="body">
+        <div class="row"><div><div class="meta">Name</div><div class="value">Tomhoon</div></div><button class="btn">Change</button></div>
+        <div class="row"><div><div class="meta">Email</div><div class="value">gnsdj90798@gmail.com</div></div><button class="btn">Change</button></div>
+        <div class="row"><div><div class="meta">Password</div><div class="value">************</div></div><button class="btn">Change</button></div>
+        <div class="row"><div><div class="meta">Phone number</div><div class="value">010-5555-5555</div></div><button class="btn">Change</button></div>
+        <div class="row"><div><div class="meta">Address</div><div class="value">경기도 화성시 화성읍 드레미아파트 101동 101호</div></div><button class="btn">Change</button></div>
+        <div class="row"><div><div class="meta">Date of birth</div><div class="value">1999-99-99</div></div><button class="btn">Change</button></div>
+      </div>
+    </section>
+  </main>
+  <section class="newsletter-section">
+            </section>
+
+        <div class="newsletter-content">
+            <div class="newsletter-left">
+                <h2 class="newsletter-title">구독서비스<br>신청해보세요</h2>
+
+                <div class="newsletter-info">
+                    <div class="newsletter-brand">The Travel</div>
+                    <p class="newsletter-desc">구독자로 여행 할인, 팁 및 비하인드 정보를 받아보세요</p>
+                </div>
+
+                <div class="newsletter-form">
+                    <input type="email" class="newsletter-input" placeholder="Your email address">
+                    <button class="subscribe-btn">Subscribe</button>
+                </div>
+            </div>
+
+            <div class="mailbox-container">
+                <div class="mailbox-back"></div>
+                <div class="mailbox-base"></div>
+                <div class="mailbox-front"></div>
+                <div class="mailbox-flag"></div>
+                <div class="mailbox-flag2"></div>
+                <div class="mailbox-pole"></div>
+                <div class="mailbox-stand-base"></div>
+                <div class="mailbox-stand-front"></div>
+            </div>
+        </div>
+
+        <div class="footer-content">
+            <div class="social-icons">
+                <img src="img/facebook.jpg"/>
+                <img src="img/twitter.jpg"/>
+                <img src="img/youtube.jpg"/>
+                <img src="img/instagram.jpg"/>
+            </div>
+
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h4>Our Destinations</h4>
+                    <a href="#">Canada</a>
+                    <a href="#">Alaksa</a>
+                    <a href="#">France</a>
+                    <a href="#">Iceland</a>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Our Activities</h4>
+                    <a href="#">Northern Lights</a>
+                    <a href="#">Cruising & sailing</a>
+                    <a href="#">Multi-activities</a>
+                    <a href="#">Kayaking</a>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Travel Blogs</h4>
+                    <a href="#">Bali Travel Guide</a>
+                    <a href="#">Sri Lanka Travel Guide</a>
+                    <a href="#">Peru Travel Guide</a>
+                    <a href="#">Bali Travel Guide</a>
+                </div>
+
+                <div class="footer-column">
+                    <h4>About Us</h4>
+                    <a href="#">Our Story</a>
+                    <a href="#">Work with us</a>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Contact Us</h4>
+                    <a href="#">Our Story</a>
+                    <a href="#">Work with us</a>
+                </div>
+            </div>
+        </div>
+</body>
+</html>

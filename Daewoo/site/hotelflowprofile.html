@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Profile Account - Find Steps</title>
+<style>
+:root{
+  --page:1232px;
+  --bg:#FAFBFC; --panel:#fff; --ink:#112211; --muted:#6b7280; --line:#e5e7eb;
+  /*--brand:#8DD3BB;*/--brand-ink:#064e3b;
+  --radius:12px; --shadow:0 10px 30px rgba(17,34,17,.08);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Montserrat',system-ui,-apple-system,"Noto Sans KR",Arial,sans-serif;
+  color:var(--ink); background:var(--bg);
+  min-width:1440px; max-width:1440px; margin:0 auto;
+  min-height:100vh; display:flex; flex-direction:column; overflow-x:scroll;
+}
+
+.header{
+  position:fixed; inset:0 0 auto 0; height:87px; z-index:1000;
+  background:#fff; box-shadow:0 4px 16px rgba(17,34,17,.05);
+  padding:21px 104px;
+}
+nav{max-width:var(--page); margin:0 auto; display:flex; justify-content:space-between; align-items:center}
+.nav-left,.nav-right{display:flex; align-items:center}
+.nav-right{gap:32px}
+.nav-item,.user-profile{display:flex; align-items:center; gap:8px; color:#112211; text-decoration:none; font-weight:600; font-size:14px}
+.nav-item img{width:20px;height:20px;object-fit:cover;border-radius:4px}
+.user-avatar{width:45px;height:45px;border-radius:50%;background:#D9D9D9;border:1px solid #000;position:relative}
+.online-dot{position:absolute; width:10px;height:10px; border-radius:50%; background:#19a55a; right:2px; bottom:2px;}
+
+.user-dropdown{
+  position:fixed; top:90px; right:104px; width:329px; z-index:1001;
+  background:#fff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.05); padding:24px; display:none;
+}
+.user-dropdown.active{display:block}
+.dropdown-header{display:flex; gap:16px; align-items:center; margin-bottom:16px}
+.dropdown-avatar{width:64px;height:64px;border-radius:50%;background:#D9D9D9}
+.dropdown-info h3{font-weight:600; font-size:16px}
+.dropdown-info p{font-size:14px; color:#112211; opacity:.75}
+.dropdown-menu{display:flex; flex-direction:column; gap:12px; border-top:.5px solid rgba(17,34,17,.15); padding-top:16px}
+.dropdown-item{display:flex; align-items:center; gap:8px; color:#112211; text-decoration:none; font-weight:500; font-size:14px}
+.container{max-width:var(--page); width:var(--page); margin:0 auto 80px; padding:0;}
+.cover{
+  height:260px; margin-top:111px;
+  border-radius:16px; overflow:hidden; box-shadow:var(--shadow);
+  background:linear-gradient(135deg,#0ea5e9 0%,#0b7285 25%,#f59e0b 55%,#fbbf24 80%);
+  position:relative;}
+.upload{
+  position:absolute; right:16px; bottom:16px;
+  background:#ecfdf5; border:1px solid #99f6e4; color:#065f46;
+  padding:10px 14px; border-radius:999px; font-weight:700; cursor:pointer; font-size:12px;
+}
+.profile{margin-top:-58px; text-align:center}
+.profile .avatar{
+  width:112px;height:112px;border-radius:50%; object-fit:cover;
+  border:6px solid #fff; box-shadow:var(--shadow); display:block; margin:0 auto;
+}
+.name{margin-top:10px; font-weight:700; font-size:20px}
+.email{font-size:14px; color:var(--muted)}
+
+.tabs{
+  max-width:var(--page); margin:24px auto 12px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px
+}
+.tab{
+  background:#fff; border:1px solid var(--line); border-radius:12px;
+  padding:13px 18px; text-align:center; font-weight:600; color:#111827; position:relative;
+}
+.tab.active{box-shadow:0 0 0 2px var(--brand) inset}
+.tab.active::after{content:""; position:absolute; left:18px; right:18px; bottom:-1px; height:4px; border-radius:2px; background:var(--brand)}
+
+.card{
+  max-width:var(--page); margin:10px auto 0; background:#fff; border:1px solid var(--line);
+  border-radius:12px; box-shadow:var(--shadow);
+}
+.head{padding:20px 24px; border-bottom:1px solid var(--line); font-weight:800; font-size:20px}
+.body{padding:8px 8px}
+.row{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:18px 24px; border-top:1px solid var(--line)
+}
+.row:first-child{border-top:0}
+.meta{font-size:12px; color:var(--muted); margin-bottom:4px}
+.value{font-weight:700}
+.btn{
+  padding:10px 14px; border-radius:999px; background:#ecfdf5; border:1px solid #bbf7d0; color:#065f46;
+  font-weight:700; font-size:12px; cursor:pointer
+}
+
+.billing{
+  max-width:var(--page); margin:24px auto 0; background:#fff; border:1px solid var(--line);
+  border-radius:16px; box-shadow:var(--shadow);
+}
+.billing .head{display:flex; align-items:center; gap:8px}
+.billing .grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:18px 24px 24px;
+}
+
+.credit-card{
+  background:#CDEAE1; border-radius:16px; padding:20px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  height:160px; border:1px solid rgba(17,34,17,.08);
+}
+.cc-top{display:flex; justify-content:space-between; align-items:center}
+.cc-chip{width:34px;height:24px;border-radius:6px;background:#a7f3d0}
+.cc-number{font-weight:800; font-size:28px; letter-spacing:2px; color:#0f3f2e}
+.cc-bottom{display:flex; justify-content:space-between; align-items:flex-end; margin-top:16px}
+.cc-meta{font-size:12px; color:#0f3f2e; opacity:.8}
+.cc-brand{width:52px;height:36px;border-radius:6px;background:#0f3f2e; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700}
+
+.add-card{
+  border:2px dashed #9ca3af; border-radius:16px; background:#fff;
+  display:flex; align-items:center; justify-content:center; height:160px; color:#6b7280;
+}
+.add-card .plus{
+  width:44px; height:44px; border-radius:50%; border:2px dashed #9ca3af;
+  display:flex; align-items:center; justify-content:center; font-size:26px; margin-right:12px;
+}
+.add-card span{font-weight:600}
+
+.newsletter-section{
+  background: var(--brand);
+  padding: 80px 0;
+  margin-top:60px;
+}
+.newsletter-content{
+  width:var(--page); max-width:var(--page); height:305px; margin:0 auto 40px;
+  display:flex; justify-content:space-between; align-items:center; gap:24px;
+  background:#CDEAE1; border-radius:20px; padding:48px; box-shadow:0 4px 16px rgba(17,34,17,.05);
+}
+.newsletter-left{flex:1; max-width:520px}
+.newsletter-title{font-family:'Noto Sans',sans-serif; font-weight:900; font-size:44px; line-height:54px; color:#112211; margin-bottom:24px}
+.newsletter-info{margin-bottom:24px}
+.newsletter-brand{font-family:Acme,sans-serif; font-size:20px; color:#112211; opacity:.8; margin-bottom:8px}
+.newsletter-desc{font-weight:500; font-size:16px; color:#112211; opacity:.7}
+.newsletter-form{display:flex; gap:16px; align-items:center}
+.newsletter-input{flex:1; height:56px; padding:16px; border:none; border-radius:4px}
+.subscribe-btn{height:56px; padding:16px 24px; background:#112211; color:#fff; border:none; border-radius:4px; font-weight:600}
+.mailbox-container{position:relative; width:400px; height:305px; display:flex; justify-content:center; align-items:center}
+.mailbox-back{position:absolute; width:208px; height:191px; top:47px; left:0; background:#65B599; border-top-left-radius:70px; border-top-right-radius:70px; z-index:5}
+.mailbox-base{position:absolute; width:187px; height:179px; top:59px; left:10px; background:#546869; border-top-left-radius:70px; border-top-right-radius:70px; z-index:10}
+.mailbox-front{position:absolute; width:291px; height:191px; top:47px; left:71px; background:#112211; border-top-left-radius:70px; border-top-right-radius:70px; z-index:4}
+.mailbox-flag{position:absolute; width:169px; height:40px; top:154px; left:231px; background:#FF8682; z-index:6}
+.mailbox-flag2{position:absolute; width:39px; height:77px; top:154px; left:361px; background:#FF8682; z-index:6}
+.mailbox-pole{position:absolute; width:47px; height:188px; top:117px; left:194px; background:#A4806D; z-index:3}
+.mailbox-stand-base{position:absolute; width:85px; height:57px; top:212px; left:156px; background:#A4806D; z-index:3}
+.mailbox-stand-front{position:absolute; width:85px; height:188px; top:117px; left:156px; background:#DFAD92; z-index:2}
+
+.footer-content {
+  max-width: var(--page);
+  margin: 0 auto 60px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 64px; padding: 0 0 12px;
+}
+.social-icons {display:flex; gap:16px; margin-bottom:24px}
+.social-icons img{width:24px;height:24px;object-fit:cover;border-radius:4px;opacity:.85}
+.footer-links {display:flex; gap:60px}
+.footer-column {display:flex; flex-direction:column; gap:12px}
+.footer-column h4 {font-family: Acme, system-ui; font-weight: 600; font-size: 16px; color: #112211; margin-bottom: 8px;}
+.footer-column a {font-weight: 500; font-size: 14px; color: #112211; text-decoration: none; opacity: .7;}
+.footer-column a:hover {opacity:1;}
+
+.cover{ position: relative; z-index: 0; } 
+.profile{ position: relative; z-index: 1; } 
+.profile .avatar{ position: relative; z-index: 10; } 
+
+body.modal-open{ overflow:hidden; }
+.modal{ position:fixed; inset:0; display:none; z-index:3000; }
+.modal.open{ display:block; }
+.modal .backdrop{
+  position:absolute; inset:0; background:rgba(0,0,0,.45);
+  backdrop-filter:saturate(120%) blur(2px);
+}
+.modal .card{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:640px; max-width:calc(100% - 40px);
+  background:#fff; border:1px solid #e5e7eb; border-radius:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.20);
+  padding:28px; 
+}
+.modal .title{ font-size:28px; font-weight:900; margin-bottom:18px; }
+.modal .close{
+  position:absolute; right:18px; top:14px; font-size:20px; line-height:1;
+  background:transparent; border:0; cursor:pointer; color:#111827; opacity:.7;
+}
+.modal form{ display:flex; flex-direction:column; gap:14px; }
+.field{ display:flex; flex-direction:column; gap:6px; }
+.label{ font-size:13px; color:#374151; }
+.input, .select{
+  height:44px; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px;
+  font-size:14px; outline:none; background:#fff;
+}
+.input:focus, .select:focus{ border-color:#86efac; box-shadow:0 0 0 3px rgba(134,239,172,.35); }
+.h2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+.cardnum-wrap{ position:relative; }
+.cardnum-wrap .brand-mini{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  width:32px; height:20px; border-radius:4px; background:#0f3f2e; color:#fff;
+  font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center;
+}
+
+.checkline{ display:flex; align-items:center; gap:8px; margin-top:6px; font-size:13px; color:#374151; }
+.submit{
+  height:44px; border:0; border-radius:8px; cursor:pointer;
+  background:#A7DCC6; font-weight:700; color:#0f3f2e;
+}
+
+</style>
+</head>
+<body>
+  <header class="header">
+    <nav>
+      <div class="nav-left">
+        <a href="#" class="nav-item">
+          <span><img src="img/hotel.jpg" alt="호텔"></span>
+          Hotels
+        </a>
+      </div>
+      <div class="nav-right">
+        <a href="#" class="nav-item">
+          <span><img src="img/heart.jpg" alt="찜"></span>
+          찜하기
+        </a>
+        <span>|</span>
+        <div class="user-profile" onclick="toggleDropdown()">
+          <div class="user-avatar">
+            <div class="online-dot"></div>
+          </div>
+          <span>Tomhoon</span>
+        </div>
+      </div>
+    </nav>
+    <div class="user-dropdown" id="dropdown">
+      <div class="dropdown-header">
+        <div class="dropdown-avatar"></div>
+        <div class="dropdown-info">
+          <h3>Tomhoon</h3>
+          <p>gnsdj90798@gmail.com</p>
+        </div>
+      </div>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="#">My account</a>
+        <a class="dropdown-item" href="#">Settings</a>
+        <a class="dropdown-item" href="#">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="cover">
+      <button class="upload">Upload new cover</button>
+    </section>
+
+    <section class="profile">
+      <img class="avatar" src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?q=80&w=300&auto=format&fit=crop" alt="프로필" />
+      <h2 class="name">Tomhoon</h2>
+      <div class="email">gnsdj90798@gmail.com</div>
+    </section>
+
+     <div class="tabs" id="tabs">
+  <div class="tab active" data-target="panel-account">계정</div>
+  <div class="tab" data-target="panel-history">내역</div>
+  <div class="tab" data-target="panel-payments">결제수단</div>
+</div>
+
+    <section class="billing">
+      <div class="head">결제수단</div>
+      <div class="grid">
+        <div class="credit-card">
+          <div class="cc-top">
+            <div class="cc-chip"></div>
+            <div class="cc-meta">VISA</div>
+          </div>
+          <div class="cc-number">**** **** **** 4321</div>
+          <div class="cc-bottom">
+            <div>
+              <div class="cc-meta">Valid Thru</div>
+              <div class="cc-meta" style="font-weight:700">02/27</div>
+            </div>
+            <div class="cc-brand">VISA</div>
+          </div>
+        </div>
+        <div class="add-card">
+          <div class="plus">+</div>
+          <span>Add a new card</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<div class="modal" id="cardModal" aria-hidden="true">
+  <div class="backdrop" data-close></div>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="cardAddTitle">
+    <button class="close" title="닫기" data-close>&times;</button>
+    <h2 id="cardAddTitle" class="title">카드추가</h2>
+
+    <form id="cardForm">
+      <div class="field cardnum-wrap">
+        <label class="label">Card Number</label>
+        <input class="input" type="text" inputmode="numeric" placeholder="4321 4321 4321 4321" required>
+        <div class="brand-mini">VISA</div>
+      </div>
+
+      <div class="h2">
+        <div class="field">
+          <label class="label">Exp. Date</label>
+          <input class="input" type="text" placeholder="02/27" required>
+        </div>
+        <div class="field">
+          <label class="label">CVC</label>
+          <input class="input" type="text" placeholder="123" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Name on Card</label>
+        <input class="input" type="text" placeholder="John Doe" required>
+      </div>
+
+      <div class="field">
+        <label class="label">Country or Region</label>
+        <select class="select" required>
+          <option>United States</option>
+          <option>Republic of Korea</option>
+          <option>Japan</option>
+          <option>Canada</option>
+        </select>
+      </div>
+
+      <label class="checkline">
+        <input type="checkbox" checked>
+        정보 저장하기
+      </label>
+
+      <button class="submit" type="submit">Add Card</button>
+    </form>
+  </div>
+</div>
+  <section class="newsletter-section">
+    <div class="newsletter-content">
+      <div class="newsletter-left">
+        <h2 class="newsletter-title">구독서비스<br/>신청해보세요</h2>
+        <div class="newsletter-info">
+          <div class="newsletter-brand">The Travel</div>
+          <p class="newsletter-desc">구독자로 여행 할인, 팁 및 비하인드 정보를 받아보세요</p>
+        </div>
+        <div class="newsletter-form">
+          <input type="email" class="newsletter-input" placeholder="Your email address"/>
+          <button class="subscribe-btn">Subscribe</button>
+        </div>
+      </div>
+      <div class="mailbox-container">
+        <div class="mailbox-back"></div>
+        <div class="mailbox-base"></div>
+        <div class="mailbox-front"></div>
+        <div class="mailbox-flag"></div>
+        <div class="mailbox-flag2"></div>
+        <div class="mailbox-pole"></div>
+        <div class="mailbox-stand-base"></div>
+        <div class="mailbox-stand-front"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-content">
+    <div>
+      <div class="social-icons">
+        <img src="img/facebook.jpg" alt="facebook"/>
+        <img src="img/twitter.jpg" alt="twitter"/>
+        <img src="img/youtube.jpg" alt="youtube"/>
+        <img src="img/instagram.jpg" alt="instagram"/>
+      </div>
+      <div style="font-size:12px;color:#6b7280">© 2025 Find Steps</div>
+    </div>
+    <div class="footer-links">
+      <div class="footer-column">
+        <h4>Our Destinations</h4>
+        <a href="#">Canada</a>
+        <a href="#">Alaska</a>
+        <a href="#">France</a>
+        <a href="#">Iceland</a>
+      </div>
+      <div class="footer-column">
+        <h4>Our Activities</h4>
+        <a href="#">Northern Lights</a>
+        <a href="#">Cruising & sailing</a>
+        <a href="#">Multi-activities</a>
+        <a href="#">Kayaking</a>
+      </div>
+      <div class="footer-column">
+        <h4>Travel Blogs</h4>
+        <a href="#">Bali Travel Guide</a>
+        <a href="#">Sri Lanka Travel Guide</a>
+        <a href="#">Peru Travel Guide</a>
+        <a href="#">Bali Travel Guide</a>
+      </div>
+      <div class="footer-column">
+        <h4>About Us</h4>
+        <a href="#">Our Story</a>
+        <a href="#">Work with us</a>
+      </div>
+      <div class="footer-column">
+        <h4>Contact Us</h4>
+        <a href="#">Help Center</a>
+        <a href="#">Support</a>
+      </div>
+    </div>
+  </div>
+
+<script>
+function toggleDropdown(){
+  const d = document.getElementById('dropdown');
+  d.style.display = (d.style.display === 'block') ? 'none' : 'block';
+}
+</script>
+<script>
+const modal = document.getElementById('cardModal');
+const addTile = document.querySelector('.add-card');
+
+function openModal(){
+  modal.classList.add('open');
+  document.body.classList.add('modal-open');
+  modal.querySelector('input.input').focus();
+}
+function closeModal(){
+  modal.classList.remove('open');
+  document.body.classList.remove('modal-open');
+}
+
+addTile.addEventListener('click', openModal);
+modal.addEventListener('click', (e)=>{
+  if(e.target.hasAttribute('data-close')) closeModal();
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+});
+
+document.getElementById('cardForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  closeModal();
+  alert('카드가 추가되었습니다');
+});
+</script>
+
+</body>
+</html>
