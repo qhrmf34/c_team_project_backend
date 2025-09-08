@@ -13,11 +13,14 @@
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background: #FAFBFC;
-            width: 1440px;
+            background: rgba(250, 251, 252, 1);
+            max-width: 1440px;
+            min-width: 1440px;
             min-height: 100vh;
             margin: 0 auto;
-            overflow-x: hidden;
+            overflow-x: scroll;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Header */
@@ -100,12 +103,11 @@
             bottom: 2px;
             right: 2px;
         }
-
         /* User Dropdown */
         .user-dropdown {
             position: fixed;
             top: 82px;
-            right: 104px;
+            left: 64%;
             width: 329px;
             background: #FFFFFF;
             border-radius: 12px;
@@ -171,34 +173,56 @@
             line-height: 100%;
             padding: 4px 0;
         }
+        
+        .vertical-line{
+            width: 0.5px;
+            height: 1420px;
+            top: 287px;
+            left: 471px;
+            opacity: 0.25;
+            background: rgba(17, 34, 17, 1);
+
+        }
+        /* Breadcrumb */
+        .breadcrumb {
+            width: 244px;
+            height: 24px;
+            gap: 8px;
+            background: #F8F9FA;
+            margin-top: 135px;
+            font-family: Montserrat;
+            font-weight: 400;
+            font-size: 14px;
+            color: #666666;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-left: 80px;
+            margin-bottom: 30px;
+        }     
+
+        .breadcrumb a {
+            color: #666666;
+            text-decoration: none;
+            font-family: Montserrat;
+            font-weight: 500;
+            font-style: Medium;
+            font-size: 14px;
+            leading-trim: NONE;
+            line-height: 100%;
+            letter-spacing: 0%;
+        }
+
+        .breadcrumb a:hover {
+            color: #112211;
+        }
 
         /* Main Content */
         .main-content {
-            margin-top: 87px;
-            padding: 24px 104px;
+            flex: 1;
+            padding: 20px 104px;
             max-width: 1440px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        /* Breadcrumb */
-        .breadcrumb {
-            margin-bottom: 24px;
-        }
-
-        .breadcrumb a {
-            color: #8DD3BB;
-            text-decoration: none;
-            font-family: Montserrat;
-            font-weight: 400;
-            font-size: 14px;
-        }
-
-        .breadcrumb span {
-            color: #112211;
-            font-family: Montserrat;
-            font-weight: 400;
-            font-size: 14px;
+            width: 100%;
         }
 
         /* Hotel Header */
@@ -206,155 +230,244 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 24px;
+            border-radius: 12px;
+            gap: 32px;
+            margin-bottom: 30px;
         }
 
-        .hotel-title-section {
+        /* 왼쪽 호텔 정보 */
+        .hotel-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
             flex: 1;
         }
 
-        .hotel-name {
-            font-family: Montserrat;
-            font-weight: 600;
-            font-size: 28px;
-            line-height: 100%;
+        .hotel-title {
+            font-family: 'ABeeZee', sans-serif;
+            font-weight: 400;
+            font-size: 20px;
             color: #112211;
-            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
         }
 
-        .hotel-rating {
+        .hotel-location-line {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 8px;
+            font-family: Montserrat;
+            font-weight: 500;
+            font-style: Medium;
+            font-size: 14px;
+            leading-trim: NONE;
+            line-height: 100%;
+            letter-spacing: 0%;
+            color: #666666;
+        }
+        .hotel-location-line img{
+            width: 11.25px;
+            height: 15.749412536621094px;
+            top: 1.13px;
+            left: 3.38px;
+            angle: 0 deg;
+            opacity: 1;
+
+        }
+
+        .hotel-meta-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
 
         .stars {
-            color: #FFD700;
-            font-size: 16px;
+            color: #FF8682;
+            font-size: 14px;
+            letter-spacing: 2px;
+            padding-left: 25px;
+            
+        }
+        .stars-hotel{
+            font-family: Montserrat;
+            font-weight: 500;
+            font-style: Medium;
+            font-size: 12px;
+            leading-trim: NONE;
+            line-height: 100%;
+            letter-spacing: 0%;
+            
+        }
+
+        .rating-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .rating-score {
-            font-family: Montserrat;
-            font-weight: 600;
-            font-size: 14px;
-            color: #112211;
-        }
-
-        .rating-text {
-            font-family: Montserrat;
-            font-weight: 400;
+            background: #fff;
+            border: 1px solid #7bc4a8;
+            border-radius: 4px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
             font-size: 12px;
             color: #112211;
-            opacity: 0.7;
-        }
-
-        .hotel-location {
-            font-family: Montserrat;
-            font-weight: 400;
-            font-size: 14px;
-            color: #112211;
-            opacity: 0.7;
+            width: 40px;
+            height: 32px;
+            gap: 10px;
             display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 4px;
         }
 
+
+        .rating-text1 {
+            font-family: Montserrat;
+            font-weight: 700;
+            font-style: Bold;
+            font-size: 12px;
+            leading-trim: NONE;
+            line-height: 100%;
+            letter-spacing: 0%;
+            color: rgba(17, 34, 17, 1);
+        }
+        .rating-text2 {
+            margin-left: -1px;
+            font-family: Montserrat;
+            font-weight: 500;
+            font-style: Medium;
+            font-size: 12px;
+            leading-trim: NONE;
+            line-height: 100%;
+            letter-spacing: 0%;
+            color: rgba(17, 34, 17, 1);
+;
+        }
+
+
+        /* 오른쪽 가격 & 버튼 */
         .hotel-actions {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 12px;
+            flex-shrink: 0;
         }
 
-        .price-info {
+        .hotel-price {
             text-align: right;
         }
 
         .price-amount {
-            font-family: Montserrat;
-            font-weight: 600;
-            font-size: 24px;
-            color: #FF6B6B;
-            line-height: 100%;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 32px;
+            color: rgba(255, 134, 130, 1);
         }
+
 
         .price-unit {
-            font-family: Montserrat;
-            font-weight: 400;
-            font-size: 14px;
-            color: #112211;
-            opacity: 0.7;
+            font-size: 24px;
+            color: rgba(255, 134, 130, 1);
         }
 
-        .action-buttons {
+        .hotel-buttons {
             display: flex;
+            align-items: center;
             gap: 12px;
         }
 
-        .wishlist-btn {
-            background: #FFFFFF;
-            border: 1px solid #E0E0E0;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .share-btn {
-            background: #FFFFFF;
-            border: 1px solid #E0E0E0;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .book-btn {
-            padding: 12px 24px;
-            background: #8DD3BB;
-            border: none;
+        .action-btn {
+            background: none;
+            border: 1px solid #8DD3BB;
             border-radius: 4px;
-            font-family: Montserrat;
-            font-weight: 500;
-            font-size: 14px;
             color: #112211;
             cursor: pointer;
+            width: 48px;
+            height: 48px;
+            gap: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn img{
+            width: 15.001760482788086px;
+            height: 16.24186897277832px;
+            top: 1.88px;
+            left: 2.5px;
+            angle: 0 deg;
+            opacity: 1;
+            border-width: 0.05px;
+
         }
 
+        .book-now-btn {
+            background: #8DD3BB;
+            color: #112211;
+            border: none;
+            border-radius: 4px;
+            width: 150px;
+            height: 48px;
+            gap: 4px;
+            padding: 8px 16px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
         /* Image Gallery */
         .image-gallery {
-            margin-bottom: 40px;
-        }
-
-        .gallery-container {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            grid-template-rows: 200px 200px;
+            display: flex;
             gap: 8px;
+            margin-bottom: 40px;
             border-radius: 12px;
+            width: 1232px;  
+            height: 550px;
             overflow: hidden;
-            position: relative;
         }
 
-        .gallery-main {
-            grid-row: span 2;
+        .main-image {
+            width: 612px;
+            height: 550px;
             position: relative;
+            border-radius: 12px 0 0 12px; 
+            overflow: hidden;
+        }
+
+        .sub-images {
+            display: flex;
+            flex-direction: column;
+            gap: 8px; 
+            width: 612px;
+        }
+
+        .sub-row {
+            display: flex;
+            gap: 8px;
+            height: 271px;
         }
 
         .gallery-item {
+            width: 302px;
+            height: 271px;
             position: relative;
             overflow: hidden;
         }
 
+        .item3 {
+            border-radius: 0 12px 0 0; 
+        }
+        .item5{
+            border-radius: 0 0 12px 0;
+        }
+
+        .main-image img,
         .gallery-item img {
             width: 100%;
             height: 100%;
@@ -365,236 +478,292 @@
             position: absolute;
             bottom: 16px;
             right: 16px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-family: Montserrat;
-            font-weight: 500;
-            font-size: 14px;
+            background: #8DD3BB;
             color: #112211;
             border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 12px;
             cursor: pointer;
         }
 
-        /* Overview Section */
-        .overview-section {
-            margin-bottom: 40px;
+        /* Content Layout */
+        .content-layout {
+            display: flex;
+            gap: 40px;
         }
 
-        .section-title {
-            font-family: Montserrat;
+        .content-main {
+            flex: 2;
+        }
+
+        .content-sidebar {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        /* Over view*/
+        .overview-section {
+            width: 1232px;
+            margin-bottom: 70px;
+        }
+        
+        .overview-title {
+            font-family: 'Montserrat', sans-serif;
             font-weight: 600;
             font-size: 20px;
-            line-height: 100%;
             color: #112211;
             margin-bottom: 16px;
         }
-
+        
         .overview-text {
-            font-family: Montserrat;
+            font-family: 'Montserrat', sans-serif;
             font-weight: 400;
             font-size: 14px;
-            line-height: 150%;
+            line-height: 1.6;
+            color: #112211;
+            margin-bottom: 24px;
+        }
+        
+        .content-row {
+            display: flex;       
+            gap: 16px;         
+            flex-wrap: wrap;     
+        }
+        
+        .rating-box {
+            background-color: white;
+            border: 2px solid rgba(141, 211, 187, 1);
+            width: 166px;
+            height: 145px;
+            padding-top: 16px;
+            padding-right: 64px;
+            padding-bottom: 16px;
+            padding-left: 16px;
+            gap: 10px;
+            border-radius: 12px;
+            padding: 16px 20px;
+            flex-shrink: 0;
+        }
+        .rating-box img{
+            width: 31.99907875061035px;
+            height: 31.999845504760742px;
+            top: 0px;
+            left: 0px;
+            angle: 0 deg;
+            opacity: 1;
+
+        }
+
+        .rating-number {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 32px;
+            color: #112211;
+            line-height: 1;
+            margin-bottom: 40px;
+        }
+        
+        .rating-label {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            color: #112211;
+            margin-bottom: 2px;
+        }
+        
+        .review-count {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-size: 12px;
+            color: #112211;
+        }
+        
+        .rating-box:hover{
+            background: rgba(141, 211, 187, 1);
+
+        }
+        .rating-box:active{
+            background: rgba(141, 211, 187, 1);
+
+        }
+
+        /* Room List */
+        .room-section {
+            border-radius: 12px;
+            margin-top: 70px;
+            margin-bottom: 70px;
+            width: 1232px;
+        }
+
+        .room-title {
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 20px;
             color: #112211;
             margin-bottom: 24px;
         }
 
-        .overview-features {
-            display: flex;
-            gap: 32px;
-        }
-
-        .feature-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            background: #FFFFFF;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
-            min-width: 120px;
-        }
-
-        .feature-score {
-            font-family: Montserrat;
-            font-weight: 700;
-            font-size: 24px;
-            color: #FFFFFF;
-            background: #8DD3BB;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            min-width: 48px;
-        }
-
-        .feature-rating {
-            font-family: Montserrat;
-            font-weight: 500;
-            font-size: 12px;
-            color: #112211;
-            margin-bottom: 4px;
-        }
-
-        .feature-name {
-            font-family: Montserrat;
-            font-weight: 400;
-            font-size: 12px;
-            color: #112211;
-            opacity: 0.7;
-        }
-
-        /* Room Types */
-        .room-types-section {
-            margin-bottom: 40px;
-        }
-
-        .room-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
         .room-item {
             display: flex;
-            background: #FFFFFF;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .room-item:last-child {
+            border-bottom: none;
         }
 
         .room-image {
             width: 80px;
-            height: 60px;
+            height: 80px;
             border-radius: 8px;
-            margin-right: 16px;
             object-fit: cover;
+            flex-shrink: 0;
         }
 
         .room-info {
             flex: 1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
-        .room-details h4 {
+        .room-details {
             font-family: Montserrat;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 14px;
             color: #112211;
             margin-bottom: 4px;
         }
 
-        .room-features {
-            font-family: Montserrat;
-            font-weight: 400;
-            font-size: 12px;
-            color: #112211;
-            opacity: 0.7;
+
+
+        .room-price-section {
+            display: flex;
+            align-items: center;
+            width: 392px;
+            height: 48px;
+            justify-content: space-between;
         }
 
         .room-price {
-            text-align: right;
-            margin-right: 16px;
-        }
-
-        .room-price-amount {
-            font-family: Montserrat;
-            font-weight: 600;
-            font-size: 18px;
-            color: #112211;
-        }
-
-        .room-price-unit {
             font-family: Montserrat;
             font-weight: 400;
-            font-size: 12px;
-            color: #112211;
-            opacity: 0.7;
+            font-size: 24px;
+            leading-trim: NONE;
+            font-style: Regular;
+            line-height: 100%;
+            letter-spacing: 0%;
+            color: rgba(17, 34, 17, 1);
         }
 
+
         .room-book-btn {
-            padding: 8px 16px;
             background: #8DD3BB;
-            border: none;
-            border-radius: 4px;
-            font-family: Montserrat;
-            font-weight: 500;
-            font-size: 14px;
             color: #112211;
+            border: none;
+            width: 150px;
+            height: 48px;
+            border-radius: 4px;
+            padding: 8px 16px;
+            gap: 4px;
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 12px;
             cursor: pointer;
+            flex-shrink: 0;
         }
+
 
         /* Map Section */
         .map-section {
-            margin-bottom: 40px;
+            width: 1232px;
+            margin-top: 70px;
+            border-radius: 12px;
+            margin-bottom: 70px;
         }
 
-        .map-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .view-on-google {
-            background: #FFFFFF;
-            border: 1px solid #8DD3BB;
-            border-radius: 4px;
-            padding: 8px 16px;
+        .map-title {
             font-family: Montserrat;
-            font-weight: 500;
-            font-size: 14px;
-            color: #8DD3BB;
-            cursor: pointer;
+            font-weight: 600;
+            font-size: 20px;
+            color: #112211;
+            margin-bottom: 16px;
         }
 
         .map-container {
             width: 100%;
             height: 300px;
-            background: #E0E0E0;
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
+            margin-bottom: 16px;
+            background: #E0E0E0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666666;
             position: relative;
         }
 
         .map-placeholder {
-            width: 100%;
-            height: 100%;
-            background: url('https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1000&h=300&fit=crop') center/cover;
+            text-align: center;
+        }
+
+        .map-actions {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
         }
 
         .map-address {
-            position: absolute;
-            bottom: 16px;
-            left: 16px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 8px 12px;
-            border-radius: 4px;
             font-family: Montserrat;
             font-weight: 400;
-            font-size: 12px;
+            font-size: 14px;
+            color: #666666;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .view-map-btn {
+            background: #8DD3BB;
             color: #112211;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
         }
 
         /* Amenities Section */
         .amenities-section {
-            margin-bottom: 40px;
+            width: 720px;
+            gap: 32px;
+            border-radius: 12px;
+            margin-bottom: 70px;
+            margin-top: 70px;
         }
+
+        .amenities-title {
+            font-family: Acme;
+            font-weight: 400;
+            font-style: Regular;
+            font-size: 20px;
+            leading-trim: NONE;
+            line-height: 100%;
+            letter-spacing: 0%;
+            color: #112211;
+            margin-bottom: 24px;
+        }
+
 
         .amenities-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-        }
-
-        .amenities-column {
-            display: flex;
-            flex-direction: column;
             gap: 16px;
         }
 
@@ -602,100 +771,146 @@
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+        .amenity-item img{
+            width: 20px;
+            height: 19px;
+            top: 2px;
+            left: 2px;
+            angle: 0 deg;
+            opacity: 1;
+        }
+
+        .amenity-text {
             font-family: Montserrat;
             font-weight: 400;
             font-size: 14px;
             color: #112211;
         }
 
-        .amenity-icon {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
+        .amenity-item.hidden {
+            display: none;
         }
 
         /* Reviews Section */
         .reviews-section {
-            margin-bottom: 60px;
+            width: 1232px;
+            border-radius: 12px;
+            margin-top: 70px;
+            margin-bottom: 180px;
         }
-
+        .reviews-header.single-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            gap: 24px;
+            margin-bottom: -150px;
+        }
+        
+        .reviews-info {
+            display: block;
+            align-items: center;
+            gap: 16px; 
+        }
         .reviews-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             margin-bottom: 24px;
         }
 
-        .reviews-score {
+        .reviews-left {
             display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .score-number {
-            font-family: Montserrat;
-            font-weight: 700;
-            font-size: 32px;
-            color: #112211;
-        }
-
-        .score-details {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .score-label {
-            font-family: Montserrat;
-            font-weight: 600;
-            font-size: 16px;
-            color: #112211;
-        }
-
-        .score-count {
-            font-family: Montserrat;
-            font-weight: 400;
-            font-size: 12px;
-            color: #112211;
-            opacity: 0.7;
-        }
-
-        .give-review-btn {
-            background: #8DD3BB;
-            border: none;
-            border-radius: 4px;
-            padding: 12px 20px;
-            font-family: Montserrat;
-            font-weight: 500;
-            font-size: 14px;
-            color: #112211;
-            cursor: pointer;
-        }
-
-        .reviews-list {
-            display: flex;
-            flex-direction: column;
+            align-items: flex-start;
             gap: 24px;
         }
 
+        .reviews-title {
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 20px;
+            color: #112211;
+        }
+
+        .reviews-summary {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .review-score-big {
+            font-family: Montserrat;
+            font-weight: 700;
+            font-size: 48px;
+            color: #112211;
+        }
+
+        .review-summary-text {
+            font-family: Montserrat;
+            font-weight: 500;
+            font-size: 16px;
+            color: #666666;
+            line-height: 1.2;
+        }
+
+        .review-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .review-btn {
+            background: #8DD3BB;
+            color: #112211;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .review-filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .filter-btn {
+            background: #F5F5F5;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-family: Montserrat;
+            font-weight: 500;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: #8DD3BB;
+            color: #112211;
+        }
+
         .review-item {
-            background: #FFFFFF;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid #f0f0f0;
+            padding: 20px 0;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
         }
 
         .review-header {
             display: flex;
-            justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
+            justify-content: space-between;
+            margin-bottom: 8px;
         }
 
-        .reviewer-info {
+        .review-user-info {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -706,9 +921,14 @@
             height: 40px;
             border-radius: 50%;
             background: #D9D9D9;
+            flex-shrink: 0;
         }
 
-        .reviewer-details h4 {
+        .reviewer-info {
+            flex: 1;
+        }
+
+        .reviewer-name {
             font-family: Montserrat;
             font-weight: 600;
             font-size: 14px;
@@ -716,25 +936,33 @@
             margin-bottom: 2px;
         }
 
-        .reviewer-details span {
+        .review-rating {
             font-family: Montserrat;
             font-weight: 400;
             font-size: 12px;
-            color: #112211;
-            opacity: 0.7;
+            color: #666666;
         }
 
-        .review-rating {
-            color: #FFD700;
-            font-size: 14px;
+        .report-btn {
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-family: Montserrat;
+            font-weight: 500;
+            font-size: 12px;
+            cursor: pointer;
+            flex-shrink: 0;
         }
 
         .review-text {
             font-family: Montserrat;
             font-weight: 400;
             font-size: 14px;
-            line-height: 150%;
+            line-height: 1.6;
             color: #112211;
+            margin-left: 52px;
         }
 
         .review-pagination {
@@ -743,34 +971,229 @@
             align-items: center;
             gap: 16px;
             margin-top: 24px;
+            margin-bottom: 100px;
         }
 
         .pagination-btn {
-            background: #FFFFFF;
-            border: 1px solid #E0E0E0;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: none;
+            border: none;
+            font-size: 18px;
             cursor: pointer;
-            font-size: 14px;
+            color: #666666;
         }
 
         .pagination-info {
             font-family: Montserrat;
             font-weight: 400;
             font-size: 14px;
-            color: #112211;
+            color: #666666;
         }
 
-        /* Newsletter Section */
+        /* Review Form */
+        .review-form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 2px solid #8DD3BB;
+            display: none;
+        }
+
+        .review-form-section.active {
+            display: block;
+        }
+
+        .review-form-title {
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 20px;
+            color: #112211;
+            margin-bottom: 24px;
+        }
+
+        .rating-input {
+            margin-bottom: 24px;
+        }
+
+        .rating-input label {
+            font-family: Montserrat;
+            font-weight: 500;
+            font-size: 14px;
+            color: #112211;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .star {
+            font-size: 24px;
+            color: #E0E0E0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #FFD700;
+        }
+
+        .review-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-family: Montserrat;
+            font-weight: 400;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 24px;
+        }
+
+        .review-form-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .cancel-btn {
+            background: #F5F5F5;
+            color: #666666;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 24px;
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .submit-review-btn {
+            background: #8DD3BB;
+            color: #112211;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 24px;
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Report Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            width: 500px;
+            max-width: 90vw;
+        }
+
+        .modal-title {
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 20px;
+            color: #112211;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .report-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .report-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .report-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .report-option label {
+            font-family: Montserrat;
+            font-weight: 400;
+            font-size: 14px;
+            color: #112211;
+            cursor: pointer;
+        }
+
+        .report-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 16px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-family: Montserrat;
+            font-weight: 400;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 24px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .modal-cancel-btn {
+            background: #F5F5F5;
+            color: #666666;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 24px;
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .modal-submit-btn {
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 24px;
+            font-family: Montserrat;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+         /* Newsletter Section */
         .newsletter-section {
             background: rgba(141, 211, 187, 1);
             padding: 80px 104px 80px 104px;
             position: relative;
-            z-index: 0;
             height: 422px;
             display: flex;
             flex-direction: column;
@@ -1014,19 +1437,29 @@
         .footer-column a:hover {
             opacity: 1;
         }
-    </style>
+        .beeline{
+            width: 1232px;
+            height: 1px;
+            angle: 0 deg;
+            opacity: 0.25;
+            background: rgba(17, 34, 17, 1);
+
+        }
+        </style>
 </head>
 <body>
     <header class="header">
         <nav>
             <div class="nav-left">
                 <a href="#" class="nav-item">
+                    <span><img src="img/hotel.jpg"></span>
                     Find Stays
                 </a>
             </div>
             
             <div class="nav-right">
                 <a href="#" class="nav-item">
+                    <span><img src="img/heart.jpg"></span>
                     찜하기
                 </a>
                 <span>|</span>
@@ -1050,314 +1483,425 @@
         </div>
         <div class="dropdown-menu">
             <a href="#" class="dropdown-item">
-                계정
+                <span><img src="img/account.jpg"></span> 계정
             </a>
             <a href="#" class="dropdown-item">
-                결제내역
+                <span><img src="img/card.jpg"></span> 결제내역
             </a>
             <a href="#" class="dropdown-item">
-                설정
+                <span><img src="img/setting.jpg"></span> 설정
             </a>
             <hr style="border: 0.5px solid rgba(17, 34, 17, 0.25);">
             <a href="#" class="dropdown-item">
-                로그아웃
+                <span><img src="img/logout.jpg"></span> 로그아웃
             </a>
         </div>
     </div>
 
-    <main class="main-content">
-        <!-- Breadcrumb -->
-        <div class="breadcrumb">
-            <a href="#">터키</a> > <a href="#">이스탄불</a> > <span>해튼호텔</span>
-        </div>
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="#" style="color: rgba(255, 134, 130, 1);">Turkey</a> > <a href="#" style="color: rgba(255, 134, 130, 1);">Istanbul</a> > <span>해튼호텔</span>
+    </div>
 
+    <div class="main-content">
         <!-- Hotel Header -->
         <div class="hotel-header">
-            <div class="hotel-title-section">
-                <h1 class="hotel-name">해튼호텔</h1>
-                <div class="hotel-rating">
-                    <span class="stars">★★★★★</span>
-                    <span class="rating-score">4.2</span>
-                    <span class="rating-text">Very Good 371 reviews</span>
-                </div>
-                <div class="hotel-location">
-                    <span><img src="img/map.jpg"/></span>
+            <div class="hotel-info">
+                <h1 class="hotel-title">해튼호텔<span class="stars">★★★★★</span><span class="stars-hotel">5 Star Hotel</span></h1>
+                <div class="hotel-location-line">
+                    <span><img src="img/map.jpg"></span>
                     <span>Gümüşsuyu Mah. İnönü Cad. No:8, Istanbul 34437</span>
                 </div>
-            </div>
-            <div class="hotel-actions">
-                <div class="price-info">
-                    <div class="price-amount">₩240,000<span style="font-size: 16px; font-weight: 400;">/night</span></div>
-                    <div class="price-unit">excl. tax</div>
+                <div class="hotel-meta-left">
+                    <div class="rating-info">
+                        <span class="rating-score">4.2</span>
+                        <span class="rating-text1">Very Good </span><span class="rating-text2">371 reviews</span>
+                    </div>
                 </div>
-                <div class="action-buttons">
-                    <button class="wishlist-btn">♡</button>
-                    <button class="share-btn">↗</button>
-                    <button class="book-btn">Book now</button>
+            </div>
+        
+            <div class="hotel-actions">
+                <div class="hotel-price">
+                    <div class="price-amount">₩240,000<span class="price-unit">/night</span></div>
+                </div>
+                <div class="hotel-buttons">
+                    <button class="action-btn"><img src="img/heart2.jpg"/></button>
+                    <button class="action-btn"><img src="img/share.jpg"></button>
+                    <button class="book-now-btn">Book now</button>
                 </div>
             </div>
         </div>
 
         <!-- Image Gallery -->
         <div class="image-gallery">
-            <div class="gallery-container">
-                <div class="gallery-main">
-                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop" alt="Hotel Main Image">
-                </div>
-                <div class="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=300&h=200&fit=crop" alt="Hotel Room">
-                </div>
-                <div class="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300&h=200&fit=crop" alt="Hotel Interior">
-                </div>
-                <div class="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=300&h=200&fit=crop" alt="Hotel Bathroom">
-                </div>
-                <div class="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?w=300&h=200&fit=crop" alt="Hotel View">
-                </div>
-                <button class="view-all-photos">View all photos</button>
+            <div class="main-image">
+                <img src="img/findhotel1.jpg" alt="해튼호텔 메인">
+            </div>
+            <div class="sub-images">
+                <div class="sub-row">
+                    <div class="gallery-item">
+                        <img src="img/findhotel2.jpg" alt="호텔 객실">
+                    </div>
+                    <div class="gallery-item item3">
+                        <img src="img/findhotel3.jpg" alt="호텔 로비">
+                    </div>
+                </div>  
+                <div class="sub-row">
+                    <div class="gallery-item">
+                        <img src="img/findhotel4.jpg" alt="호텔 외관">
+                    </div>
+                    <div class="gallery-item item5">
+                        <img src="img/findhotel5.jpg" alt="호텔 수영장">
+                        <button class="view-all-photos">View all photos</button>
+                    </div>
+                </div>     
             </div>
         </div>
 
-        <!-- Overview -->
-        <div class="overview-section">
-            <h2 class="section-title">Overview</h2>
-            <p class="overview-text">
-                해튼호텔은 터키의 문화적 중심지인 이스탄불에 위치한 프리미엄 호텔로, 전통과 현대가 조화된 럭셔리한 서비스를 제공합니다. 도시 중심가에 자리잡아 주요 관광명소까지 쉽게 이동할 수 있으며, 고급스러운 시설과 최상의 편의를 갖춘 객실에서 편안한 휴식을 취하실 수 있습니다. 숙련된 직원들의 세심한 서비스와 함께 잊지 못할 터키 여행의 추억을 만들어드립니다.
-            </p>
-            <div class="overview-features">
-                <div class="feature-item">
-                    <div class="feature-score">4.2</div>
-                    <div class="feature-rating">Very good</div>
-                    <div class="feature-name">Overall rating</div>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-score">★</div>
-                    <div class="feature-rating">Near park</div>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-score">★</div>
-                    <div class="feature-rating">Near nightlife</div>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-score">★</div>
-                    <div class="feature-rating">Near theater</div>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-score">★</div>
-                    <div class="feature-rating">Clean Hotel</div>
-                </div>
-            </div>
-        </div>
+        <div class="content-layout">
+            <div class="content-main">
+                <!-- Overview Section -->
+                 <div class="overview-section">
+                        <h2 class="overview-title">Overview</h2>
 
-        <!-- Room Types -->
-        <div class="room-types-section">
-            <h2 class="section-title">객실 정보</h2>
-            <div class="room-list">
-                <div class="room-item">
-                    <img src="https://images.unsplash.com/photo-1591088398332-8a7791972843?w=80&h=60&fit=crop" alt="Superior room" class="room-image">
-                    <div class="room-info">
-                        <div class="room-details">
-                            <h4>Superior room - 1 double bed or 2 twin beds</h4>
-                            <div class="room-features">City view - 1 double bed or 2 twin beds</div>
-                        </div>
-                        <div class="room-price">
-                            <div class="room-price-amount">₩240,000</div>
-                            <div class="room-price-unit">night</div>
-                        </div>
-                        <button class="room-book-btn">Book now</button>
-                    </div>
-                </div>
-                <div class="room-item">
-                    <img src="https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=80&h=60&fit=crop" alt="Superior room" class="room-image">
-                    <div class="room-info">
-                        <div class="room-details">
-                            <h4>Superior room - City view - 1 double bed or 2 twin beds</h4>
-                            <div class="room-features">City view - 1 double bed or 2 twin beds</div>
-                        </div>
-                        <div class="room-price">
-                            <div class="room-price-amount">₩240,000</div>
-                            <div class="room-price-unit">night</div>
-                        </div>
-                        <button class="room-book-btn">Book now</button>
-                    </div>
-                </div>
-                <div class="room-item">
-                    <img src="https://images.unsplash.com/photo-1566195992011-5f6b21e539aa?w=80&h=60&fit=crop" alt="Superior room" class="room-image">
-                    <div class="room-info">
-                        <div class="room-details">
-                            <h4>Superior room - City view - 1 double bed or 2 twin beds</h4>
-                            <div class="room-features">City view - 1 double bed or 2 twin beds</div>
-                        </div>
-                        <div class="room-price">
-                            <div class="room-price-amount">₩246,000</div>
-                            <div class="room-price-unit">night</div>
-                        </div>
-                        <button class="room-book-btn">Book now</button>
-                    </div>
-                </div>
-                <div class="room-item">
-                    <img src="https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=80&h=60&fit=crop" alt="Superior room" class="room-image">
-                    <div class="room-info">
-                        <div class="room-details">
-                            <h4>Superior room - City view - 1 double bed or 2 twin beds</h4>
-                            <div class="room-features">City view - 1 double bed or 2 twin beds</div>
-                        </div>
-                        <div class="room-price">
-                            <div class="room-price-amount">₩246,000</div>
-                            <div class="room-price-unit">night</div>
-                        </div>
-                        <button class="room-book-btn">Book now</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <p class="overview-text">
+                            반다르 힐리르 지역에 위치한 대형 호텔로 쇼핑몰과 관광지가 가까워 접근성이 뛰어납니다. 실외 수영장, 스파, 피트니스 센터, 그리고 가족 단위 여행객을 위한 키즈 풀까지 갖추고 있어 편리
+                            하고 실속 있는 여행을 원하는 분들에게 적합합니다. 넓은 객실과 모던한 시설은 물론, 비즈니스 센터와 회의실도 완비되어 있어 단체 관광이나 기업 연수에도 어울립니다.
+                        </p>
 
-        <!-- Map -->
-        <div class="map-section">
-            <div class="map-header">
-                <h2 class="section-title">지도보기</h2>
-                <button class="view-on-google">View on google maps</button>
-            </div>
-            <div class="map-container">
-                <div class="map-placeholder"></div>
-                <div class="map-address"><img src="img/map.jpg"/> Gümüşsuyu Mah. İnönü Cad. No:8, Istanbul 34437</div>
-            </div>
-        </div>
+                        <div class="content-row">
+                            <div class="rating-box">
+                                <div class="rating-number">4.2</div>
+                                <div class="rating-label">Very good</div>
+                                <div class="review-count">371 reviews</div>
+                            </div>
+                            <div class="rating-box">
+                                <div class="rating-number"><img src="img/star.jpg"></div>
+                                <div class="rating-label">Near park</div>
+                                <div class="review-count">215 reviews</div>
+                            </div>
+                            <div class="rating-box">
+                                <div class="rating-number"><img src="img/star.jpg"></div>
+                                <div class="rating-label">Near nightlife</div>
+                                <div class="review-count">89 reviews</div>
+                            </div>
+                            <div class="rating-box">
+                                <div class="rating-number"><img src="img/star.jpg"></div>
+                                <div class="rating-label">Near theater</div>
+                                <div class="review-count">142 reviews</div>
+                            </div>
+                            <div class="rating-box">
+                                <div class="rating-number"><img src="img/star.jpg"></div>
+                                <div class="rating-label">Clean Hotel</div>
+                                <div class="review-count">142 reviews</div>
+                            </div>
+                        </div>
+                </div>
+                <div class="beeline"></div>
+                <!-- Room List -->
+                <div class="room-section">
+                    <h3 class="room-title">잔여 객실</h3>
+                    
+                    <div class="room-item">
+                        <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" alt="Superior room" class="room-image">
+                        <div class="room-info">
+                            <div class="room-details">Superior room · 1 double bed or 2 twin beds</div>
+                        </div>
+                        <div class="room-price-section">
+                            <div class="room-price">₩240,000<span style="font-size: 14px; font-weight: 400;">/night</span></div>
+                            <button class="room-book-btn">Book now</button>
+                        </div>
+                    </div>
 
-        <!-- Amenities -->
-        <div class="amenities-section">
-            <h2 class="section-title">Amenities</h2>
-            <div class="amenities-grid">
-                <div class="amenities-column">
-                    <div class="amenity-item">
-                        <div class="amenity-icon">🏊</div>
-                        <span>Outdoor pool</span>
+                    <div class="room-item">
+                        <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" alt="Superior room" class="room-image">
+                        <div class="room-info">
+                            <div class="room-details">Superior room · City view · 1 double bed or 2 twin beds</div>
+                        </div>
+                        <div class="room-price-section">
+                            <div class="room-price">₩240,000<span style="font-size: 14px; font-weight: 400;">/night</span></div>
+                            <button class="room-book-btn">Book now</button>
+                        </div>
                     </div>
-                    <div class="amenity-item">
-                        <div class="amenity-icon">🏊</div>
-                        <span>Indoor pool</span>
-                    </div>
-                    <div class="amenity-item">
-                        <div class="amenity-icon">🌡️</div>
-                        <span>Spa and wellness center</span>
-                    </div>
-                    <div class="amenity-item">
-                        <div class="amenity-icon">🍽️</div>
-                        <span>Restaurant</span>
-                    </div>
-                    <div class="amenity-item">
-                        <div class="amenity-icon">🛎️</div>
-                        <span>Room service</span>
-                    </div>
-                </div>
-                <div class="amenities-column">
-                    <div class="amenity-item">
-                        <div class="amenity-icon">💼</div>
-                        <span>Fitness center</span>
-                    </div>
-                    <div class="amenity-item">
-                        <div class="amenity-icon">🛍️</div>
-                        <span>Bar/Lounge</span>
-                    </div>
-                    <div class="amenity-item">
-                        <div class="amenity-icon">📶</div>
-                        <span>Free Wi-Fi</span>
-                    </div>
-                    <div class="amenity-item">
-                        <div class="amenity-icon">☕</div>
-                        <span>Coffee machine</span>
-                    </div>
-                    <div class="amenity-item">
-                        <div class="amenity-icon">🍿</div>
-                        <span>24 more</span>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Reviews -->
-        <div class="reviews-section">
-            <div class="reviews-header">
-                <div class="reviews-score">
-                    <div class="score-number">4.2</div>
-                    <div class="score-details">
-                        <div class="score-label">Very good</div>
-                        <div class="score-count">371 reviews</div>
-                    </div>
-                </div>
-                <button class="give-review-btn">Give your review</button>
-            </div>
-            <div class="reviews-list">
-                <div class="review-item">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <div class="reviewer-avatar"></div>
-                            <div class="reviewer-details">
-                                <h4>5.0 Amazing | 이은경</h4>
-                                <span>호텔 시설이나 서비스 모두 만족스러운 편이고, 특히 수영장 뷰가 좋아서 시간이 갈수록 좋았어요. 위치가 메인이라고 느껴집니다.</span>
-                            </div>
+                    <div class="room-item">
+                        <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" alt="Superior room" class="room-image">
+                        <div class="room-info">
+                            <div class="room-details">Superior room · 1 double bed or 2 twin beds</div>
                         </div>
-                        <div class="review-rating">★★★★★</div>
-                    </div>
-                </div>
-                <div class="review-item">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <div class="reviewer-avatar"></div>
-                            <div class="reviewer-details">
-                                <h4>4.0 Amazing | 김민석</h4>
-                                <span>위치도 좋고 직원들이 친절했어요 특히 수영장이 넓고 해서 수영하러 다닐때 놀 수 있는 공간이 있어서 물놀이랑 수영까지 다들 친절하게 도와서 좋았어요.</span>
-                            </div>
+                        <div class="room-price-section">
+                            <div class="room-price">₩240,000<span style="font-size: 14px; font-weight: 400;">/night</span></div>
+                            <button class="room-book-btn">Book now</button>
                         </div>
-                        <div class="review-rating">★★★★☆</div>
                     </div>
-                </div>
-                <div class="review-item">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <div class="reviewer-avatar"></div>
-                            <div class="reviewer-details">
-                                <h4>5.0 Amazing | 박수현</h4>
-                                <span>훌륭한 서비스! 직원들이 매우 친절하며, 객실이 깨끗하고 편안했습니다. 조식도 맛있고 다양한 메뉴가 있어 좋았어요. 이스탄불 여행에서 최고의 선택이었습니다!</span>
-                            </div>
+
+                    <div class="room-item">
+                        <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" alt="Superior room" class="room-image">
+                        <div class="room-info">
+                            <div class="room-details">Superior room · 1 double bed or 2 twin beds</div>
                         </div>
-                        <div class="review-rating">★★★★★</div>
-                    </div>
-                </div>
-                <div class="review-item">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <div class="reviewer-avatar"></div>
-                            <div class="reviewer-details">
-                                <h4>4.0 Amazing | 정민호</h4>
-                                <span>위치가 정말 좋아요. 주요 관광지들이 모두 걸어서 갈 수 있는 거리에 있고, 호텔 시설도 현대적이고 깨끗합니다. 다만 조금 비싸다는 느낌이 있어요.</span>
-                            </div>
+                        <div class="room-price-section">
+                            <div class="room-price">₩240,000<span style="font-size: 14px; font-weight: 400;">/night</span></div>
+                            <button class="room-book-btn">Book now</button>
                         </div>
-                        <div class="review-rating">★★★★☆</div>
                     </div>
                 </div>
-                <div class="review-item">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <div class="reviewer-avatar"></div>
-                            <div class="reviewer-details">
-                                <h4>5.0 Amazing | 이서연</h4>
-                                <span>완벽한 호텔! 룸서비스부터 프런트 데스크까지 모든 직원들이 정말 친절하고 전문적이었어요. 스파 시설도 훌륭하고 터키식 목욕탕 경험도 좋았습니다.</span>
-                            </div>
+                <div class="beeline"></div>
+                <!-- Map Section -->
+                <div class="map-section">
+                    <h3 class="map-title">지도보기</h3>
+                    <div class="map-container">
+                        <div class="map-placeholder">
+                            <div>Google Maps API 키가 필요</div>
                         </div>
-                        <div class="review-rating">★★★★★</div>
+                    </div>
+                    <div class="map-actions">
+                        <div class="map-address">
+                            📍 Gümüşsuyu Mah. İnönü Cad. No:8, Istanbul 34437
+                        </div>
+                        <button class="view-map-btn">View on google maps</button>
                     </div>
                 </div>
-            </div>
-            <div class="review-pagination">
-                <button class="pagination-btn">‹</button>
-                <span class="pagination-info">1 of 5</span>
-                <button class="pagination-btn">›</button>
+                <div class="beeline"></div>
+                <!-- Amenities Section -->
+                <div class="amenities-section">
+                    <h3 class="amenities-title">Amenities</h3>
+                    <div class="amenities-grid" id="amenitiesGrid">
+                        <div class="amenity-item">
+                            <span><img src="img/outdoor.jpg"></span>
+                            <span class="amenity-text">Outdoor pool</span>
+                        </div>
+                        <div class="amenity-item">
+                            <span><img src="img/fitness.jpg"></span>
+                            <span class="amenity-text">Fitness center</span>
+                        </div>
+                        <div class="amenity-item">
+                            <span><img src="img/outdoor.jpg"></span>
+                            <span class="amenity-text">Indoor pool</span>
+                        </div>
+                        <div class="amenity-item">
+                            <span><img src="img/bar.jpg"></span>
+                            <span class="amenity-text">Bar/Lounge</span>
+                        </div>
+                        <div class="amenity-item">
+                            <span><img src="img/spa.jpg"/></span>
+                            <span class="amenity-text">Spa and wellness center</span>
+                        </div>
+                        <div class="amenity-item">
+                            <span><img src="img/wifi.jpg"></span>
+                            <span class="amenity-text">Free Wi-Fi</span>
+                        </div>
+                        <div class="amenity-item">
+                            <span><img src="img/restaurant.jpg"></span>
+                            <span class="amenity-text">Restaurant</span>
+                        </div>
+                        <div class="amenity-item">
+                            <span><img src="img/cafe.jpg"></span>
+                            <span class="amenity-text">Tes/coffee machine</span>
+                        </div>
+                        <!-- Hidden amenities -->
+                        <div class="amenity-item hidden">
+                            <span>🏋️</span>
+                            <span class="amenity-text">Fitness center</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🅿️</span>
+                            <span class="amenity-text">Parking</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🧴</span>
+                            <span class="amenity-text">Spa</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🚗</span>
+                            <span class="amenity-text">Car rental</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>👔</span>
+                            <span class="amenity-text">Dry cleaning</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🧳</span>
+                            <span class="amenity-text">Luggage storage</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🔒</span>
+                            <span class="amenity-text">Safety deposit box</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🎵</span>
+                            <span class="amenity-text">Entertainment</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🚿</span>
+                            <span class="amenity-text">Private bathroom</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>📺</span>
+                            <span class="amenity-text">TV</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>❄️</span>
+                            <span class="amenity-text">Minibar</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>☕</span>
+                            <span class="amenity-text">Coffee maker</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🛁</span>
+                            <span class="amenity-text">Bathtub</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🌊</span>
+                            <span class="amenity-text">Hot tub</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🎮</span>
+                            <span class="amenity-text">Game room</span>
+                        </div>
+                        <div class="amenity-item hidden">
+                            <span>🌺</span>
+                            <span class="amenity-text">Garden</span>
+                        </div>
+                        <div class="amenity-item">
+                            <span>➕</span>
+                            <span class="amenity-text" id="showMoreBtn" style="color: #8DD3BB; cursor: pointer;" onclick="toggleAmenities()">24 more</span>
+                        </div>
+                    </div>
+                </div>
+
+             
+                <div class="beeline"></div>
+                <!-- Reviews Section -->
+                <div class="reviews-section">
+                    <div class="reviews-header single-row">
+                            <div class="reviews-info">
+                                <h3 class="reviews-title">Reviews</h3>
+                                <div class="reviews-summary">
+                                    <span class="review-score-big">4.2</span>
+                                    <div>
+                                        <div class="review-summary-text">Very good</div>
+                                        <div class="review-summary-text">371 verified reviews</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="review-btn" onclick="showReviewForm()">Give your review</button>
+                        </div>
+                    </div>
+                   <!-- Review Form Section -->
+                <div class="review-form-section" id="reviewForm">
+                    <h3 class="review-form-title">리뷰 작성하기</h3>
+                    
+                    <div class="rating-input">
+                        <label>평점을 선택해주세요</label>
+                        <div class="star-rating" id="starRating">
+                            <span class="star" data-rating="1">★</span>
+                            <span class="star" data-rating="2">★</span>
+                            <span class="star" data-rating="3">★</span>
+                            <span class="star" data-rating="4">★</span>
+                            <span class="star" data-rating="5">★</span>
+                        </div>
+                    </div>
+                    
+                    <textarea 
+                        class="review-textarea" 
+                        placeholder="이 호텔에 대한 솔직한 후기를 작성해주세요..."
+                        id="reviewText"
+                    ></textarea>
+                    
+                    <div class="review-form-buttons">
+                        <button class="cancel-btn" onclick="hideReviewForm()">취소</button>
+                        <button class="submit-review-btn" onclick="submitReview()">리뷰 등록</button>
+                    </div>
+                </div>
+                    <div class="review-filters">
+                        <button class="filter-btn active" onclick="filterReviews('all')">All reviews</button>
+                        <button class="filter-btn" onclick="filterReviews('highest')">Highest rated</button>
+                        <button class="filter-btn" onclick="filterReviews('lowest')">Lowest rated</button>
+                        <button class="filter-btn" onclick="filterReviews('recent')">Most recent</button>
+                    </div>
+
+                    <div id="reviewsList">
+                        <div class="review-item" data-rating="5">
+                            <div class="review-header">
+                                <div class="review-user-info">
+                                    <div class="reviewer-avatar"></div>
+                                    <div class="reviewer-info">
+                                        <div class="reviewer-name">5.0 Amazing | 김정민</div>
+                                        <div class="review-rating">2024년 1월</div>
+                                    </div>
+                                </div>
+                                <button class="report-btn" onclick="showReportModal()">신고</button>
+                            </div>
+                            <p class="review-text">좋아요.</p>
+                        </div>
+
+                        <div class="review-item" data-rating="4">
+                            <div class="review-header">
+                                <div class="review-user-info">
+                                    <div class="reviewer-avatar"></div>
+                                    <div class="reviewer-info">
+                                        <div class="reviewer-name">4.5 Amazing · 김민지</div>
+                                        <div class="review-rating">2024년 1월</div>
+                                    </div>
+                                </div>
+                                <button class="report-btn" onclick="showReportModal()">신고</button>
+                            </div>
+                            <p class="review-text">굿굿</p>
+                        </div>
+                    </div>
+
+                    <div class="review-pagination">
+                        <button class="pagination-btn">‹</button>
+                        <span class="pagination-info">1 of 12</span>
+                        <button class="pagination-btn">›</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal-overlay" id="reportModal">
+        <div class="modal-content">
+            <h3 class="modal-title">신고하기</h3>
+            
+            <div class="report-options">
+                <div class="report-option">
+                    <input type="radio" id="spam" name="reportReason" value="spam">
+                    <label for="spam">스팸/광고</label>
+                </div>
+                <div class="report-option">
+                    <input type="radio" id="inappropriate" name="reportReason" value="inappropriate">
+                    <label for="inappropriate">부적절한 내용</label>
+                </div>
+                <div class="report-option">
+                    <input type="radio" id="fake" name="reportReason" value="fake">
+                    <label for="fake">허위 정보</label>
+                </div>
+                <div class="report-option">
+                    <input type="radio" id="abusive" name="reportReason" value="abusive">
+                    <label for="abusive">욕설/비방</label>
+                </div>
+                <div class="report-option">
+                    <input type="radio" id="other" name="reportReason" value="other">
+                    <label for="other">기타</label>
+                </div>
+            </div>
+            
+            <textarea 
+                class="report-textarea" 
+                placeholder="신고 사유를 자세히 설명해주세요..."
+                id="reportDescription"
+            ></textarea>
+            
+            <div class="modal-buttons">
+                <button class="modal-cancel-btn" onclick="hideReportModal()">취소</button>
+                <button class="modal-submit-btn" onclick="submitReport()">신고하기</button>
+            </div>
+        </div>
+    </div>
 
     <section class="newsletter-section">
             </section>
@@ -1365,12 +1909,10 @@
         <div class="newsletter-content">
             <div class="newsletter-left">
                 <h2 class="newsletter-title">구독서비스<br>신청해보세요</h2>
-
                 <div class="newsletter-info">
                     <div class="newsletter-brand">The Travel</div>
                     <p class="newsletter-desc">구독자로 여행 할인, 팁 및 비하인드 정보를 받아보세요</p>
                 </div>
-
                 <div class="newsletter-form">
                     <input type="email" class="newsletter-input" placeholder="Your email address">
                     <button class="subscribe-btn">Subscribe</button>
@@ -1391,10 +1933,10 @@
 
         <div class="footer-content">
             <div class="social-icons">
-                <span>📘</span>
-                <span>🐦</span>
-                <span>📺</span>
-                <span>📷</span>
+                <span><img src="img/facebook.jpg"></span>
+                <span><img src="img/twitter.jpg"></span>
+                <span><img src="img/youtube.jpg"></span>
+                <span><img src="img/instagram.jpg"></span>
             </div>
 
             <div class="footer-links">
@@ -1435,14 +1977,197 @@
                 </div>
             </div>
         </div>
-
-    <script>
-        const dropdown = document.getElementById('userDropdown');
         
-        function toggleDropdown() {
-            dropdown.classList.toggle('active');
+    <script>
+        let selectedRating = 0;
+        let amenitiesExpanded = false;
+
+        // Star rating functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                star.addEventListener('click', function() {
+                    selectedRating = parseInt(this.dataset.rating);
+                    updateStarRating();
+                });
+                
+                star.addEventListener('mouseover', function() {
+                    highlightStars(parseInt(this.dataset.rating));
+                });
+            });
+
+            document.getElementById('starRating').addEventListener('mouseleave', function() {
+                updateStarRating();
+            });
+        });
+
+        function highlightStars(rating) {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
         }
 
+        function updateStarRating() {
+            highlightStars(selectedRating);
+        }
+
+        // Amenities toggle functionality
+        function toggleAmenities() {
+            const hiddenAmenities = document.querySelectorAll('.amenity-item.hidden');
+            const showMoreBtn = document.getElementById('showMoreBtn');
+            
+            amenitiesExpanded = !amenitiesExpanded;
+            
+            hiddenAmenities.forEach(item => {
+                if (amenitiesExpanded) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+            
+            showMoreBtn.textContent = amenitiesExpanded ? '24 less' : '24 more';
+        }
+
+        // Review filtering functionality
+        function filterReviews(filter) {
+            const reviews = document.querySelectorAll('.review-item');
+            const buttons = document.querySelectorAll('.filter-btn');
+            
+            // Update active button
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            let reviewsArray = Array.from(reviews);
+            
+ 
+            // Re-append reviews in new order
+            const reviewsList = document.getElementById('reviewsList');
+            reviewsArray.forEach(review => {
+                reviewsList.appendChild(review);
+            });
+        }
+
+        // Review form functions
+        function showReviewForm() {
+            document.getElementById('reviewForm').classList.add('active');
+            document.getElementById('reviewForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideReviewForm() {
+            document.getElementById('reviewForm').classList.remove('active');
+            document.getElementById('reviewText').value = '';
+            selectedRating = 0;
+            updateStarRating();
+        }
+
+        function submitReview() {
+            const reviewText = document.getElementById('reviewText').value.trim();
+            
+            if (selectedRating === 0) {
+                alert('평점을 선택해주세요.');
+                return;
+            }
+            
+            if (reviewText === '') {
+                alert('리뷰 내용을 작성해주세요.');
+                return;
+            }
+
+            const reviewData = {
+                rating: selectedRating,
+                content: reviewText,
+                member_id: 'current_user_id',
+                hotel_id: 'current_hotel_id'
+            };
+
+            console.log('Submitting review:', reviewData);
+            alert('리뷰가 등록되었습니다!');
+            hideReviewForm();
+        }
+
+        // Report modal functions
+        function showReportModal() {
+            document.getElementById('reportModal').classList.add('active');
+        }
+
+        function hideReportModal() {
+            document.getElementById('reportModal').classList.remove('active');
+            document.querySelectorAll('input[name="reportReason"]').forEach(radio => {
+                radio.checked = false;
+            });
+            document.getElementById('reportDescription').value = '';
+        }
+
+        function submitReport() {
+            const selectedReason = document.querySelector('input[name="reportReason"]:checked');
+            const description = document.getElementById('reportDescription').value.trim();
+            
+            if (!selectedReason) {
+                alert('신고 사유를 선택해주세요.');
+                return;
+            }
+
+            const reportData = {
+                choice_name: selectedReason.value,
+                report_content: description,
+                member_id: 'current_user_id'
+            };
+
+            console.log('Submitting report:', reportData);
+            alert('신고가 접수되었습니다. 검토 후 조치하겠습니다.');
+            hideReportModal();
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('reportModal');
+            if (event.target === modal) {
+                hideReportModal();
+            }
+        });
+
+        // Map placeholder click handler
+        function openGoogleMaps() {
+            const address = "Gümüşsuyu Mah. İnönü Cad. No:8, Istanbul 34437";
+            const url = `https://maps.googleapis.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+            window.open(url, '_blank');
+        }
+
+        // Add click handler to map placeholder and button
+        document.addEventListener('DOMContentLoaded', function() {
+            const mapContainer = document.querySelector('.map-container');
+            const viewMapBtn = document.querySelector('.view-map-btn');
+            
+            if (mapContainer) {
+                mapContainer.addEventListener('click', openGoogleMaps);
+                mapContainer.style.cursor = 'pointer';
+            }
+            
+            if (viewMapBtn) {
+                viewMapBtn.addEventListener('click', openGoogleMaps);
+            }
+        });
+
+        const boxes = document.querySelectorAll('.rating-box');
+
+            boxes.forEach(box => {
+                box.addEventListener('click', function() {
+                    // 한 개만 활성화
+                    boxes.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        // Dropdown functionality
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('active');
+        }
         // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('userDropdown');
@@ -1452,22 +2177,6 @@
                 dropdown.classList.remove('active');
             }
         });
-
-        // Wishlist functionality
-        document.querySelectorAll('.wishlist-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                this.textContent = this.textContent === '♡' ? '♥' : '♡';
-                this.style.color = this.textContent === '♥' ? '#FF6B6B' : '#000000';
-            });
-        });
-
-        // Review pagination
-        document.querySelectorAll('.pagination-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Add pagination logic here
-                console.log('Pagination clicked');
-            });
-        });
-    </script>
-</body>
+        </script>
+    </body>
 </html>
