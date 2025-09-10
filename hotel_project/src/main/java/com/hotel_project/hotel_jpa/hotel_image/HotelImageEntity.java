@@ -30,8 +30,6 @@ public class HotelImageEntity implements IHotelImage {
     @Column(nullable = false, length = 500)
     private String hotelImagePath;
 
-    private Long hotelImageSize;
-
     @Column(nullable = false)
     private Integer hotelImageIndex;
 

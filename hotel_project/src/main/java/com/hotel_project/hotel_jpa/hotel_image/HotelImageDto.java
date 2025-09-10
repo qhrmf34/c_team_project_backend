@@ -24,8 +24,6 @@ public class HotelImageDto implements IHotelImage{
     @Size(max = 500, message = "호텔 이미지 경로는 500자 이하로 입력해야 합니다.")
     private String hotelImagePath;
 
-    private Long hotelImageSize;
-
     private Integer hotelImageIndex;
 
     private LocalDateTime createdAt;

@@ -24,7 +24,5 @@ public class RoomImageDto implements IRoomImage {
     @Size(max = 500, message = "객실 이미지 경로는 500자 이하로 입력해야 합니다.")
     private String roomImagePath;
 
-    private Long roomImageSize;
-
     private LocalDateTime createdAt;
 }

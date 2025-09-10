@@ -15,9 +15,6 @@ public interface ICityImage {
     String getCityImagePath();
     void setCityImagePath(String cityImagePath);
 
-    Long getCityImageSize();
-    void setCityImageSize(Long cityImageSize);
-
     Integer getCityImageIndex();
     void setCityImageIndex(Integer cityImageIndex);
 
@@ -30,7 +27,6 @@ public interface ICityImage {
         setCityId(iCityImage.getCityId());
         setCityImageName(iCityImage.getCityImageName());
         setCityImagePath(iCityImage.getCityImagePath());
-        setCityImageSize(iCityImage.getCityImageSize());
         setCityImageIndex(iCityImage.getCityImageIndex());
         setCreatedAt(iCityImage.getCreatedAt());
     }
@@ -47,9 +43,6 @@ public interface ICityImage {
         }
         if (iCityImage.getCityImagePath() != null) {
             setCityImagePath(iCityImage.getCityImagePath());
-        }
-        if (iCityImage.getCityImageSize() != null) {
-            setCityImageSize(iCityImage.getCityImageSize());
         }
         if (iCityImage.getCityImageIndex() != null) {
             setCityImageIndex(iCityImage.getCityImageIndex());
