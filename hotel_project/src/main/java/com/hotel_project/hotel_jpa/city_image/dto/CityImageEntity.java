@@ -30,6 +30,8 @@ public class CityImageEntity implements ICityImage{
     @Column(nullable = false, length = 500)
     private String cityImagePath;
 
+    private Long cityImageSize;
+
     @Column(nullable = false)
     private Integer cityImageIndex;
 

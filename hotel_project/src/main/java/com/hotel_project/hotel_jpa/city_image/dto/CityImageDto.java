@@ -24,6 +24,8 @@ public class CityImageDto implements ICityImage{
     @Size(max = 500, message = "이미지 경로는 500자 이하로 입력해야 합니다.")
     private String cityImagePath;
 
+    private Long cityImageSize;
+
     private Integer cityImageIndex;
 
     private LocalDateTime createdAt;
