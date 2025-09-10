@@ -22,6 +22,7 @@ public class CityEntity implements ICity{
     @Column(nullable = false, length = 100, unique = true)
     private String cityName;
 
+    @Lob
     private String cityContent;
 
     @Override

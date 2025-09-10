@@ -35,8 +35,7 @@ public class CityImageEntity implements ICityImage{
     @Column(nullable = false)
     private Integer cityImageIndex;
 
-    @Column(nullable = false, updatable = false,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

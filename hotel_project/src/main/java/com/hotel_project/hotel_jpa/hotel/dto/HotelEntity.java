@@ -36,6 +36,7 @@ public class HotelEntity implements IHotel{
     @Column(precision = 11, scale = 8,nullable = false)
     private BigDecimal hotelLongitude;
 
+    @Lob
     private String hotelContent;
 
     private Integer hotelStar;
@@ -55,12 +56,10 @@ public class HotelEntity implements IHotel{
     @Column(columnDefinition = "DECIMAL(2,1) DEFAULT 0.0")
     private BigDecimal hotelRating = new BigDecimal("0.0");
 
-    @Column(nullable = false, updatable = false,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = true,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    @Column(nullable = true)
     private LocalDateTime updatedAt;
 
     @Override

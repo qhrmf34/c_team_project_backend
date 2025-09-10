@@ -51,7 +51,7 @@ public class HotelDto implements IHotel{
 
     @DecimalMin(value = "1.0", message = "평균 평점은 1.0 이상이어야 합니다.")
     @DecimalMax(value = "5.0", message = "평균 평점은 5.0 이하여야 합니다.")
-    @Digits(integer = 1, fraction = 1, message = "")
+    @Digits(integer = 1, fraction = 1, message = "별점은 1.0 ~ 5.0 사이에 값을 입력 하셔야 합니다.")
     private BigDecimal hotelRating;
 
     private LocalDateTime createdAt;
