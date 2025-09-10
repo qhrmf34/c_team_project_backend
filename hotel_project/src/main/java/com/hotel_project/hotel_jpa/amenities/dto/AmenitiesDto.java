@@ -11,7 +11,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class AmenitiesDto implements IAmenities{
-
     private Long id;
 
     @NotBlank(message = "편의시설 이름은 필수 입력입니다.")

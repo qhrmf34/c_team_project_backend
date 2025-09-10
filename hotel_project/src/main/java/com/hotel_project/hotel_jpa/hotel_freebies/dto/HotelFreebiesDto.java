@@ -13,8 +13,10 @@ import java.time.LocalDateTime;
 public class HotelFreebiesDto implements IHotelFreebies {
     private Long id;
 
+    @NotNull
     private Long hotelId;
 
+    @NotNull
     private Long freebiesId;
 
     @NotNull(message = "이용 가능 여부는 필수 입력입니다.")

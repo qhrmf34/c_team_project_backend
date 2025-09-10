@@ -15,6 +15,7 @@ import java.time.LocalTime;
 public class HotelDto implements IHotel{
     private Long id;
 
+    @NotNull
     private Long cityId;
 
     @NotNull(message = "호텔 타입은 필수 입력 입니다.")

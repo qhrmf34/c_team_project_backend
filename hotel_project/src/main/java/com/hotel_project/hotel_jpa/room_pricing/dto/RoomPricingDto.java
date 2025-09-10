@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 public class RoomPricingDto implements IRoomPricing{
     private Long id;
 
+    @NotNull
     private Long roomId;
 
     @NotNull(message = "해당일은 필수 입력 입니다.")

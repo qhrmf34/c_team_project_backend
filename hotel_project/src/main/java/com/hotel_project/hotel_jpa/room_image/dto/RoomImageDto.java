@@ -1,6 +1,7 @@
 package com.hotel_project.hotel_jpa.room_image.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 public class RoomImageDto implements IRoomImage {
     private Long id;
 
+    @NotNull
     private Long roomId;
 
     @NotBlank(message = "객실 이미지 이름은 필수 입력 입니다.")

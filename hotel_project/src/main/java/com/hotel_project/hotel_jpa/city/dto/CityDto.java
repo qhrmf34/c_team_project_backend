@@ -1,6 +1,7 @@
 package com.hotel_project.hotel_jpa.city.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -12,6 +13,7 @@ import lombok.*;
 public class CityDto implements ICity{
     private Long id;
 
+    @NotNull
     private Long countryId;
 
     @NotBlank(message = "도시 이름은 필수 입력 입니다.")

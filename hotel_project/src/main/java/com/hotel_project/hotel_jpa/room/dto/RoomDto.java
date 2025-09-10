@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class RoomDto implements IRoom{
     private Long id;
 
+    @NotNull
     private Long hotelId;
 
     @NotBlank(message = "방 이름은 필수 입력 입니다.")
