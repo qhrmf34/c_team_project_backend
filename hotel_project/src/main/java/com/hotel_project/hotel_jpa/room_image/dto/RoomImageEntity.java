@@ -30,6 +30,8 @@ public class RoomImageEntity implements IRoomImage {
     @Column(nullable = false, length = 500)
     private String roomImagePath;
 
+    private Long roomImageSize;
+
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;

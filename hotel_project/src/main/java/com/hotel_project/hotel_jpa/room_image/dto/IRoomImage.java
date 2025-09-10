@@ -15,6 +15,9 @@ public interface IRoomImage {
     String getRoomImagePath();
     void setRoomImagePath(String RoomImagePath);
 
+    Long getRoomImageSize();
+    void setRoomImageSize(Long RoomImageSize);
+
     LocalDateTime getCreatedAt();
     void setCreatedAt(LocalDateTime createdAt);
 
@@ -24,6 +27,7 @@ public interface IRoomImage {
         setRoomId(iRoomImage.getRoomId());
         setRoomImageName(iRoomImage.getRoomImageName());
         setRoomImagePath(iRoomImage.getRoomImagePath());
+        setRoomImageSize(iRoomImage.getRoomImageSize());
         setCreatedAt(iRoomImage.getCreatedAt());
     }
 
@@ -39,6 +43,9 @@ public interface IRoomImage {
         }
         if (iRoomImage.getRoomImagePath() != null) {
             setRoomImagePath(iRoomImage.getRoomImagePath());
+        }
+        if (iRoomImage.getRoomImageSize() != null) {
+            setRoomImageSize(iRoomImage.getRoomImageSize());
         }
     }
 }
