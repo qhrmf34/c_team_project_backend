@@ -22,7 +22,7 @@ public class RoomEntity implements IRoom{
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "hotel_id")
+    @JoinColumn(name = "hotel_id", nullable = false)
     private HotelEntity hotel;
 
     private String roomName;
@@ -42,10 +42,12 @@ public class RoomEntity implements IRoom{
     @Column(nullable = false, length = 30)
     private String roomView;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false,
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
-    @Column(nullable = true)
+    @Column(nullable = true,
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt;
 
     @Override

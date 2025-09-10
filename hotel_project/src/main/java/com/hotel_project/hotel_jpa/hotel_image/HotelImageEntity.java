@@ -21,7 +21,7 @@ public class HotelImageEntity implements IHotelImage {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "hotel_id")
+    @JoinColumn(name = "hotel_id", nullable = false)
     private HotelEntity hotel;
 
     @Column(nullable = false, length = 255)
@@ -33,7 +33,8 @@ public class HotelImageEntity implements IHotelImage {
     @Column(nullable = false)
     private Integer hotelImageIndex;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false,
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
     @PrePersist

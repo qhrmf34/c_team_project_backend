@@ -21,7 +21,7 @@ public class CityImageEntity implements ICityImage{
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "city_id")
+    @JoinColumn(name = "city_id", nullable = false)
     private CityEntity city;
 
     @Column(nullable = false, length = 255)
@@ -33,7 +33,8 @@ public class CityImageEntity implements ICityImage{
     @Column(nullable = false)
     private Integer cityImageIndex;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false,
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
     @PrePersist

@@ -13,7 +13,6 @@ import lombok.Setter;
 @Entity
 @Table(name = "freebies_tbl")
 public class FreebiesEntity implements IFreebies {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

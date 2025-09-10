@@ -20,7 +20,7 @@ public class HotelEntity implements IHotel{
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "city_id")
+    @JoinColumn(name = "city_id", nullable = false)
     private CityEntity city;
 
     @Enumerated(EnumType.STRING)
@@ -56,10 +56,12 @@ public class HotelEntity implements IHotel{
     @Column(columnDefinition = "DECIMAL(2,1) DEFAULT 0.0")
     private BigDecimal hotelRating = new BigDecimal("0.0");
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false,
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
-    @Column(nullable = true)
+    @Column(nullable = true,
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt;
 
     @Override

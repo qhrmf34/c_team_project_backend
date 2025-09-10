@@ -16,13 +16,14 @@ public class CityEntity implements ICity{
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "country_id")
+    @JoinColumn(name = "country_id", nullable = false)
     private CountryEntity country;
 
     @Column(nullable = false, length = 100, unique = true)
     private String cityName;
 
     @Lob
+    @Column(nullable = true)
     private String cityContent;
 
     @Override

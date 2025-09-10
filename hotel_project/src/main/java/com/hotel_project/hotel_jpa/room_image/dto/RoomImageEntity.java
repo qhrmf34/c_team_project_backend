@@ -21,7 +21,7 @@ public class RoomImageEntity implements IRoomImage {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "room_id")
+    @JoinColumn(name = "room_id", nullable = false)
     private RoomEntity room;
 
     @Column(nullable = false, length = 255)
@@ -30,7 +30,8 @@ public class RoomImageEntity implements IRoomImage {
     @Column(nullable = false, length = 500)
     private String roomImagePath;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false,
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
     @PrePersist

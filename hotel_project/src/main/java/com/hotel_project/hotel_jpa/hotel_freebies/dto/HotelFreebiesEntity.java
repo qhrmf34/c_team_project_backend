@@ -23,20 +23,22 @@ public class HotelFreebiesEntity implements IHotelFreebies {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "hotel_id")
+    @JoinColumn(name = "hotel_id", nullable = false)
     private HotelEntity hotel;
 
     @ManyToOne
-    @JoinColumn(name = "freebies_id")
+    @JoinColumn(name = "freebies_id", nullable = false)
     private FreebiesEntity freebies;
 
     @Column(nullable = false, columnDefinition = "boolean default false")
     private Boolean isAvailable = false;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false
+            ,columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
-    @Column(nullable = true)
+    @Column(nullable = true
+            ,columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt;
 
     @Override

@@ -23,7 +23,7 @@ public class RoomPricingEntity implements IRoomPricing{
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "room_id")
+    @JoinColumn(name = "room_id", nullable = false)
     private RoomEntity room;
 
     @Column(nullable = false)
@@ -32,10 +32,12 @@ public class RoomPricingEntity implements IRoomPricing{
     @Column(nullable = false,columnDefinition = "DECIMAL(10,2)")
     private BigDecimal price;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false,
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
-    @Column(nullable = true)
+    @Column(nullable = true,
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt;
 
     @Override
