@@ -15,6 +15,9 @@ public interface IHotelImage {
     String getHotelImagePath();
     void setHotelImagePath(String hotelImagePath);
 
+    Long getHotelImageSize();
+    void setHotelImageSize(Long hotelImageSize);
+
     Integer getHotelImageIndex();
     void setHotelImageIndex(Integer hotelImageIndex);
 
@@ -27,6 +30,7 @@ public interface IHotelImage {
         setHotelId(iHotelImage.getHotelId());
         setHotelImageName(iHotelImage.getHotelImageName());
         setHotelImagePath(iHotelImage.getHotelImagePath());
+        setHotelImageSize(iHotelImage.getHotelImageSize());
         setHotelImageIndex(iHotelImage.getHotelImageIndex());
         setCreatedAt(iHotelImage.getCreatedAt());
     }
@@ -43,6 +47,9 @@ public interface IHotelImage {
         }
         if (iHotelImage.getHotelImagePath() != null) {
             setHotelImagePath(iHotelImage.getHotelImagePath());
+        }
+        if (iHotelImage.getHotelImageSize() != null) {
+            setHotelImageSize(iHotelImage.getHotelImageSize());
         }
         if (iHotelImage.getHotelImageIndex() != null) {
             setHotelImageIndex(iHotelImage.getHotelImageIndex());
