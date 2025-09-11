@@ -1,6 +1,7 @@
 package com.hotel_project.member_jpa.member.dto;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 public interface IMember {
@@ -60,4 +61,6 @@ public interface IMember {
         if (iMember.getProviderId() != null) setProviderId(iMember.getProviderId());
         if (iMember.getUpdatedAt() != null) setUpdatedAt(iMember.getUpdatedAt());
     }
+
+    Optional<Object> findById(Long memberId);
 }

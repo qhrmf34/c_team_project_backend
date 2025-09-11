@@ -3,6 +3,8 @@ package com.hotel_project.member_jpa.member.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -40,6 +42,23 @@ public class MemberDto implements IMember {
 
     private String providerId;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    @Override
+    public LocalDateTime getCreatedAt() {
+        return null;
+    }
+
+    @Override
+    public void setCreatedAt(LocalDateTime createdAt) {
+
+    }
+
+    @Override
+    public LocalDateTime getUpdatedAt() {
+        return null;
+    }
+
+    @Override
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+
+    }
 }

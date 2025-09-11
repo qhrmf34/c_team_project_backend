@@ -3,6 +3,7 @@ package com.hotel_project.member_jpa.member.dto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 @Getter
@@ -61,5 +62,10 @@ public class MemberEntity implements IMember {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    @Override
+    public Optional<Object> findById(Long memberId) {
+        return Optional.empty();
     }
 }
