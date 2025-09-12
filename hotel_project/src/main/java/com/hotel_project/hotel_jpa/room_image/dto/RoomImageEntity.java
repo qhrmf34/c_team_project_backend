@@ -1,11 +1,9 @@
 package com.hotel_project.hotel_jpa.room_image.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
 import com.hotel_project.hotel_jpa.room.dto.RoomEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table (name = "room_image_tbl")
 public class RoomImageEntity implements IRoomImage {
@@ -20,9 +19,12 @@ public class RoomImageEntity implements IRoomImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "room_id", nullable = false)
-    private RoomEntity room;
+    private RoomEntity roomEntity;
+
+    @Transient
+    private Long roomId;
 
     @Column(nullable = false, length = 255)
     private String roomImageName;
@@ -35,6 +37,38 @@ public class RoomImageEntity implements IRoomImage {
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
+    @Override
+    public IId getRoom(){
+        return this.roomEntity;
+    }
+
+    @Override
+    public void setRoom(IId iId){
+        if (iId == null) {
+            return;
+        }
+        if (this.roomEntity == null) {
+            this.roomEntity = new RoomEntity();
+        }
+        this.roomEntity.copyMembersId(iId);
+    }
+
+    @Override
+    public Long getRoomId() {
+        return this.roomEntity != null ? this.roomEntity.getId() : null;
+    }
+
+    @Override
+    public void setRoomId(Long roomId) {
+        if (roomId == null) {
+            throw new IllegalArgumentException("Room Id cannot be null");
+        }
+        if (this.roomEntity == null) {
+            this.roomEntity = new RoomEntity();
+        }
+        this.roomEntity.setId(roomId);
+        this.roomId = roomId;
+    }
 
     @PrePersist
     public void prePersist() {
@@ -44,19 +78,4 @@ public class RoomImageEntity implements IRoomImage {
         }
     }
 
-    @Override
-    public Long getRoomId() {
-        if (this.room == null) {
-            return 0L;
-        }
-        return this.room.getId();
-    }
-
-    @Override
-    public void setRoomId(Long roomId) {
-        if (this.room == null) {
-            return;
-        }
-        this.room.setId(roomId);
-    }
 }
