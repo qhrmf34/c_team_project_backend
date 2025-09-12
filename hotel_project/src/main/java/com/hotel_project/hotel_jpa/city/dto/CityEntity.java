@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.city.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
 import com.hotel_project.hotel_jpa.country.dto.CountryEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,6 +9,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity(name = "CityEntity")
 @Table(name = "city_tbl")
 public class CityEntity implements ICity{
@@ -15,9 +17,13 @@ public class CityEntity implements ICity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "country_id", nullable = false)
-    private CountryEntity country;
+    private CountryEntity countryEntity;
+
+    @Transient
+    private Long countryId;
+
 
     @Column(nullable = false, length = 100, unique = true)
     private String cityName;
@@ -27,18 +33,35 @@ public class CityEntity implements ICity{
     private String cityContent;
 
     @Override
-    public Long getCountryId() {
-        if (this.country == null) {
-            return 0L;
-        }
-        return this.country.getId();
+    public IId getCountry(){
+        return this.countryEntity;
     }
 
-        @Override
-        public void setCountryId(Long countryId) {
-            if (this.country == null) {
-                return;
-            }
-            this.country.setId(countryId);
+    @Override
+    public void setCountry(IId iId) {
+        if (iId == null){
+            return;
         }
+        if (this.countryEntity == null){
+            this.countryEntity = new CountryEntity();
+        }
+        this.countryEntity.copyMembersId(iId);
+    }
+
+    @Override
+    public Long getCountryId() {
+        return this.countryEntity != null ? this.countryEntity.getId() : null;
+    }
+
+    @Override
+    public void setCountryId(Long countryId) {
+        if (countryId == null){
+            throw new IllegalArgumentException("countryId cannot be null");
+        }
+        if (this.countryEntity == null){
+            this.countryEntity = new CountryEntity();
+        }
+        this.countryEntity.setId(countryId);
+        this.countryId = countryId;
+    }
 }
