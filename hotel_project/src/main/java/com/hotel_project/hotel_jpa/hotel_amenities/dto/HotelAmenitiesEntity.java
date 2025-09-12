@@ -1,18 +1,17 @@
 package com.hotel_project.hotel_jpa.hotel_amenities.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
 import com.hotel_project.hotel_jpa.amenities.dto.AmenitiesEntity;
 import com.hotel_project.hotel_jpa.hotel.dto.HotelEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table (name = "hotel_amenities_tbl")
 public class HotelAmenitiesEntity implements IHotelAmenities {
@@ -20,13 +19,19 @@ public class HotelAmenitiesEntity implements IHotelAmenities {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "hotel_id", nullable = false)
-    private HotelEntity hotel;
+    private HotelEntity hotelEntity;
 
-    @ManyToOne
+    @Transient
+    private Long hotelId;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "amenities_id", nullable = false)
-    private AmenitiesEntity amenities;
+    private AmenitiesEntity amenitiesEntity;
+
+    @Transient
+    private Long amenitiesId;
 
     @Column(nullable = false, columnDefinition = "boolean default false")
     private Boolean isAvailable = false;
@@ -40,35 +45,69 @@ public class HotelAmenitiesEntity implements IHotelAmenities {
     private LocalDateTime updatedAt;
 
     @Override
-    public Long getHotelId() {
-        if (this.hotel == null){
-            return 0L;
+    public IId getHotel(){
+        return this.hotelEntity;
+    }
+
+    @Override
+    public void setHotel(IId iId) {
+        if(iId == null){
+            return;
         }
-        return this.hotel.getId();
+        if (this.hotelEntity == null){
+            this.hotelEntity = new HotelEntity();
+        }
+        this.hotelEntity.copyMembersId(iId);
+    }
+
+    @Override
+    public Long getHotelId() {
+        return this.hotelEntity != null ? this.hotelEntity.getId() : null;
     }
 
     @Override
     public void setHotelId(Long hotelId) {
-        if(this.hotel == null){
+        if(hotelId == null){
+            throw new IllegalArgumentException("hotelId cannot be null");
+        }
+        if (this.hotelEntity == null){
+            this.hotelEntity = new HotelEntity();
+        }
+        this.hotelEntity.setId(hotelId);
+        this.hotelId = hotelId;
+    }
+
+    @Override
+    public IId getAmenities(){
+        return this.amenitiesEntity;
+    }
+
+    @Override
+    public void setAmenities(IId iId) {
+        if(iId == null){
             return;
         }
-        this.hotel.setId(hotelId);
+        if (this.amenitiesEntity == null){
+            this.amenitiesEntity = new AmenitiesEntity();
+        }
+        this.amenitiesEntity.copyMembersId(iId);
     }
 
     @Override
     public Long getAmenitiesId() {
-        if (this.amenities == null){
-            return 0L;
-        }
-        return amenities.getId();
+        return this.amenitiesEntity != null ? this.amenitiesEntity.getId() : null;
     }
 
     @Override
     public void setAmenitiesId(Long amenitiesId) {
-        if(this.amenities == null){
-            return;
+        if (amenitiesId == null){
+            throw new IllegalArgumentException("amenitiesId cannot be null");
         }
-        this.amenities.setId(amenitiesId);
+        if (this.amenitiesEntity == null){
+            this.amenitiesEntity = new AmenitiesEntity();
+        }
+        this.amenitiesEntity.setId(amenitiesId);
+        this.amenitiesId = amenitiesId;
     }
 
     @PrePersist
