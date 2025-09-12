@@ -10,11 +10,17 @@ public interface IAmenities extends IId {
 
     /*insert 용*/
     default void copyMembers(IAmenities iamenities){
+        if(iamenities == null){
+            return;
+        }
         setId(iamenities.getId());
         setAmenitiesName(iamenities.getAmenitiesName());
     }
     /*update 용*/
     default void copyNotNullMembers(IAmenities iamenities){
+        if(iamenities == null){
+            return;
+        }
         if(iamenities.getId()!=null){
             setId(iamenities.getId());
         }

@@ -12,11 +12,17 @@ public interface IFreebies extends IId {
 
     /*insert 용*/
     default void copyMembers(IFreebies iFreebies){
+        if(getFreebiesName() == null){
+            return;
+        }
         setId(iFreebies.getId());
         setFreebiesName(iFreebies.getFreebiesName());
     }
     /*update 용*/
     default void copyNotNullMembers(IFreebies iFreebies){
+        if(getFreebiesName() == null){
+            return;
+        }
         if(iFreebies.getId()!=null){
             setId(iFreebies.getId());
         }

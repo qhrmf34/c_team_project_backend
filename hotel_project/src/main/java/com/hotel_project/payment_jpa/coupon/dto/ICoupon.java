@@ -33,6 +33,9 @@ public interface ICoupon extends IId {
 
     /* insert용: 모든 값 복사 */
     default void copyMembers(ICoupon iCoupon) {
+        if (iCoupon == null) {
+            return;
+        }
         setId(iCoupon.getId());
         setCouponName(iCoupon.getCouponName());
         setCouponContent(iCoupon.getCouponContent());
@@ -45,6 +48,9 @@ public interface ICoupon extends IId {
 
     /* update용: null 아닌 값만 복사 */
     default void copyNotNullMembers(ICoupon iCoupon) {
+        if (iCoupon == null) {
+            return;
+        }
         if (iCoupon.getId() != null) setId(iCoupon.getId());
         if (iCoupon.getCouponName() != null) setCouponName(iCoupon.getCouponName());
         if (iCoupon.getCouponContent() != null) setCouponContent(iCoupon.getCouponContent());
