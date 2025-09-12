@@ -1,7 +1,9 @@
 package com.hotel_project.hotel_jpa.freebies.dto;
 
 
-public interface IFreebies {
+import com.hotel_project.common_jpa.dto.IId;
+
+public interface IFreebies extends IId {
 
     Long getId();
     void setId(Long id);
@@ -10,11 +12,17 @@ public interface IFreebies {
 
     /*insert 용*/
     default void copyMembers(IFreebies iFreebies){
+        if(getFreebiesName() == null){
+            return;
+        }
         setId(iFreebies.getId());
         setFreebiesName(iFreebies.getFreebiesName());
     }
     /*update 용*/
     default void copyNotNullMembers(IFreebies iFreebies){
+        if(getFreebiesName() == null){
+            return;
+        }
         if(iFreebies.getId()!=null){
             setId(iFreebies.getId());
         }

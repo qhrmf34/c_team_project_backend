@@ -1,6 +1,8 @@
 package com.hotel_project.hotel_jpa.country.dto;
 
-public interface ICountry {
+import com.hotel_project.common_jpa.dto.IId;
+
+public interface ICountry extends IId {
 
     Long getId();
     void setId(Long id);
@@ -15,12 +17,18 @@ public interface ICountry {
 
     /*insert 용*/
     default void copyMembers(ICountry iCountry) {
+        if (iCountry == null) {
+            return;
+        }
         setId(iCountry.getId());
         setCountryName(iCountry.getCountryName());
         setIdd(iCountry.getIdd());
     }
     /*update 용*/
     default void copyNotNullMembers(ICountry iCountry){
+        if (iCountry == null) {
+            return;
+        }
         if(iCountry.getId()!=null){
             setId(iCountry.getId());
         }

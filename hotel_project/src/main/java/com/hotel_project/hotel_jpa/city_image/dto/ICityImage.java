@@ -1,0 +1,71 @@
+package com.hotel_project.hotel_jpa.city_image.dto;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hotel_project.common_jpa.dto.IId;
+
+import java.time.LocalDateTime;
+
+public interface ICityImage extends IId {
+    Long getId();
+    void setId(Long id);
+
+    Long getCityId();
+    void setCityId(Long cityId);
+
+    @JsonIgnore
+    IId getCity();
+    void setCity(IId city);
+
+    String getCityImageName();
+    void setCityImageName(String cityImageName);
+
+    String getCityImagePath();
+    void setCityImagePath(String cityImagePath);
+
+    Long getCityImageSize();
+    void setCityImageSize(Long cityImageSize);
+
+    Integer getCityImageIndex();
+    void setCityImageIndex(Integer cityImageIndex);
+
+    LocalDateTime getCreatedAt();
+    void setCreatedAt(LocalDateTime createdAt);
+
+    /* insert용: 모든 값 복사 */
+    default void copyMembers(ICityImage iCityImage) {
+        if (iCityImage == null) {
+            return;
+        }
+        setId(iCityImage.getId());
+        setCity(iCityImage.getCity());
+        setCityImageName(iCityImage.getCityImageName());
+        setCityImagePath(iCityImage.getCityImagePath());
+        setCityImageSize(iCityImage.getCityImageSize());
+        setCityImageIndex(iCityImage.getCityImageIndex());
+        setCreatedAt(iCityImage.getCreatedAt());
+    }
+
+    default void copyNotNullMembers(ICityImage iCityImage) {
+        if (iCityImage == null) {
+            return;
+        }
+        if  (iCityImage.getId() != null) {
+            setId(iCityImage.getId());
+        }
+        if (iCityImage.getCityId() != null) {
+            setCityId(iCityImage.getCityId());
+        }
+        if (iCityImage.getCityImageName() != null) {
+            setCityImageName(iCityImage.getCityImageName());
+        }
+        if (iCityImage.getCityImagePath() != null) {
+            setCityImagePath(iCityImage.getCityImagePath());
+        }
+        if (iCityImage.getCityImageSize() != null) {
+            setCityImageSize(iCityImage.getCityImageSize());
+        }
+        if (iCityImage.getCityImageIndex() != null) {
+            setCityImageIndex(iCityImage.getCityImageIndex());
+        }
+    }
+}

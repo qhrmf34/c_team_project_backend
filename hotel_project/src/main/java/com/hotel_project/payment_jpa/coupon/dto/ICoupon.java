@@ -1,10 +1,12 @@
 package com.hotel_project.payment_jpa.coupon.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public interface ICoupon {
+public interface ICoupon extends IId {
     Long getId();
     void setId(Long id);
 
@@ -31,6 +33,9 @@ public interface ICoupon {
 
     /* insert용: 모든 값 복사 */
     default void copyMembers(ICoupon iCoupon) {
+        if (iCoupon == null) {
+            return;
+        }
         setId(iCoupon.getId());
         setCouponName(iCoupon.getCouponName());
         setCouponContent(iCoupon.getCouponContent());
@@ -43,6 +48,9 @@ public interface ICoupon {
 
     /* update용: null 아닌 값만 복사 */
     default void copyNotNullMembers(ICoupon iCoupon) {
+        if (iCoupon == null) {
+            return;
+        }
         if (iCoupon.getId() != null) setId(iCoupon.getId());
         if (iCoupon.getCouponName() != null) setCouponName(iCoupon.getCouponName());
         if (iCoupon.getCouponContent() != null) setCouponContent(iCoupon.getCouponContent());

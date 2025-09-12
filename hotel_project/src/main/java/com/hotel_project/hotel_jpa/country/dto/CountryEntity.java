@@ -21,6 +21,6 @@ public class CountryEntity implements ICountry{
     private String countryName;
 
 
-    @Column(nullable = false,length = 100)
+    @Column(nullable = false,length = 10)
     private String idd;
 }

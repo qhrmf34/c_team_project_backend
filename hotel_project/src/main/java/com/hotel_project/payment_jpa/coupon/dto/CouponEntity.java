@@ -39,11 +39,11 @@ public class CouponEntity implements ICoupon {
     private Boolean isActive = true;
 
     @Column(nullable = false, updatable = false,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
     @Column(nullable = true,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+            columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt;
 
     @PrePersist

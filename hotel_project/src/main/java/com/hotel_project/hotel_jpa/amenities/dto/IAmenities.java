@@ -1,6 +1,8 @@
 package com.hotel_project.hotel_jpa.amenities.dto;
 
-public interface IAmenities {
+import com.hotel_project.common_jpa.dto.IId;
+
+public interface IAmenities extends IId {
     Long getId();
     void setId(Long id);
     String getAmenitiesName();
@@ -8,11 +10,17 @@ public interface IAmenities {
 
     /*insert 용*/
     default void copyMembers(IAmenities iamenities){
+        if(iamenities == null){
+            return;
+        }
         setId(iamenities.getId());
         setAmenitiesName(iamenities.getAmenitiesName());
     }
     /*update 용*/
     default void copyNotNullMembers(IAmenities iamenities){
+        if(iamenities == null){
+            return;
+        }
         if(iamenities.getId()!=null){
             setId(iamenities.getId());
         }

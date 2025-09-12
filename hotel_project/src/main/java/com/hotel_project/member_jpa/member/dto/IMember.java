@@ -1,9 +1,11 @@
 package com.hotel_project.member_jpa.member.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
+
 import java.time.LocalDateTime;
 
 
-public interface IMember {
+public interface IMember extends IId {
     Long getId();
     void setId(Long id);
 
@@ -36,6 +38,7 @@ public interface IMember {
 
     /* insert용: 모든 값 복사 */
     default void copyMembers(IMember iMember) {
+        if (iMember == null){ return;}
         setId(iMember.getId());
         setFirstName(iMember.getFirstName());
         setLastName(iMember.getLastName());
@@ -50,6 +53,7 @@ public interface IMember {
 
     /* update용: null 아닌 값만 복사 */
     default void copyNotNullMembers(IMember iMember) {
+        if (iMember == null){ return;}
         if (iMember.getId() != null) setId(iMember.getId());
         if (iMember.getFirstName() != null) setFirstName(iMember.getFirstName());
         if (iMember.getLastName() != null) setLastName(iMember.getLastName());
