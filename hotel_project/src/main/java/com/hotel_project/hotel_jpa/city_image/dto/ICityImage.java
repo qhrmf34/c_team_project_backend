@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.city_image.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hotel_project.common_jpa.dto.IId;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,10 @@ public interface ICityImage extends IId {
 
     Long getCityId();
     void setCityId(Long cityId);
+
+    @JsonIgnore
+    IId getCity();
+    void setCity(IId city);
 
     String getCityImageName();
     void setCityImageName(String cityImageName);
@@ -28,8 +33,11 @@ public interface ICityImage extends IId {
 
     /* insert용: 모든 값 복사 */
     default void copyMembers(ICityImage iCityImage) {
+        if (iCityImage == null) {
+            return;
+        }
         setId(iCityImage.getId());
-        setCityId(iCityImage.getCityId());
+        setCity(iCityImage.getCity());
         setCityImageName(iCityImage.getCityImageName());
         setCityImagePath(iCityImage.getCityImagePath());
         setCityImageSize(iCityImage.getCityImageSize());
@@ -38,6 +46,9 @@ public interface ICityImage extends IId {
     }
 
     default void copyNotNullMembers(ICityImage iCityImage) {
+        if (iCityImage == null) {
+            return;
+        }
         if  (iCityImage.getId() != null) {
             setId(iCityImage.getId());
         }

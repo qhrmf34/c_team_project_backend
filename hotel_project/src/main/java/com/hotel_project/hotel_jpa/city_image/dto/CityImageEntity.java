@@ -1,11 +1,9 @@
 package com.hotel_project.hotel_jpa.city_image.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
 import com.hotel_project.hotel_jpa.city.dto.CityEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -13,16 +11,20 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "CityImageEntity")
+@Builder
+@Entity
 @Table (name = "city_image_tbl")
 public class CityImageEntity implements ICityImage{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "city_id", nullable = false)
-    private CityEntity city;
+    private CityEntity cityEntity;
+
+    @Transient
+    private Long cityId;
 
     @Column(nullable = false, length = 255)
     private String cityImageName;
@@ -39,27 +41,45 @@ public class CityImageEntity implements ICityImage{
             columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
+    @Override
+    public IId getCity() {
+        return this.cityEntity;
+    }
+
+    @Override
+    public void setCity(IId iId) {
+        if(iId == null){
+            return;
+        }
+        if(this.cityEntity == null){
+            this.cityEntity = new CityEntity();
+        }
+        this.cityEntity.copyMembersId(iId);
+
+    }
+
+
+    @Override
+    public Long getCityId() {
+        return this.cityEntity != null ? this.cityEntity.getId() : null;
+    }
+
+    @Override
+    public void setCityId(Long cityId) {
+        if (cityId == null) {
+            throw new IllegalArgumentException("City Id cannot be null");
+        }
+        if (this.cityEntity == null) {
+            this.cityEntity = new CityEntity();
+        }
+        this.cityEntity.setId(cityId);
+        this.cityId = cityId;
+    }
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
         if (createdAt == null) {
             createdAt = now;
         }
-    }
-
-    @Override
-    public Long getCityId() {
-        if (this.city == null) {
-            return 0L;
-        }
-        return this.city.getId();
-    }
-
-    @Override
-    public void setCityId(Long cityId) {
-        if (this.city == null) {
-            return;
-        }
-        this.city.setId(cityId);
     }
 }
