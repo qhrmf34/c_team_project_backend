@@ -1,8 +1,10 @@
 package com.hotel_project.hotel_jpa.hotel_image;
 
+import com.hotel_project.common_jpa.dto.IId;
+
 import java.time.LocalDateTime;
 
-public interface IHotelImage {
+public interface IHotelImage extends IId {
     Long getId();
     void setId(Long id);
 

@@ -1,6 +1,8 @@
 package com.hotel_project.hotel_jpa.country.dto;
 
-public interface ICountry {
+import com.hotel_project.common_jpa.dto.IId;
+
+public interface ICountry extends IId {
 
     Long getId();
     void setId(Long id);

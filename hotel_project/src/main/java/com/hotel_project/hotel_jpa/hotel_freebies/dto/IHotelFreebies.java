@@ -1,9 +1,11 @@
 package com.hotel_project.hotel_jpa.hotel_freebies.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public interface IHotelFreebies {
+public interface IHotelFreebies extends IId {
     Long getId();
     void setId(Long id);
 

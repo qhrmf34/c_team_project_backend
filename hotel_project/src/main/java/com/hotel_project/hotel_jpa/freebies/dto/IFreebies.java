@@ -1,7 +1,9 @@
 package com.hotel_project.hotel_jpa.freebies.dto;
 
 
-public interface IFreebies {
+import com.hotel_project.common_jpa.dto.IId;
+
+public interface IFreebies extends IId {
 
     Long getId();
     void setId(Long id);

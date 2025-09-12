@@ -1,6 +1,8 @@
 package com.hotel_project.hotel_jpa.amenities.dto;
 
-public interface IAmenities {
+import com.hotel_project.common_jpa.dto.IId;
+
+public interface IAmenities extends IId {
     Long getId();
     void setId(Long id);
     String getAmenitiesName();

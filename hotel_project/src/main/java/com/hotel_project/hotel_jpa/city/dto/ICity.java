@@ -1,6 +1,8 @@
 package com.hotel_project.hotel_jpa.city.dto;
 
-public interface ICity {
+import com.hotel_project.common_jpa.dto.IId;
+
+public interface ICity extends IId {
     Long getId();
     void setId(Long id);
 

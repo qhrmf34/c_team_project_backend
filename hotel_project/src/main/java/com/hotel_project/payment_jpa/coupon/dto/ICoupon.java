@@ -1,10 +1,12 @@
 package com.hotel_project.payment_jpa.coupon.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public interface ICoupon {
+public interface ICoupon extends IId {
     Long getId();
     void setId(Long id);
 

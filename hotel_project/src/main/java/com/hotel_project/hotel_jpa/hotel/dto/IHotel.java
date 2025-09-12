@@ -1,10 +1,12 @@
 package com.hotel_project.hotel_jpa.hotel.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-public interface IHotel {
+public interface IHotel extends IId {
     Long getId();
     void setId(Long id);
 
