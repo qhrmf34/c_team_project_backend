@@ -1,11 +1,9 @@
 package com.hotel_project.hotel_jpa.hotel_image;
 
+import com.hotel_project.common_jpa.dto.IId;
 import com.hotel_project.hotel_jpa.hotel.dto.HotelEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity(name = "HotelImageEntity")
 @Table (name = "hotel_image_tbl")
 public class HotelImageEntity implements IHotelImage {
@@ -20,9 +19,12 @@ public class HotelImageEntity implements IHotelImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "hotel_id", nullable = false)
-    private HotelEntity hotel;
+    private HotelEntity hotelEntity;
+
+    @Transient
+    private Long hotelId;
 
     @Column(nullable = false, length = 255)
     private String hotelImageName;
@@ -39,27 +41,44 @@ public class HotelImageEntity implements IHotelImage {
             columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
+    @Override
+    public IId getHotel(){
+        return this.hotelEntity;
+    }
+
+    @Override
+    public void setHotel(IId iId) {
+        if(iId == null){
+            return;
+        }
+        if (this.hotelEntity == null){
+            this.hotelEntity = new HotelEntity();
+        }
+        this.hotelEntity.copyMembersId(iId);
+    }
+
+    @Override
+    public Long getHotelId() {
+        return this.hotelEntity != null ? this.hotelEntity.getId() : null;
+    }
+
+    @Override
+    public void setHotelId(Long hotelId) {
+        if(hotelId == null){
+            throw new IllegalArgumentException("hotelId cannot be null");
+        }
+        if (this.hotelEntity == null){
+            this.hotelEntity = new HotelEntity();
+        }
+        this.hotelEntity.setId(hotelId);
+        this.hotelId = hotelId;
+    }
+
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
         if (createdAt == null) {
             createdAt = now;
         }
-    }
-
-    @Override
-    public Long getHotelId() {
-        if (this.hotel == null) {
-            return 0L;
-        }
-        return this.hotel.getId();
-    }
-
-    @Override
-    public void setHotelId(Long hotelId) {
-        if (this.hotel == null) {
-            return;
-        }
-        this.hotel.setId(hotelId);
     }
 }
