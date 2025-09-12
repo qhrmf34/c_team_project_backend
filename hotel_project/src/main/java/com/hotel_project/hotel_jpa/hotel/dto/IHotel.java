@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.hotel.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hotel_project.common_jpa.dto.IId;
 
 import java.math.BigDecimal;
@@ -12,6 +13,10 @@ public interface IHotel extends IId {
 
     Long getCityId();
     void setCityId(Long cityId);
+
+    @JsonIgnore
+    IId getCity();
+    void setCity(IId city);
 
     HotelType getHotelType();
     void setHotelType(HotelType hotelType);
@@ -53,8 +58,11 @@ public interface IHotel extends IId {
     void setUpdatedAt(LocalDateTime updatedAt);
 
     default void copyMembers(IHotel iHotel) {
+        if (iHotel == null) {
+            return;
+        }
         setId(iHotel.getId());
-        setCityId(iHotel.getCityId());
+        setCity(iHotel.getCity());
         setHotelType(iHotel.getHotelType());
         setHotelName(iHotel.getHotelName());
         setHotelLatitude(iHotel.getHotelLatitude());
@@ -71,8 +79,11 @@ public interface IHotel extends IId {
     }
 
     default void copyNotNullMembers(IHotel iHotel) {
+        if (iHotel == null) {
+            return;
+        }
         if (iHotel.getId() != null) { setId(iHotel.getId()); }
-        if (iHotel.getCityId() != null) { setCityId(iHotel.getCityId()); }
+        if (iHotel.getCity() != null) { setCity(iHotel.getCity()); }
         if (iHotel.getHotelType() != null) { setHotelType(iHotel.getHotelType()); }
         if (iHotel.getHotelName() != null) { setHotelName(iHotel.getHotelName()); }
         if (iHotel.getHotelLatitude() != null) { setHotelLatitude(iHotel.getHotelLatitude()); }

@@ -1,5 +1,8 @@
 package com.hotel_project.hotel_jpa.hotel.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hotel_project.common_jpa.dto.IId;
+import com.hotel_project.hotel_jpa.city.dto.CityDto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -15,6 +18,10 @@ import java.time.LocalTime;
 public class HotelDto implements IHotel{
     private Long id;
 
+    @JsonIgnore
+    private CityDto cityDto;
+
+    @NotNull
     private Long cityId;
 
     @NotNull(message = "호텔 타입은 필수 입력 입니다.")
@@ -56,4 +63,43 @@ public class HotelDto implements IHotel{
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Override
+    public IId getCity() {
+        return this.cityDto;
+    }
+
+    @Override
+    public void setCity(IId iId){
+        if (iId == null){
+            return;
+        }
+        if (this.cityDto == null){
+            this.cityDto = new CityDto();
+        }
+        this.cityDto.copyMembersId(iId);
+    }
+
+    @Override
+    public Long getCityId() {
+        if (this.cityDto != null){
+            return this.cityDto.getId();
+        }
+        return this.cityId;
+    }
+
+    @Override
+    public void setCityId(Long id) {
+        if (id == null){
+            if (this.cityDto != null && this.cityDto.getId() != null){
+                this.cityDto.setId(this.cityDto.getId());
+            }
+            return;
+        }
+        this.cityId = id;
+        if (this.cityDto == null){
+            this.cityDto = new CityDto();
+        }
+        this.cityDto.setId(id);
+    }
 }

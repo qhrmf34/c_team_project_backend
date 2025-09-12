@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.hotel.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
 import com.hotel_project.hotel_jpa.city.dto.CityEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,6 +13,7 @@ import java.time.LocalTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "hotel_tbl")
 public class HotelEntity implements IHotel{
@@ -19,9 +21,12 @@ public class HotelEntity implements IHotel{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "city_id", nullable = false)
-    private CityEntity city;
+    private CityEntity cityEntity;
+
+    @Transient
+    private Long cityId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -65,19 +70,36 @@ public class HotelEntity implements IHotel{
     private LocalDateTime updatedAt;
 
     @Override
-    public Long getCityId() {
-        if (this.city == null) {
-            return 0L;
+    public IId getCity(){
+        return this.cityEntity;
+    }
+
+    @Override
+    public void setCity(IId iId) {
+        if (iId == null){
+            return;
         }
-        return this.city.getId();
+        if (this.cityEntity == null){
+            this.cityEntity = new CityEntity();
+        }
+        this.cityEntity.copyMembersId(iId);
+    }
+
+    @Override
+    public Long getCityId() {
+        return this.cityEntity != null ? this.cityEntity.getId() : null;
     }
 
     @Override
     public void setCityId(Long cityId) {
-        if (this.city == null) {
-            return;
+        if (cityId == null) {
+            throw new IllegalArgumentException("cityId cannot be null");
         }
-        this.city.setId(cityId);
+        if (this.cityEntity == null){
+            this.cityEntity = new CityEntity();
+        }
+        this.cityEntity.setId(cityId);
+        this.cityId = cityId;
     }
 
     @PrePersist
