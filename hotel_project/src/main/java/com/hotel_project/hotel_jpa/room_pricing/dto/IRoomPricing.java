@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.room_pricing.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hotel_project.common_jpa.dto.IId;
 
 import java.math.BigDecimal;
@@ -12,6 +13,10 @@ public interface IRoomPricing extends IId {
 
     Long getRoomId();
     void setRoomId(Long roomId);
+
+    @JsonIgnore
+    IId getRoom();
+    void setRoom(IId room);
 
     LocalDate getDate();
     void setDate(LocalDate date);
@@ -27,7 +32,7 @@ public interface IRoomPricing extends IId {
 
     default void copyMembers(IRoomPricing iRoomPricing) {
         setId(iRoomPricing.getId());
-        setRoomId(iRoomPricing.getRoomId());
+        setRoom(iRoomPricing.getRoom());
         setDate(iRoomPricing.getDate());
         setPrice(iRoomPricing.getPrice());
         setCreatedAt(iRoomPricing.getCreatedAt());
@@ -36,7 +41,7 @@ public interface IRoomPricing extends IId {
 
     default void copyNotNullMembers(IRoomPricing iRoomPricing) {
         if (iRoomPricing.getId() != null) {setId(iRoomPricing.getId());}
-        if (iRoomPricing.getRoomId() != null) {setRoomId(iRoomPricing.getRoomId());}
+        if (iRoomPricing.getRoom() != null) {setRoom(iRoomPricing.getRoom());}
         if (iRoomPricing.getDate() != null) {setDate(iRoomPricing.getDate());}
         if (iRoomPricing.getPrice() != null) {setPrice(iRoomPricing.getPrice());}
         if (iRoomPricing.getUpdatedAt() != null) {setUpdatedAt(iRoomPricing.getUpdatedAt());}
