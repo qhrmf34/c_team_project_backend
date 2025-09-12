@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.room.dto;
 
+import com.hotel_project.common_jpa.dto.IId;
 import com.hotel_project.hotel_jpa.hotel.dto.HotelEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,9 +22,12 @@ public class RoomEntity implements IRoom{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "hotel_id", nullable = false)
-    private HotelEntity hotel;
+    private HotelEntity hotelEntity;
+
+    @Transient
+    private Long hotelId;
 
     private String roomName;
 
@@ -51,19 +55,36 @@ public class RoomEntity implements IRoom{
     private LocalDateTime updatedAt;
 
     @Override
-    public Long getHotelId() {
-        if (this.hotel == null) {
-            return 0L;
+    public IId getHotel(){
+        return this.hotelEntity;
+    }
+
+    @Override
+    public void setHotel(IId iId) {
+        if(iId == null){
+            return;
         }
-        return this.hotel.getId();
+        if(this.hotelEntity == null){
+            this.hotelEntity = new HotelEntity();
+        }
+        this.hotelEntity.copyMembersId(iId);
+    }
+
+    @Override
+    public Long getHotelId() {
+        return this.hotelEntity != null ? this.hotelEntity.getId() : null;
     }
 
     @Override
     public void setHotelId(Long hotelId) {
-        if(this.hotel == null){
-            return;
+        if (hotelId == null){
+            throw new IllegalArgumentException("hotelId cannot be null");
         }
-        this.hotel.setId(hotelId);
+        if(this.hotelEntity == null){
+            this.hotelEntity = new HotelEntity();
+        }
+        this.hotelEntity.setId(hotelId);
+        this.hotelId = hotelId;
     }
 
     @PrePersist

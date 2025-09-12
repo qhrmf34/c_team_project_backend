@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.room.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hotel_project.common_jpa.dto.IId;
 
 import java.math.BigDecimal;
@@ -11,6 +12,10 @@ public interface IRoom extends IId {
 
     Long getHotelId();
     void setHotelId(Long hotelId);
+
+    @JsonIgnore
+    IId getHotel();
+    void setHotel(IId hotel);
 
     String getRoomName();
     void setRoomName(String roomName);
@@ -37,8 +42,11 @@ public interface IRoom extends IId {
     void setUpdatedAt(LocalDateTime updatedAt);
 
     default void copyMembers(IRoom iRoom) {
+        if (iRoom == null) {
+            return;
+        }
         setId(iRoom.getId());
-        setHotelId(iRoom.getHotelId());
+        setHotel(iRoom.getHotel());
         setRoomName(iRoom.getRoomName());
         setRoomSingleBed(iRoom.getRoomSingleBed());
         setRoomDoubleBed(iRoom.getRoomDoubleBed());
@@ -50,8 +58,11 @@ public interface IRoom extends IId {
     }
 
     default void copyNotNullMembers(IRoom iRoom) {
+        if (iRoom == null) {
+            return;
+        }
         if (iRoom.getId() != null) { setId(iRoom.getId()); }
-        if (iRoom.getHotelId() != null) { setHotelId(iRoom.getHotelId()); }
+        if (iRoom.getHotel() != null) { setHotel(iRoom.getHotel()); }
         if (iRoom.getRoomName() != null) { setRoomName(iRoom.getRoomName()); }
         if (iRoom.getRoomSingleBed() != null) { setRoomSingleBed(iRoom.getRoomSingleBed()); }
         if (iRoom.getRoomDoubleBed() != null) { setRoomDoubleBed(iRoom.getRoomDoubleBed()); }

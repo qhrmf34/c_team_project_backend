@@ -1,5 +1,8 @@
 package com.hotel_project.hotel_jpa.room.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hotel_project.common_jpa.dto.IId;
+import com.hotel_project.hotel_jpa.hotel.dto.HotelDto;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +20,10 @@ import java.time.LocalDateTime;
 public class RoomDto implements IRoom{
     private Long id;
 
+    @JsonIgnore
+    private HotelDto hotelDto;
+
+    @NotNull
     private Long hotelId;
 
     @NotBlank(message = "방 이름은 필수 입력 입니다.")
@@ -39,4 +46,43 @@ public class RoomDto implements IRoom{
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Override
+    public IId getHotel() {
+        return this.hotelDto;
+    }
+
+    @Override
+    public void setHotel(IId iId) {
+        if(iId == null){
+            return;
+        }
+        if(this.hotelDto == null){
+            this.hotelDto = new HotelDto();
+        }
+        this.hotelDto.copyMembersId(iId);
+    }
+
+    @Override
+    public Long getHotelId() {
+        if (this.hotelDto != null) {
+            return this.hotelDto.getId();
+        }
+        return this.hotelId;
+    }
+
+    @Override
+    public void setHotelId(Long id) {
+        if(id == null){
+            if(this.hotelDto != null && this.hotelDto.getId() != null){
+                this.hotelDto.setId(this.hotelDto.getId());
+            }
+            return;
+        }
+        this.hotelId = id;
+        if(this.hotelDto == null){
+            this.hotelDto = new HotelDto();
+        }
+        this.hotelDto.setId(id);
+    }
 }
