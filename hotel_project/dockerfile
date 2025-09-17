@@ -1,0 +1,12 @@
+FROM openjdk:21-jdk-slim
+
+# Set working directory
+#WORKDIR /app
+
+# Copy the built JAR file (adjust the path and name)
+COPY target/hotel_project-0.0.1-SNAPSHOT.jar hotel_project-0.0.1-SNAPSHOT.jar
+
+ENV SPRING_PROFILE=prod
+
+# Set command to run the JAR
+ENTRYPOINT ["java", "-jar","-Dspring.profiles.active=${SPRING_PROFILE}", "hotel_project-0.0.1-SNAPSHOT.jar"]

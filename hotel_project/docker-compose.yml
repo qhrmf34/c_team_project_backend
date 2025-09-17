@@ -1,0 +1,38 @@
+#version: '3.8'
+services:
+  mariadb:
+    container_name: mariadb_container
+    image: mariadb
+    ports:
+      - 13306:3306
+    volumes:
+      - ./mariadb_data:/var/lib/mysql
+    environment:
+      - TZ= Asia/Seoul
+      - MARIADB_ROOT_PASSWORD=c_team_1234
+      - MARIADB_DATABASE=hotel_db
+      - MARIADB_USER=book_user
+      - MARIADB_PASSWORD=book_1234
+    networks:
+      - a_network
+#    restart: always
+
+  boot-app:
+    build:
+      context: ./
+      dockerfile: dockerfile
+    container_name: boot_container
+    ports:
+      - 18888:8080
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      TZ: Asia/Seoul
+    depends_on:
+      - mariadb
+    networks:
+      - a_network
+#    restart: always
+
+networks:
+  a_network:
+    driver: bridge
