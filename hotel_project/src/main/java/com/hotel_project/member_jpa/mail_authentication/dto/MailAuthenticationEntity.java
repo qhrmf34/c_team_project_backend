@@ -1,4 +1,4 @@
-package com.hotel_project.member_jpa.mail_authentication;
+package com.hotel_project.member_jpa.mail_authentication.dto;
 
 import com.hotel_project.common_jpa.dto.IId;
 import com.hotel_project.member_jpa.member.dto.MemberEntity;
