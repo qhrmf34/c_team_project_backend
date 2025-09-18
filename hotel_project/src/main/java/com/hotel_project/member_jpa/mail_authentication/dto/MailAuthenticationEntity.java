@@ -22,6 +22,7 @@ public class MailAuthenticationEntity implements IMailAuthentication {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "member_id", nullable = false)
     private MemberEntity memberEntity;
 
     @Transient
