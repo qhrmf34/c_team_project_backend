@@ -1,17 +1,17 @@
 spring:
+  profiles:
+    active: docker
   application:
     name: hotel_project
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://mariadb-container:3306/testdb
+    url: jdbc:mariadb://mariadb-ver2:3306/testdb  # 서비스명을 mariadb-ver2로 변경
     username: root
     password: 1234
-
   mustache:
     suffix: .html
     servlet:
       cache: false
-
   jpa:
     hibernate:
       ddl-auto: update
