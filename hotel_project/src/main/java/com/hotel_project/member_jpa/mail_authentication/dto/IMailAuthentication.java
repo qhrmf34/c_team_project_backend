@@ -1,5 +1,6 @@
 package com.hotel_project.member_jpa.mail_authentication.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hotel_project.common_jpa.dto.IId;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ public interface IMailAuthentication extends IId {
     IId getMember();
     void setMember(IId member);
 
+    @JsonIgnore
     Long getMemberId();
     void setMemberId(Long memberId);
 
