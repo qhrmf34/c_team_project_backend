@@ -1,20 +1,19 @@
 spring:
+  application:
+    name: hotel_project
   config:
-    activate:
+    active:
       on-profile: local
   datasource:
-    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: jdbc:log4jdbc:mariadb://localhost:13306/booking_db?allowPublicKeyRetrieval=true
-    username: book_user
-    password: book_1234
-
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:13334/testdb  # 서비스명을 mariadb-ver2로 변경
+    username: hotel_user
+    password: hotel_pass
   mustache:
     suffix: .html
     servlet:
       cache: false
-
   jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
 
