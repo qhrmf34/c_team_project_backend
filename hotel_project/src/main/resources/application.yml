@@ -1,4 +1,23 @@
 spring:
+  profiles:
+    active: docker
   application:
     name: hotel_project
-    # 서버 포트도 있어야 함
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://mariadb-ver2:3306/testdb  # 서비스명을 mariadb-ver2로 변경
+    username: hotel_user
+    password: hotel_pass
+  mustache:
+    suffix: .html
+    servlet:
+      cache: false
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml
+  type-aliases-package: com.hotel_project
+  configuration:
+    map-underscore-to-camel-case: true
