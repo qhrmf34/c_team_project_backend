@@ -10,7 +10,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "member_tbl")
+@Table(name = "member_tbl", uniqueConstraints = {
+        @UniqueConstraint(
+                name = "uk_provider_provider_id",
+                columnNames = {"provider", "provider_id"}
+        )
+})
 public class MemberEntity implements IMember {
 
     @Id
@@ -26,17 +31,17 @@ public class MemberEntity implements IMember {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column( nullable = false, unique = true, length = 30)
+    @Column(unique = true, length = 30)
     private String phoneNumber;
 
-    @Column(nullable = false, length = 255)
+    @Column(length = 255)
     private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Provider provider = Provider.local;
 
-    @Column(nullable = true, unique = true, length = 255)
+    @Column(nullable = true, length = 255)
     private String providerId;
 
     @Column(nullable = false, updatable = false,

@@ -48,7 +48,7 @@ public class FreebiesService {
     }
 
     // INSERT - JPA 사용
-    public String save(FreebiesDto freebiesDto) throws CommonExceptionTemplate {
+    public String insert(FreebiesDto freebiesDto) throws CommonExceptionTemplate {
         if (freebiesDto == null) {
             throw MemberException.INVALID_DATA.getException();
         }
