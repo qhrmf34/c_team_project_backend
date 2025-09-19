@@ -1,4 +1,4 @@
-package com.hotel_project.hotel_jpa.freebies.controller.addvice;
+package com.hotel_project.common_jpa.controller.addvice;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;

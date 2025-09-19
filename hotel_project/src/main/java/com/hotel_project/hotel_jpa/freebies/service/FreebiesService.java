@@ -4,118 +4,112 @@ import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.exception.MemberException;
 import com.hotel_project.hotel_jpa.freebies.dto.FreebiesDto;
 import com.hotel_project.hotel_jpa.freebies.dto.FreebiesEntity;
-import com.hotel_project.hotel_jpa.freebies.dto.IFreebies;
 import com.hotel_project.hotel_jpa.freebies.mapper.FreebiesMapper;
 import com.hotel_project.hotel_jpa.freebies.repository.FreebiesRepository;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class FreebiesService {
 
-    @Autowired
-    private FreebiesRepository freebiesRepository; // JPA - CUD
+    private final FreebiesRepository freebiesRepository;
+    private final FreebiesMapper freebiesMapper;
 
-    @Autowired
-    private FreebiesMapper freebiesMapper; // MyBatis - R
+    // SELECT - MyBatis 사용
+    public List<FreebiesDto> findAll() {
+        return freebiesMapper.findAll();
+    }
 
-    // CREATE - JPA 사용
-    public IFreebies insertRepository(FreebiesDto dto) throws CommonExceptionTemplate {
-        try {
-            FreebiesEntity entity = new FreebiesEntity();
-            entity.copyMembers(dto); // IFreebies 인터페이스의 default 메서드 사용
-            FreebiesEntity result = this.freebiesRepository.save(entity);
-            log.info("Freebies created with ID: {}", result.getId());
-            return result;
-        } catch (Exception e) {
-            log.error("Error creating freebies: {}", e.getMessage());
-            throw MemberException.NOT_EXIST_MEMBERID.getException(); // 적절한 예외로 변경 필요
+    public FreebiesDto findById(Long id) throws CommonExceptionTemplate {
+        if (id == null) {
+            throw MemberException.INVALID_ID.getException();
         }
+
+        FreebiesDto freebiesDto = freebiesMapper.findById(id);
+        if (freebiesDto == null) {
+            throw MemberException.NOT_EXIST_DATA.getException();
+        }
+
+        return freebiesDto;
+    }
+
+    public List<FreebiesDto> findByName(String freebiesName) throws CommonExceptionTemplate {
+        if (freebiesName == null || freebiesName.trim().isEmpty()) {
+            throw MemberException.INVALID_DATA.getException();
+        }
+
+        return freebiesMapper.findByName(freebiesName);
+    }
+
+    // INSERT - JPA 사용
+    public String save(FreebiesDto freebiesDto) throws CommonExceptionTemplate {
+        if (freebiesDto == null) {
+            throw MemberException.INVALID_DATA.getException();
+        }
+
+        // 중복 체크 (DTO validation은 Controller에서 처리)
+        if (freebiesDto.getFreebiesName() != null &&
+                freebiesRepository.existsByFreebiesName(freebiesDto.getFreebiesName().trim())) {
+            throw MemberException.DUPLICATE_DATA.getException();
+        }
+
+        FreebiesEntity entity = new FreebiesEntity();
+        entity.setFreebiesName(freebiesDto.getFreebiesName());
+
+        freebiesRepository.save(entity);
+        return "insert ok";
     }
 
     // UPDATE - JPA 사용
-    public IFreebies updateRepository(Long id, FreebiesDto dto) throws CommonExceptionTemplate {
-        try {
-            Optional<FreebiesEntity> existingEntity = this.freebiesRepository.findById(id);
-            if (!existingEntity.isPresent()) {
-                throw MemberException.NOT_EXIST_MEMBERID2.getException();
-            }
-
-            FreebiesEntity entity = existingEntity.get();
-            entity.copyNotNullMembers(dto); // IFreebies 인터페이스의 default 메서드 사용
-            FreebiesEntity result = this.freebiesRepository.save(entity);
-            log.info("Freebies updated with ID: {}", result.getId());
-            return result;
-        } catch (Exception e) {
-            log.error("Error updating freebies: {}", e.getMessage());
-            throw MemberException.NOT_EXIST_MEMBERID3.getException();
+    public String update(FreebiesDto freebiesDto) throws CommonExceptionTemplate {
+        if (freebiesDto == null) {
+            throw MemberException.INVALID_DATA.getException();
         }
+
+        if (freebiesDto.getId() == null) {
+            throw MemberException.INVALID_ID.getException();
+        }
+
+        Optional<FreebiesEntity> entityOptional = freebiesRepository.findById(freebiesDto.getId());
+        if (!entityOptional.isPresent()) {
+            throw MemberException.NOT_EXIST_DATA.getException();
+        }
+
+        FreebiesEntity entity = entityOptional.get();
+
+        // 중복 체크 (이름이 변경될 때만)
+        if (freebiesDto.getFreebiesName() != null &&
+                !freebiesDto.getFreebiesName().equals(entity.getFreebiesName()) &&
+                freebiesRepository.existsByFreebiesNameAndIdNot(freebiesDto.getFreebiesName(), freebiesDto.getId())) {
+            throw MemberException.DUPLICATE_DATA.getException();
+        }
+
+        // DTO에서 Entity로 복사 (null이 아닌 값들만)
+        if (freebiesDto.getFreebiesName() != null) {
+            entity.setFreebiesName(freebiesDto.getFreebiesName());
+        }
+
+        freebiesRepository.save(entity);
+        return "update ok";
     }
 
     // DELETE - JPA 사용
-    public Boolean deleteRepository(Long id) throws CommonExceptionTemplate {
-        try {
-            if (!this.freebiesRepository.existsById(id)) {
-                throw MemberException.NOT_EXIST_MEMBERID4.getException();
-            }
-            this.freebiesRepository.deleteById(id);
-            log.info("Freebies deleted with ID: {}", id);
-            return true;
-        } catch (Exception e) {
-            log.error("Error deleting freebies: {}", e.getMessage());
-            throw MemberException.NOT_EXIST_MEMBERID5.getException();
-        }
-    }
-
-    // READ - MyBatis 사용
-    @Transactional(readOnly = true)
-    public IFreebies findByIdMybatis(Long id) throws CommonExceptionTemplate {
-        try {
-            FreebiesDto find = this.freebiesMapper.findById(id);
-            if (find == null) {
-                throw MemberException.NOT_EXIST_MEMBERID6.getException();
-            }
-            log.info("Freebies found with ID: {}", id);
-            return find;
-        } catch (Exception e) {
-            log.error("Error finding freebies by ID: {}", e.getMessage());
-            throw MemberException.NOT_EXIST_MEMBERID6.getException();
-        }
-    }
-
-    // READ ALL - MyBatis 사용
-    @Transactional(readOnly = true)
-    public List<IFreebies> findAllMybatis() {
-        List<FreebiesDto> all = this.freebiesMapper.findAll();
-        List<IFreebies> result = all.parallelStream()
-                .map(x -> (IFreebies) x).toList();
-        log.info("Found {} freebies", result.size());
-        return result;
-    }
-
-    // SEARCH - MyBatis 사용 (Slice)
-    @Transactional(readOnly = true)
-    public Slice<FreebiesDto> findByNameContainsMybatis(String freebiesName, Pageable pageable) {
-        List<FreebiesDto> list = this.freebiesMapper.findByNameContains(freebiesName, pageable);
-
-        // Slice는 다음 페이지 존재 여부만 확인 (총 개수 불필요)
-        boolean hasNext = list.size() > pageable.getPageSize();
-        if (hasNext) {
-            list = list.subList(0, pageable.getPageSize()); // 실제 페이지 크기만큼만 자르기
+    public String delete(Long id) throws CommonExceptionTemplate {
+        if (id == null) {
+            throw MemberException.INVALID_ID.getException();
         }
 
-        Slice<FreebiesDto> result = new SliceImpl<>(list, pageable, hasNext);
-        log.info("Search found {} freebies for name containing: {}", list.size(), freebiesName);
-        return result;
+        if (!freebiesRepository.existsById(id)) {
+            throw MemberException.NOT_EXIST_DATA.getException();
+        }
+
+        freebiesRepository.deleteById(id);
+        return "delete ok";
     }
 }

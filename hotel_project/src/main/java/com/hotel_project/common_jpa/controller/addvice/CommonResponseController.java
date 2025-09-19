@@ -1,4 +1,4 @@
-package com.hotel_project.hotel_jpa.freebies.controller.addvice;
+package com.hotel_project.common_jpa.controller.addvice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

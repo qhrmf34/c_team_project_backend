@@ -1,4 +1,4 @@
-package com.hotel_project.hotel_jpa.freebies.controller;
+package com.hotel_project.common_jpa.controller;
 
 
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;

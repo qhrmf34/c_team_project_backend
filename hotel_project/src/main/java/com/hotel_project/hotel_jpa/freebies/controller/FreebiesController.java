@@ -1,80 +1,73 @@
 package com.hotel_project.hotel_jpa.freebies.controller;
 
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
+import com.hotel_project.common_jpa.exception.MemberException;
+import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.hotel_jpa.freebies.dto.FreebiesDto;
-import com.hotel_project.hotel_jpa.freebies.dto.IFreebies;
 import com.hotel_project.hotel_jpa.freebies.service.FreebiesService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.validation.annotation.Validated;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
-@Slf4j
 @RestController
-@RequestMapping("/api/v1/freebies")
+@RequestMapping("/api/freebies")
+@RequiredArgsConstructor
+@Api(tags = "Freebies API", description = "무료시설 관리 API")
 public class FreebiesController {
 
-    @Autowired
-    private FreebiesService freebiesService;
+    private final FreebiesService freebiesService;
 
-    // CREATE - POST /api/v1/freebies (JPA)
-    @PostMapping("")
-    public IFreebies createFreebies(@Validated @RequestBody FreebiesDto dto) throws CommonExceptionTemplate {
-        log.info("Creating freebies: {}", dto.getFreebiesName());
-        IFreebies created = freebiesService.insertRepository(dto);
-        // CommonResponseController가 자동으로 ApiResponse로 감싸줌
-        // 성공: {"code": 200, "message": "success", "data": {무료시설정보}}
-        // 실패: MemberExceptionAdvice가 처리 → {"code": 400400, "message": "그런 아이디 없음"}
-        return created;
+    @GetMapping
+    @ApiOperation(value = "전체 무료시설 조회", notes = "모든 무료시설을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<FreebiesDto>>> findAll() {
+        List<FreebiesDto> freebiesList = freebiesService.findAll();
+        return ResponseEntity.ok(ApiResponse.success(200, "success", freebiesList));
     }
 
-    // UPDATE - PATCH /api/v1/freebies/{id} (JPA)
-    @PatchMapping("/{id}")
-    public IFreebies updateFreebies(
-            @PathVariable Long id,
-            @Validated @RequestBody FreebiesDto dto) throws CommonExceptionTemplate {
-        log.info("Updating freebies ID: {} with name: {}", id, dto.getFreebiesName());
-        IFreebies updated = freebiesService.updateRepository(id, dto);
-        return updated;
-    }
-
-    // DELETE - DELETE /api/v1/freebies/{id} (JPA)
-    @DeleteMapping("/{id}")
-    public String deleteFreebies(@PathVariable Long id) throws CommonExceptionTemplate {
-        log.info("Deleting freebies ID: {}", id);
-        Boolean result = freebiesService.deleteRepository(id);
-        return result ? "무료시설이 성공적으로 삭제되었습니다." : "삭제에 실패했습니다.";
-    }
-
-    // READ - GET /api/v1/freebies/{id} (MyBatis)
     @GetMapping("/{id}")
-    public IFreebies getFreebies(@PathVariable Long id) throws CommonExceptionTemplate {
-        log.info("Finding freebies ID: {}", id);
-        IFreebies freebies = freebiesService.findByIdMybatis(id);
-        return freebies;
+    @ApiOperation(value = "무료시설 단건 조회", notes = "ID로 무료시설을 조회합니다.")
+    public ResponseEntity<ApiResponse<FreebiesDto>> findById(@PathVariable Long id) throws CommonExceptionTemplate {
+        FreebiesDto freebiesDto = freebiesService.findById(id);
+        return ResponseEntity.ok(ApiResponse.success(200, "success", freebiesDto));
     }
 
-    // READ ALL - GET /api/v1/freebies (MyBatis)
-    @GetMapping("")
-    public List<IFreebies> getAllFreebies() {
-        log.info("Finding all freebies");
-        List<IFreebies> freebiesList = freebiesService.findAllMybatis();
-        return freebiesList;
-    }
-
-    // SEARCH - GET /api/v1/freebies/search (MyBatis + Slice)
     @GetMapping("/search")
-    public Slice<FreebiesDto> searchFreebies(
-            @RequestParam("name") String freebiesName,
-            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-        log.info("Searching freebies with name containing: {}", freebiesName);
-        Slice<FreebiesDto> result = freebiesService.findByNameContainsMybatis(freebiesName, pageable);
-        return result;
+    @ApiOperation(value = "무료시설 이름으로 검색", notes = "무료시설 이름으로 검색합니다.")
+    public ResponseEntity<ApiResponse<List<FreebiesDto>>> findByName(@RequestParam String name) throws CommonExceptionTemplate {
+        List<FreebiesDto> freebiesList = freebiesService.findByName(name);
+        return ResponseEntity.ok(ApiResponse.success(200, "success", freebiesList));
+    }
+
+    @PostMapping
+    @ApiOperation(value = "무료시설 등록", notes = "새로운 무료시설을 등록합니다.")
+    public String save(@Valid @RequestBody FreebiesDto freebiesDto, BindingResult bindingResult) throws CommonExceptionTemplate {
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            bindingResult.getFieldErrors().forEach(error ->
+                    errorMessages.append(error.getDefaultMessage()).append(" ")
+            );
+            throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
+        }
+
+        return freebiesService.save(freebiesDto);
+    }
+
+    @PutMapping("/{id}")
+    @ApiOperation(value = "무료시설 수정", notes = "기존 무료시설 정보를 수정합니다.")
+    public String update(@PathVariable Long id, @RequestBody FreebiesDto freebiesDto) throws CommonExceptionTemplate {
+        freebiesDto.setId(id);
+        return freebiesService.update(freebiesDto);
+    }
+
+    @DeleteMapping("/{id}")
+    @ApiOperation(value = "무료시설 삭제", notes = "무료시설을 삭제합니다.")
+    public String delete(@PathVariable Long id) throws CommonExceptionTemplate {
+        return freebiesService.delete(id);
     }
 }
