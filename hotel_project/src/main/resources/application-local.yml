@@ -16,6 +16,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+server:
+  port: 8089
 
 mybatis:
   mapper-locations: classpath:/mapper/**/*.xml
