@@ -55,7 +55,7 @@ public class FreebiesController {
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
-        return freebiesService.save(freebiesDto);
+        return freebiesService.insert(freebiesDto);
     }
 
     @PutMapping("/{id}")
