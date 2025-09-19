@@ -33,3 +33,5 @@ build/
 .vscode/
 
 /mariadb_data
+
+logs/
