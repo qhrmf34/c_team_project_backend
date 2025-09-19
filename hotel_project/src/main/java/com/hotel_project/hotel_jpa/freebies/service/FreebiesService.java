@@ -53,20 +53,21 @@ public class FreebiesService {
             throw MemberException.INVALID_DATA.getException();
         }
 
-        // 중복 체크 (DTO validation은 Controller에서 처리)
+        // 중복 체크
         if (freebiesDto.getFreebiesName() != null &&
                 freebiesRepository.existsByFreebiesName(freebiesDto.getFreebiesName().trim())) {
             throw MemberException.DUPLICATE_DATA.getException();
         }
 
+        // 인터페이스 메서드 활용
         FreebiesEntity entity = new FreebiesEntity();
-        entity.setFreebiesName(freebiesDto.getFreebiesName());
+        entity.copyMembers(freebiesDto);
 
         freebiesRepository.save(entity);
         return "insert ok";
     }
 
-    // UPDATE - JPA 사용
+    // UPDATE
     public String update(FreebiesDto freebiesDto) throws CommonExceptionTemplate {
         if (freebiesDto == null) {
             throw MemberException.INVALID_DATA.getException();
@@ -90,16 +91,14 @@ public class FreebiesService {
             throw MemberException.DUPLICATE_DATA.getException();
         }
 
-        // DTO에서 Entity로 복사 (null이 아닌 값들만)
-        if (freebiesDto.getFreebiesName() != null) {
-            entity.setFreebiesName(freebiesDto.getFreebiesName());
-        }
+        // 인터페이스 메서드 활용 (null이 아닌 필드만 복사)
+        entity.copyNotNullMembers(freebiesDto);  // 인터페이스 메서드 사용
 
         freebiesRepository.save(entity);
         return "update ok";
     }
 
-    // DELETE - JPA 사용
+    // DELETE
     public String delete(Long id) throws CommonExceptionTemplate {
         if (id == null) {
             throw MemberException.INVALID_ID.getException();
