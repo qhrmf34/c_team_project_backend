@@ -1,6 +1,5 @@
 package com.hotel_project.common_jpa.util;
 
-import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

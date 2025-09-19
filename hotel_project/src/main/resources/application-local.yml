@@ -22,3 +22,8 @@ mybatis:
   type-aliases-package: com.hotel_project
   configuration:
     map-underscore-to-camel-case: true
+
+# SpringDoc OpenAPI 설정 (단순화)
+springdoc:
+  packages-to-scan: com.hotel_project
+  paths-to-match: /api/**

@@ -15,7 +15,18 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 public class CommonResponseController implements ResponseBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {
-        return true;
+        // Swagger 관련 요청은 제외
+        String packageName = returnType.getContainingClass().getPackage().getName();
+
+        // Swagger/OpenAPI 관련 패키지들 제외
+        if (packageName.contains("springdoc") ||
+                packageName.contains("swagger") ||
+                packageName.contains("openapi")) {
+            return false;
+        }
+
+        // 우리 API만 처리
+        return packageName.startsWith("com.hotel_project");
     }
 
     @Override
@@ -37,6 +48,6 @@ public class CommonResponseController implements ResponseBodyAdvice<Object> {
         }
 
         // Default: wrap in ApiResponse
-        return ApiResponse.success(0,null,null);
+        return ApiResponse.success(200, "success", body);
     }
 }
