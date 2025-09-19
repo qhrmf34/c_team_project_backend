@@ -1,13 +1,12 @@
 package com.hotel_project.hotel_jpa.freebies.controller;
 
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
-import com.hotel_project.common_jpa.exception.MemberException;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.hotel_jpa.freebies.dto.FreebiesDto;
 import com.hotel_project.hotel_jpa.freebies.service.FreebiesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -16,14 +15,15 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/freebies")
-@RequiredArgsConstructor
+@RequestMapping("/api/test")
+@CrossOrigin("*")  // Vue 개발 서버 주소
 @Tag(name = "Freebies API", description = "무료시설 관리 API")
 public class FreebiesController {
 
-    private final FreebiesService freebiesService;
+    @Autowired
+    private FreebiesService freebiesService;
 
-    @GetMapping
+    @GetMapping("/freebies")
     @Operation(summary = "전체 무료시설 조회", description = "모든 무료시설을 조회합니다.")
     public ResponseEntity<ApiResponse<List<FreebiesDto>>> findAll() {
         List<FreebiesDto> freebiesList = freebiesService.findAll();
