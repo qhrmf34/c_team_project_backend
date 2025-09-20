@@ -28,13 +28,13 @@ public class MemberEntity implements IMember {
     @Column(nullable = false, length = 50)
     private String lastName;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(unique = true, length = 100)
     private String email;
 
     @Column(unique = true, length = 30)
     private String phoneNumber;
 
-    @Column(length = 255)
+    @Column(length = 255, nullable = true)  // nullable = true 추가
     private String password;
 
     @Enumerated(EnumType.STRING)
