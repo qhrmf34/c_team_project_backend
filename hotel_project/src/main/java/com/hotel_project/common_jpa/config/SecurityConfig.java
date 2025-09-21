@@ -1,7 +1,6 @@
 package com.hotel_project.common_jpa.config;
 
 import com.hotel_project.member_jpa.member.service.CustomOAuth2UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,22 +11,28 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private CustomOAuth2UserService customOAuth2UserService;  // 추가
+    private final CustomOAuth2UserService customOAuth2UserService;
+
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
+        this.customOAuth2UserService = customOAuth2UserService;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/auth/kakao/login", "/auth/kakao/status").permitAll()
+                        .requestMatchers("/", "/oauth2/**", "/login/**", "/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)  // 여기서 등록
+                                .oidcUserService(customOAuth2UserService::loadUser)  // 메서드 참조
+                                .userService(customOAuth2UserService::loadUser)     // 메서드 참조
                         )
-                        .defaultSuccessUrl("http://localhost:8080/?login=success&provider=kakao", true)
-                        .failureUrl("http://localhost:8080/?login=error&provider=kakao")
+                        .successHandler((request, response, authentication) -> {
+                            System.out.println("=== 로그인 성공 ===");
+                            response.sendRedirect("http://localhost:8080/?login=success");
+                        })
                 )
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable());

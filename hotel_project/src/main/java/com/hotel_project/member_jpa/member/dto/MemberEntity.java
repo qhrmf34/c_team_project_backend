@@ -34,12 +34,12 @@ public class MemberEntity implements IMember {
     @Column(unique = true, length = 30)
     private String phoneNumber;
 
-    @Column(length = 255, nullable = true)  // nullable = true 추가
+    @Column(length = 255)
     private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Provider provider = Provider.local;
+    private Provider provider;
 
     @Column(nullable = true, length = 255)
     private String providerId;
