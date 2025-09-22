@@ -34,7 +34,7 @@ public class SocialLoginService {
             case google:
                 return extractGoogleUserInfo(oauth2User);
             case naver:
-               // return extractNaverUserInfo(oauth2User);
+                return extractNaverUserInfo(oauth2User);
             default:
                 throw new IllegalArgumentException("지원하지 않는 소셜 로그인: " + provider);
         }
@@ -72,21 +72,20 @@ public class SocialLoginService {
         );
     }
 
-    // 네이버 사용자 정보 추출 (구현 예시)
-    //private SocialUserInfo extractNaverUserInfo(OAuth2User oauth2User) {
-    //    Map<String, Object> response = (Map<String, Object>) oauth2User.getAttribute("response");
-    //    String providerId = (String) response.get("id");
-    //    String email = (String) response.get("email");
-    //    String name = (String) response.get("name");
-    //    String nickname = (String) response.get("nickname");
+    private SocialUserInfo extractNaverUserInfo(OAuth2User oauth2User) {
+        Map<String, Object> response = (Map<String, Object>) oauth2User.getAttribute("response");
+        String providerId = (String) response.get("id");
+        String email = (String) response.get("email");
+        String name = (String) response.get("name");
+        String nickname = (String) response.get("nickname");
 
-    //    return new SocialUserInfo(
-    //            providerId,
-    //            nickname != null ? nickname : name,
-    //            "",  // 네이버는 성 정보를 별도로 제공하지 않음
-    //            email != null ? email : "naver_" + providerId + "@temp.com"
-    //    );
-    //}
+        return new SocialUserInfo(
+                providerId,
+                nickname != null ? nickname : name,
+                "",  // 네이버는 성 정보를 별도로 제공하지 않음
+                email != null ? email : "naver_" + providerId + "@temp.com"
+        );
+    }
 
     // 공통 소셜 로그인 처리 로직
     private MemberEntity processSocialLoginCommon(SocialUserInfo userInfo, Provider provider) {

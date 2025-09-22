@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/test")
-@CrossOrigin("*")  // Vue 개발 서버 주소
+//@CrossOrigin("*")  // Vue 개발 서버 주소
 @Tag(name = "Freebies API", description = "무료시설 관리 API")
 public class FreebiesController {
 
