@@ -19,14 +19,14 @@ public class HotelAmenitiesEntity implements IHotelAmenities {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
     private HotelEntity hotelEntity;
 
     @Transient
     private Long hotelId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "amenities_id", nullable = false)
     private AmenitiesEntity amenitiesEntity;
 

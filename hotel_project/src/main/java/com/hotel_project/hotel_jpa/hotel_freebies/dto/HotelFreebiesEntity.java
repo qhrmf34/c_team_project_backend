@@ -21,14 +21,14 @@ public class HotelFreebiesEntity implements IHotelFreebies {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
     private HotelEntity hotelEntity;
 
     @Transient
     private Long hotelId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "freebies_id", nullable = false)
     private FreebiesEntity freebiesEntity;
 

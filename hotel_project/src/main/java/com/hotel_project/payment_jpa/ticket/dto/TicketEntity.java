@@ -22,7 +22,7 @@ public class TicketEntity implements ITicket{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payments_id", nullable = false)
     private PaymentsEntity paymentsEntity;
 

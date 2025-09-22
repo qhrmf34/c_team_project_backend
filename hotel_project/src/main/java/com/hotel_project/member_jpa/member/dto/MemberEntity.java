@@ -28,7 +28,7 @@ public class MemberEntity implements IMember {
     @Column(nullable = false, length = 50)
     private String lastName;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(unique = true, length = 100)
     private String email;
 
     @Column(unique = true, length = 30)
@@ -39,7 +39,7 @@ public class MemberEntity implements IMember {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Provider provider = Provider.local;
+    private Provider provider;
 
     @Column(nullable = true, length = 255)
     private String providerId;
