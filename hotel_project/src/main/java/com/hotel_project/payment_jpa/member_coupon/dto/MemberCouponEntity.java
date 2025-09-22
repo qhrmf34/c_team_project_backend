@@ -23,14 +23,14 @@ public class MemberCouponEntity implements IMemberCoupon{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private MemberEntity memberEntity;
 
     @Transient
     private Long memberId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id",nullable = false)
     private CouponEntity couponEntity;
 
