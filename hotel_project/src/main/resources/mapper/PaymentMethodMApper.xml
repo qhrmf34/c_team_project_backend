@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hotel_project.payment_jpa.payment_method.mapper.PaymentMethodMapper">
+
+    <select id="findByMemberId" resultType="PaymentMethodDto">
+        SELECT
+            id,
+            member_id as memberId,
+            toss_key as tossKey,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM payment_method_tbl
+        WHERE member_id = #{memberId}
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findById" resultType="PaymentMethodDto">
+        SELECT
+            id,
+            member_id as memberId,
+            toss_key as tossKey,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM payment_method_tbl
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByTossKey" resultType="PaymentMethodDto">
+        SELECT
+            id,
+            member_id as memberId,
+            toss_key as tossKey,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM payment_method_tbl
+        WHERE toss_key = #{tossKey}
+    </select>
+</mapper>

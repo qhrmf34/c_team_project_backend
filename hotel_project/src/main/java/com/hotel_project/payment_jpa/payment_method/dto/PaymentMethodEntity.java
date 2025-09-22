@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,7 +21,8 @@ public class PaymentMethodEntity implements IPaymentMethod {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    // 지연 로딩으로 설정하고 cascade 제거
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private MemberEntity memberEntity;
 
@@ -56,7 +58,7 @@ public class PaymentMethodEntity implements IPaymentMethod {
 
     @Override
     public Long getMemberId() {
-        return this.memberEntity != null ? this.memberEntity.getId() : null;
+        return this.memberEntity != null ? this.memberEntity.getId() : this.memberId;
     }
 
     @Override
@@ -64,11 +66,14 @@ public class PaymentMethodEntity implements IPaymentMethod {
         if (memberId == null) {
             throw new IllegalStateException("set memberId: member is null");
         }
+
+        this.memberId = memberId;
+
+        // 새로운 MemberEntity를 생성하여 ID만 설정
         if (this.memberEntity == null) {
             this.memberEntity = new MemberEntity();
         }
         this.memberEntity.setId(memberId);
-        this.memberId = memberId;
     }
 
     @PrePersist

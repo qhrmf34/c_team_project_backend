@@ -24,21 +24,22 @@ public class PaymentsEntity implements IPayments{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    // cascade 제거하여 detached 문제 방지
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservations_id",nullable = false)
     private ReservationsEntity reservationsEntity;
 
     @Transient
     private Long reservationsId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_method_id", nullable = false)
     private PaymentMethodEntity paymentMethodEntity;
 
     @Transient
     private Long paymentMethodId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id")
     private CouponEntity couponEntity;
 
@@ -86,7 +87,7 @@ public class PaymentsEntity implements IPayments{
 
     @Override
     public Long getReservationsId(){
-        return this.reservationsEntity != null ? this.reservationsEntity.getId() : null;
+        return this.reservationsEntity != null ? this.reservationsEntity.getId() : this.reservationsId;
     }
 
     @Override
@@ -94,11 +95,14 @@ public class PaymentsEntity implements IPayments{
         if(reservationsId == null){
             throw new IllegalArgumentException("reservationsId cannot be null");
         }
+
+        this.reservationsId = reservationsId;
+
+        // 새로운 엔티티 생성하여 ID만 설정
         if(this.reservationsEntity == null){
             this.reservationsEntity = new ReservationsEntity();
         }
         this.reservationsEntity.setId(reservationsId);
-        this.reservationsId = reservationsId;
     }
 
     @Override
@@ -119,7 +123,7 @@ public class PaymentsEntity implements IPayments{
 
     @Override
     public Long getPaymentMethodId(){
-        return this.paymentMethodEntity != null ? this.paymentMethodEntity.getId() : null;
+        return this.paymentMethodEntity != null ? this.paymentMethodEntity.getId() : this.paymentMethodId;
     }
 
     @Override
@@ -127,11 +131,14 @@ public class PaymentsEntity implements IPayments{
         if(paymentMethodId == null){
             throw new IllegalArgumentException("paymentMethodId cannot be null");
         }
+
+        this.paymentMethodId = paymentMethodId;
+
+        // 새로운 엔티티 생성하여 ID만 설정
         if(this.paymentMethodEntity == null){
             this.paymentMethodEntity = new PaymentMethodEntity();
         }
         this.paymentMethodEntity.setId(paymentMethodId);
-        this.paymentMethodId = paymentMethodId;
     }
 
     @Override
@@ -152,18 +159,19 @@ public class PaymentsEntity implements IPayments{
 
     @Override
     public Long getCouponId(){
-        return this.couponId != null ? this.couponId : null;
+        return this.couponEntity != null ? this.couponEntity.getId() : this.couponId;
     }
 
     @Override
     public void setCouponId(Long couponId) {
-        if(couponId == null){
-            throw new IllegalArgumentException("couponId cannot be null");
-        }
-        if(this.couponEntity == null){
-            this.couponEntity = new CouponEntity();
-        }
-        this.couponEntity.setId(couponId);
+        // 쿠폰은 선택사항이므로 null 허용
         this.couponId = couponId;
+
+        if(couponId != null){
+            if(this.couponEntity == null){
+                this.couponEntity = new CouponEntity();
+            }
+            this.couponEntity.setId(couponId);
+        }
     }
 }

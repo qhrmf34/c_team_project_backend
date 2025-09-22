@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hotel_project.payment_jpa.payments.mapper.PaymentsMapper">
+
+    <select id="findByReservationsId" resultType="PaymentsDto">
+        SELECT
+            p.id,
+            p.reservations_id as reservationsId,
+            p.payment_method_id as paymentMethodId,
+            p.coupon_id as couponId,
+            p.payment_amount as paymentAmount,
+            p.payment_date as paymentDate,
+            p.payment_status as paymentStatus,
+            p.toss_payment_key as tossPaymentKey,
+            p.refund_amount as refundAmount,
+            p.refund_date as refundDate,
+            p.updated_at as updatedAt
+        FROM payments_tbl p
+        WHERE p.reservations_id = #{reservationsId}
+        ORDER BY p.payment_date DESC
+    </select>
+
+    <select id="findByMemberId" resultType="PaymentsDto">
+        SELECT
+            p.id,
+            p.reservations_id as reservationsId,
+            p.payment_method_id as paymentMethodId,
+            p.coupon_id as couponId,
+            p.payment_amount as paymentAmount,
+            p.payment_date as paymentDate,
+            p.payment_status as paymentStatus,
+            p.toss_payment_key as tossPaymentKey,
+            p.refund_amount as refundAmount,
+            p.refund_date as refundDate,
+            p.updated_at as updatedAt
+        FROM payments_tbl p
+                 JOIN reservations_tbl r ON p.reservations_id = r.id
+                 JOIN member_tbl m ON r.member_id = m.id
+        WHERE m.id = #{memberId}
+        ORDER BY p.payment_date DESC
+    </select>
+
+    <select id="findById" resultType="PaymentsDto">
+        SELECT
+            p.id,
+            p.reservations_id as reservationsId,
+            p.payment_method_id as paymentMethodId,
+            p.coupon_id as couponId,
+            p.payment_amount as paymentAmount,
+            p.payment_date as paymentDate,
+            p.payment_status as paymentStatus,
+            p.toss_payment_key as tossPaymentKey,
+            p.refund_amount as refundAmount,
+            p.refund_date as refundDate,
+            p.updated_at as updatedAt
+        FROM payments_tbl p
+        WHERE p.id = #{id}
+    </select>
+
+    <select id="findByTossPaymentKey" resultType="PaymentsDto">
+        SELECT
+            p.id,
+            p.reservations_id as reservationsId,
+            p.payment_method_id as paymentMethodId,
+            p.coupon_id as couponId,
+            p.payment_amount as paymentAmount,
+            p.payment_date as paymentDate,
+            p.payment_status as paymentStatus,
+            p.toss_payment_key as tossPaymentKey,
+            p.refund_amount as refundAmount,
+            p.refund_date as refundDate,
+            p.updated_at as updatedAt
+        FROM payments_tbl p
+        WHERE p.toss_payment_key = #{tossPaymentKey}
+    </select>
+</mapper>
