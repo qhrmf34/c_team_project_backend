@@ -123,14 +123,8 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, "비밀번호가 일치하지 않습니다.");
         }
 
-        // 인증 코드 재확인
-        boolean isValid = emailService.verifyCode(request.getEmail(), request.getVerificationCode());
-
-        if (!isValid) {
-            throw new CommonExceptionTemplate(400, "유효하지 않거나 만료된 인증 코드입니다.");
-        }
-
-        String result = memberService.resetPassword(request.getEmail(), request.getNewPassword());
+        // 인증 코드 재확인 제거 - 이미 verify-reset-code에서 검증 완료
+        String result = memberService.resetPasswordDirect(request.getEmail(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success(200, result, null));
     }
 

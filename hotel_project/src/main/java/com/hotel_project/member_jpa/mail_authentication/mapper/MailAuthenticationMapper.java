@@ -16,4 +16,7 @@ public interface MailAuthenticationMapper {
 
     // 특정 인증 코드 조회 (ID로)
     MailAuthenticationDto findById(@Param("id") Long id);
+
+    MailAuthenticationDto findVerifiedByMemberIdAndCode(@Param("memberId") Long memberId, @Param("code") String code);
+
 }

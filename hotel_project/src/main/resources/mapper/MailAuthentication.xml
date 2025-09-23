@@ -61,4 +61,17 @@
         WHERE ma.id = #{id}
     </select>
 
+    <select id="findVerifiedByMemberIdAndCode" resultMap="mailAuthenticationResultMap">
+        SELECT ma.id, ma.member_id, ma.code, ma.is_verified, ma.created_at, ma.expires_at,
+               m.first_name, m.last_name, m.email, m.phone_number, m.provider, m.provider_id,
+               m.created_at as member_created_at, m.updated_at as member_updated_at
+        FROM mail_authentication_tbl ma
+                 LEFT JOIN member_tbl m ON ma.member_id = m.id
+        WHERE ma.member_id = #{memberId}
+          AND ma.code = #{code}
+          AND ma.is_verified = true
+        ORDER BY ma.created_at DESC
+            LIMIT 1
+    </select>
+
 </mapper>

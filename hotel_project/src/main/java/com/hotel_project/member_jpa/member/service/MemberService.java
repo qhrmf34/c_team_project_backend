@@ -140,6 +140,33 @@ public class MemberService {
 
         return "비밀번호가 성공적으로 재설정되었습니다.";
     }
+    @Transactional
+    public String resetPasswordDirect(String email, String newPassword) throws CommonExceptionTemplate {
+        // MyBatis로 회원 조회
+        MemberDto memberDto = memberMapper.findByEmailAndProvider(email, Provider.local);
+
+        if (memberDto == null) {
+            throw new CommonExceptionTemplate(404, "해당 이메일로 가입된 계정이 없습니다.");
+        }
+
+        // 소셜 로그인 계정은 비밀번호 재설정 불가
+        if (memberDto.getProvider() != Provider.local) {
+            throw new CommonExceptionTemplate(400, "소셜 로그인 계정은 비밀번호를 재설정할 수 없습니다.");
+        }
+
+        // DTO를 Entity로 변환
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.copyMembers(memberDto);
+
+        // 새 비밀번호 암호화 및 설정
+        memberEntity.setPassword(passwordEncoder.encode(newPassword));
+        memberEntity.setUpdatedAt(LocalDateTime.now());
+
+        // JPA로 저장
+        memberRepository.save(memberEntity);
+
+        return "비밀번호가 성공적으로 재설정되었습니다.";
+    }
 
     // ========== 기존 메서드들 ==========
 

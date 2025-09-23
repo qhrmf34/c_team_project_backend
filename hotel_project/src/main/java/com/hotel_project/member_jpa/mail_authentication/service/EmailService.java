@@ -16,13 +16,13 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Random;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class EmailService {
 
@@ -30,7 +30,6 @@ public class EmailService {
     private final MailAuthenticationRepository mailAuthenticationRepository;
     private final MailAuthenticationMapper mailAuthenticationMapper;
     private final MemberMapper memberMapper;
-
 
     @Value("${email.verification.expiration:300}") // 기본 5분
     private int verificationExpiration;
@@ -40,7 +39,9 @@ public class EmailService {
 
     /**
      * 비밀번호 재설정용 인증 코드 전송
+     * - 트랜잭션을 새로 시작하여 저장 후 즉시 커밋
      */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public String sendPasswordResetCode(String email) throws CommonExceptionTemplate {
         // MyBatis로 회원 조회
         MemberDto member = memberMapper.findByEmailAndProvider(email, Provider.local);
@@ -62,7 +63,7 @@ public class EmailService {
         // DB에 인증 코드 저장 (JPA 사용)
         MailAuthenticationEntity mailAuth = new MailAuthenticationEntity();
         MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setId(member.getId());  // 이건 맞음
+        memberEntity.setId(member.getId());
         mailAuth.setMemberEntity(memberEntity);
         mailAuth.setCode(verificationCode);
         mailAuth.setIsVerified(false);
@@ -70,6 +71,8 @@ public class EmailService {
         mailAuth.setExpiresAt(LocalDateTime.now().plusSeconds(verificationExpiration));
 
         mailAuthenticationRepository.save(mailAuth);
+
+        // 여기서 트랜잭션이 커밋됨
 
         // 이메일 전송
         sendVerificationEmail(email, verificationCode, "비밀번호 재설정");
@@ -79,7 +82,9 @@ public class EmailService {
 
     /**
      * 인증 코드 검증
+     * - 새 트랜잭션으로 시작하여 커밋된 데이터를 조회
      */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean verifyCode(String email, String code) {
         // MyBatis로 회원 조회
         MemberDto member = memberMapper.findByEmailAndProvider(email, Provider.local);
@@ -90,7 +95,6 @@ public class EmailService {
         // MyBatis로 최신 미인증 코드 조회
         MailAuthenticationDto mailAuth = mailAuthenticationMapper.findLatestUnverifiedByMemberId(member.getId());
         System.out.println("조회할 회원 ID: " + member.getId());
-
         System.out.println("조회된 인증 코드: " + (mailAuth != null ? mailAuth.getCode() : "없음"));
         System.out.println("입력된 코드: " + code);
 
@@ -109,6 +113,64 @@ public class EmailService {
         entity.setIsVerified(true);
 
         // 기존 데이터 복사
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.setId(member.getId());
+        entity.setMemberEntity(memberEntity);
+        entity.setCode(mailAuth.getCode());
+        entity.setCreatedAt(mailAuth.getCreatedAt());
+        entity.setExpiresAt(mailAuth.getExpiresAt());
+
+        mailAuthenticationRepository.save(entity);
+
+        return true;
+    }
+    @Transactional(readOnly = true)
+    public boolean isCodeAlreadyVerified(String email, String code) {
+        // MyBatis로 회원 조회
+        MemberDto member = memberMapper.findByEmailAndProvider(email, Provider.local);
+        if (member == null) {
+            return false;
+        }
+
+        // 인증된 코드를 찾는 별도 쿼리 필요 (is_verified = true인 것 조회)
+        MailAuthenticationDto verifiedAuth = mailAuthenticationMapper.findVerifiedByMemberIdAndCode(
+                member.getId(), code
+        );
+
+        return verifiedAuth != null && !isExpired(verifiedAuth);
+    }
+    // ========== ALTERNATIVE SOLUTION: MyBatis 사용 방식 ==========
+
+    /**
+     * 대안 1: verifyCode를 MyBatis로만 처리
+     * - 조회와 업데이트 모두 MyBatis 사용
+     */
+    @Transactional
+    public boolean verifyCodeWithMyBatis(String email, String code) {
+        // MyBatis로 회원 조회
+        MemberDto member = memberMapper.findByEmailAndProvider(email, Provider.local);
+        if (member == null) {
+            return false;
+        }
+
+        // MyBatis로 코드와 회원 ID로 조회
+        MailAuthenticationDto mailAuth = mailAuthenticationMapper.findByMemberIdAndCode(member.getId(), code);
+        System.out.println("조회할 회원 ID: " + member.getId());
+        System.out.println("조회된 인증 코드: " + (mailAuth != null ? mailAuth.getCode() : "없음"));
+        System.out.println("입력된 코드: " + code);
+
+        if (mailAuth == null || isExpired(mailAuth)) {
+            return false;
+        }
+
+        // MyBatis로 인증 상태 업데이트 (Mapper에 update 메서드 추가 필요)
+        // mailAuthenticationMapper.updateVerifiedStatus(mailAuth.getId(), true);
+
+        // 또는 JPA로 업데이트
+        MailAuthenticationEntity entity = new MailAuthenticationEntity();
+        entity.setId(mailAuth.getId());
+        entity.setIsVerified(true);
+
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(member.getId());
         entity.setMemberEntity(memberEntity);
@@ -186,6 +248,7 @@ public class EmailService {
     /**
      * 만료된 인증 코드 정리 (스케줄러에서 사용) - JPA 사용
      */
+    @Transactional
     public void cleanupExpiredCodes() {
         mailAuthenticationRepository.deleteByExpiresAtBefore(LocalDateTime.now());
     }
