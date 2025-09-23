@@ -1,7 +1,9 @@
 package com.hotel_project.member_jpa.member.controller;
 
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
+import com.hotel_project.common_jpa.service.TokenBlacklistService;
 import com.hotel_project.common_jpa.util.ApiResponse;
+import com.hotel_project.common_jpa.util.JwtUtil;
 import com.hotel_project.member_jpa.mail_authentication.dto.ForgotPasswordRequest;
 import com.hotel_project.member_jpa.mail_authentication.dto.ResetPasswordRequest;
 import com.hotel_project.member_jpa.mail_authentication.dto.VerifyCodeRequest;
@@ -24,6 +26,8 @@ public class MemberController {
 
     private final MemberService memberService;
     private final EmailService emailService;
+    private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @PostMapping("/signup")
     @Operation(summary = "일반 회원가입", description = "이메일/비밀번호로 회원가입합니다.")
@@ -59,6 +63,22 @@ public class MemberController {
 
         LoginResponse response = memberService.login(loginRequest);
         return ResponseEntity.ok(ApiResponse.success(200, "로그인이 완료되었습니다.", response));
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃", description = "현재 토큰을 무효화합니다.")
+    public ResponseEntity<ApiResponse<String>> logout(
+            @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
+
+        String token = extractToken(authorization);
+
+        // 토큰에서 JWT ID 추출
+        String jwtId = jwtUtil.getJwtIdFromToken(token);
+
+        // 블랙리스트에 추가
+        tokenBlacklistService.addToBlacklist(jwtId);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "로그아웃이 완료되었습니다.", null));
     }
 
     // ========== 비밀번호 재설정 관련 API (MyBatis 방식) ==========

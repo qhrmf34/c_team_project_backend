@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -37,6 +38,8 @@ public class JwtUtil {
                 .setSubject(memberId.toString())
                 .claim("provider", provider)
                 .claim("type", "access")
+                .claim("jti", UUID.randomUUID().toString()) // JWT ID 추가 (고유성 보장)
+                .claim("iat_timestamp", now.toString()) // 발급시간 추가
                 .setIssuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
                 .setExpiration(Date.from(expiry.atZone(ZoneId.systemDefault()).toInstant()))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
@@ -61,6 +64,16 @@ public class JwtUtil {
     public String getProviderFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims.get("provider", String.class);
+    }
+
+    /**
+     * JWT 토큰에서 JWT ID 추출
+     * @param token JWT 토큰
+     * @return JWT ID
+     */
+    public String getJwtIdFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.get("jti", String.class);
     }
 
     /**
