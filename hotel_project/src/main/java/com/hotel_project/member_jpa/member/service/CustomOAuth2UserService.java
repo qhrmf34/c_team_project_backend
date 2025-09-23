@@ -1,7 +1,6 @@
 package com.hotel_project.member_jpa.member.service;
 
 import com.hotel_project.member_jpa.member.dto.LoginResponse;
-import com.hotel_project.member_jpa.member.dto.MemberEntity;
 import com.hotel_project.member_jpa.member.dto.Provider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -12,6 +11,10 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +55,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return oidcUser;
     }
 
-    // 공통 처리 로직 (JWT 토큰 생성 포함)
+    // 공통 처리 로직 (JWT 토큰 생성 포함) - 세션에 저장 추가
     private void processUserWithToken(OAuth2User oauth2User, String registrationId) {
         try {
             Provider provider = null;
@@ -81,8 +84,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 System.out.println("✓ DB 저장 성공! 회원 ID: " + loginResponse.getMemberId());
                 System.out.println("✓ JWT 토큰 생성 완료: " + loginResponse.getToken().substring(0, 20) + "...");
 
-                // 여기서 세션이나 쿠키에 JWT 토큰을 저장할 수 있습니다
-                // 또는 리다이렉트 URL에 토큰을 포함시킬 수 있습니다
+                // ★★★ 중요: 세션에 LoginResponse 저장 ★★★
+                ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+                HttpServletRequest request = attr.getRequest();
+                request.getSession().setAttribute("loginResponse", loginResponse);
+
+                System.out.println("✓ 세션에 LoginResponse 저장 완료");
             }
 
         } catch (Exception e) {
