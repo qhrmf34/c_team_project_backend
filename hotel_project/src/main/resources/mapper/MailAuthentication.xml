@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hotel_project.member_jpa.mail_authentication.mapper.MailAuthenticationMapper">
+
+    <!-- Result Map 정의 -->
+    <resultMap id="mailAuthenticationResultMap" type="com.hotel_project.member_jpa.mail_authentication.dto.MailAuthenticationDto">
+        <id property="id" column="id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="code" column="code"/>
+        <result property="isVerified" column="is_verified"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="expiresAt" column="expires_at"/>
+
+        <!-- 회원 정보도 함께 조회하는 경우 -->
+        <association property="memberDto" javaType="com.hotel_project.member_jpa.member.dto.MemberDto">
+            <id property="id" column="member_id"/>
+            <result property="firstName" column="first_name"/>
+            <result property="lastName" column="last_name"/>
+            <result property="email" column="email"/>
+            <result property="phoneNumber" column="phone_number"/>
+            <result property="provider" column="provider"/>
+            <result property="providerId" column="provider_id"/>
+            <result property="createdAt" column="member_created_at"/>
+            <result property="updatedAt" column="member_updated_at"/>
+        </association>
+    </resultMap>
+
+    <!-- 특정 회원의 최신 미인증 코드 조회 -->
+    <select id="findLatestUnverifiedByMemberId" parameterType="Long" resultMap="mailAuthenticationResultMap">
+        SELECT ma.id, ma.member_id, ma.code, ma.is_verified, ma.created_at, ma.expires_at,
+               m.first_name, m.last_name, m.email, m.phone_number, m.provider, m.provider_id,
+               m.created_at as member_created_at, m.updated_at as member_updated_at
+        FROM mail_authentication_tbl ma
+                 LEFT JOIN member_tbl m ON ma.member_id = m.id
+        WHERE ma.member_id = #{memberId}
+          AND ma.is_verified = false
+        ORDER BY ma.created_at DESC
+            LIMIT 1
+    </select>
+
+    <!-- 회원 ID와 코드로 미인증 코드 조회 -->
+    <select id="findByMemberIdAndCode" resultMap="mailAuthenticationResultMap">
+        SELECT ma.id, ma.member_id, ma.code, ma.is_verified, ma.created_at, ma.expires_at,
+               m.first_name, m.last_name, m.email, m.phone_number, m.provider, m.provider_id,
+               m.created_at as member_created_at, m.updated_at as member_updated_at
+        FROM mail_authentication_tbl ma
+                 LEFT JOIN member_tbl m ON ma.member_id = m.id
+        WHERE ma.member_id = #{memberId}
+          AND ma.code = #{code}
+          AND ma.is_verified = false
+    </select>
+
+    <!-- ID로 특정 인증 코드 조회 -->
+    <select id="findById" parameterType="Long" resultMap="mailAuthenticationResultMap">
+        SELECT ma.id, ma.member_id, ma.code, ma.is_verified, ma.created_at, ma.expires_at,
+               m.first_name, m.last_name, m.email, m.phone_number, m.provider, m.provider_id,
+               m.created_at as member_created_at, m.updated_at as member_updated_at
+        FROM mail_authentication_tbl ma
+                 LEFT JOIN member_tbl m ON ma.member_id = m.id
+        WHERE ma.id = #{id}
+    </select>
+
+</mapper>

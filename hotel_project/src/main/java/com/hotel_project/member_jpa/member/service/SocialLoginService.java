@@ -1,7 +1,9 @@
 package com.hotel_project.member_jpa.member.service;
 
-import com.hotel_project.member_jpa.member.dto.MemberEntity;
-import com.hotel_project.member_jpa.member.dto.Provider;
+import com.hotel_project.common_jpa.util.JwtUtil;
+import com.hotel_project.member_jpa.member.dto.*;
+import com.hotel_project.member_jpa.member.mapper.MemberMapper;
+import com.hotel_project.member_jpa.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -9,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -17,7 +18,34 @@ public class SocialLoginService {
 
     @Autowired
     private MemberRepository memberRepository;
+    @Autowired
+    private MemberMapper memberMapper;
+    @Autowired
+    private JwtUtil jwtUtil;
 
+    /**
+     * 소셜 로그인 처리 후 JWT 토큰까지 반환
+     */
+    public LoginResponse processSocialLoginWithToken(OAuth2User oauth2User, Provider provider) {
+        // 기존 로직으로 회원 처리
+        MemberEntity member = processSocialLogin(oauth2User, provider);
+
+        // JWT 토큰 생성
+        String token = jwtUtil.generateToken(member.getId(), member.getProvider().toString());
+
+        return new LoginResponse(
+                token,
+                member.getId(),
+                member.getFirstName(),
+                member.getLastName(),
+                member.getEmail(),
+                member.getProvider().toString()
+        );
+    }
+
+    /**
+     * 기존 소셜 로그인 처리 메서드 (하위 호환성 유지)
+     */
     public MemberEntity processSocialLogin(OAuth2User oauth2User, Provider provider) {
         // 각 프로바이더별 사용자 정보 추출
         SocialUserInfo userInfo = extractUserInfo(oauth2User, provider);
@@ -72,6 +100,7 @@ public class SocialLoginService {
         );
     }
 
+    // 네이버 사용자 정보 추출
     private SocialUserInfo extractNaverUserInfo(OAuth2User oauth2User) {
         Map<String, Object> response = (Map<String, Object>) oauth2User.getAttribute("response");
         String providerId = (String) response.get("id");
@@ -87,33 +116,35 @@ public class SocialLoginService {
         );
     }
 
-    // 공통 소셜 로그인 처리 로직
+    // 공통 소셜 로그인 처리 로직 - MyBatis + JPA 하이브리드
     private MemberEntity processSocialLoginCommon(SocialUserInfo userInfo, Provider provider) {
         System.out.println("=== " + provider + " 로그인 처리 시작 ===");
         System.out.println("Provider ID: " + userInfo.getProviderId());
         System.out.println("이름: " + userInfo.getFirstName());
         System.out.println("이메일: " + userInfo.getEmail());
 
-        // 기존 회원 확인
-        Optional<MemberEntity> existingMember = memberRepository.findByProviderAndProviderId(
-                provider, userInfo.getProviderId()
-        );
+        // MyBatis로 기존 회원 확인
+        MemberDto existingMember = memberMapper.findByProviderAndProviderId(provider, userInfo.getProviderId());
 
-        System.out.println("기존 회원 조회 결과: " + existingMember.isPresent());
+        System.out.println("기존 회원 조회 결과: " + (existingMember != null));
 
-        if (existingMember.isPresent()) {
-            return updateExistingMember(existingMember.get(), userInfo);
+        if (existingMember != null) {
+            return updateExistingMember(existingMember, userInfo);
         } else {
             return createNewMember(userInfo, provider);
         }
     }
 
-    // 기존 회원 업데이트
-    private MemberEntity updateExistingMember(MemberEntity existingMember, SocialUserInfo userInfo) {
+    // 기존 회원 업데이트 - MyBatis 조회 + JPA 저장
+    private MemberEntity updateExistingMember(MemberDto existingMemberDto, SocialUserInfo userInfo) {
         System.out.println("=== 기존 회원 업데이트 ===");
-        System.out.println("기존 회원 ID: " + existingMember.getId());
+        System.out.println("기존 회원 ID: " + existingMemberDto.getId());
 
-        // 업데이트할 정보만 담은 임시 객체 생성
+        // DTO를 Entity로 변환
+        MemberEntity existingMember = new MemberEntity();
+        existingMember.copyMembers(existingMemberDto);
+
+        // 업데이트할 정보 설정
         MemberEntity updateInfo = new MemberEntity();
         updateInfo.setFirstName(userInfo.getFirstName());
         updateInfo.setLastName(userInfo.getLastName());
@@ -127,26 +158,23 @@ public class SocialLoginService {
         return savedMember;
     }
 
-    // 신규 회원 생성
+    // 신규 회원 생성 - JPA 사용
     private MemberEntity createNewMember(SocialUserInfo userInfo, Provider provider) {
         System.out.println("=== 신규 회원 생성 ===");
 
         MemberEntity newMember = new MemberEntity();
-        MemberEntity memberInfo = new MemberEntity();
+        newMember.setFirstName(userInfo.getFirstName());
+        newMember.setLastName(userInfo.getLastName());
+        newMember.setEmail(userInfo.getEmail());
+        newMember.setProvider(provider);
+        newMember.setProviderId(userInfo.getProviderId());
+        newMember.setPassword(null); // 소셜 로그인은 비밀번호 없음
+        newMember.setPhoneNumber(null); // 소셜 로그인에서는 전화번호 없음
+        newMember.setCreatedAt(LocalDateTime.now());
+        newMember.setUpdatedAt(LocalDateTime.now());
 
-        memberInfo.setFirstName(userInfo.getFirstName());
-        memberInfo.setLastName(userInfo.getLastName());
-        memberInfo.setEmail(userInfo.getEmail());
-        memberInfo.setProvider(provider);
-        memberInfo.setProviderId(userInfo.getProviderId());
-        memberInfo.setCreatedAt(LocalDateTime.now());
-        memberInfo.setUpdatedAt(LocalDateTime.now());
-
-        System.out.println("신규 회원 이메일: " + memberInfo.getEmail());
-        System.out.println("신규 회원 Provider ID: " + memberInfo.getProviderId());
-
-        // 모든 값 복사
-        newMember.copyMembers(memberInfo);
+        System.out.println("신규 회원 이메일: " + newMember.getEmail());
+        System.out.println("신규 회원 Provider ID: " + newMember.getProviderId());
 
         MemberEntity savedMember = memberRepository.save(newMember);
         System.out.println("신규 회원 생성 완료 - ID: " + savedMember.getId());

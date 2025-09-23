@@ -1,8 +1,9 @@
 package com.hotel_project.member_jpa.member.service;
 
+import com.hotel_project.member_jpa.member.dto.LoginResponse;
 import com.hotel_project.member_jpa.member.dto.MemberEntity;
 import com.hotel_project.member_jpa.member.dto.Provider;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -13,11 +14,10 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    @Autowired
-    private SocialLoginService socialLoginService;
-
+    private final SocialLoginService socialLoginService;
     private final OidcUserService oidcUserService = new OidcUserService();
 
     @Override
@@ -30,8 +30,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 기본 OAuth2 처리 (Kakao, Naver 등)
         OAuth2User oauth2User = super.loadUser(userRequest);
 
-        // DB 저장 처리
-        processUser(oauth2User, registrationId);
+        // DB 저장 처리 및 JWT 토큰 생성
+        processUserWithToken(oauth2User, registrationId);
 
         return oauth2User;
     }
@@ -46,14 +46,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // OIDC 처리
         OidcUser oidcUser = oidcUserService.loadUser(userRequest);
 
-        // DB 저장 처리
-        processUser(oidcUser, registrationId);
+        // DB 저장 처리 및 JWT 토큰 생성
+        processUserWithToken(oidcUser, registrationId);
 
         return oidcUser;
     }
 
-    // 공통 처리 로직
-    private void processUser(OAuth2User oauth2User, String registrationId) {
+    // 공통 처리 로직 (JWT 토큰 생성 포함)
+    private void processUserWithToken(OAuth2User oauth2User, String registrationId) {
         try {
             Provider provider = null;
 
@@ -73,14 +73,20 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             }
 
             System.out.println("DB 저장 시작 - Provider: " + provider);
-            MemberEntity member = socialLoginService.processSocialLogin(oauth2User, provider);
 
-            if (member != null) {
-                System.out.println("✓ DB 저장 성공! 회원 ID: " + member.getId());
+            // JWT 토큰까지 포함해서 처리
+            LoginResponse loginResponse = socialLoginService.processSocialLoginWithToken(oauth2User, provider);
+
+            if (loginResponse != null) {
+                System.out.println("✓ DB 저장 성공! 회원 ID: " + loginResponse.getMemberId());
+                System.out.println("✓ JWT 토큰 생성 완료: " + loginResponse.getToken().substring(0, 20) + "...");
+
+                // 여기서 세션이나 쿠키에 JWT 토큰을 저장할 수 있습니다
+                // 또는 리다이렉트 URL에 토큰을 포함시킬 수 있습니다
             }
 
         } catch (Exception e) {
-            System.out.println("DB 저장 실패: " + e.getMessage());
+            System.out.println("소셜 로그인 처리 실패: " + e.getMessage());
             e.printStackTrace();
         }
     }
