@@ -270,4 +270,67 @@ public class MemberService {
     public String generateTokenForSocialLogin(MemberEntity member) {
         return jwtUtil.generateToken(member.getId(), member.getProvider().toString());
     }
+
+    // MemberService.java에 추가할 메서드들
+
+    /**
+     * 현재 비밀번호 확인
+     */
+    public boolean verifyCurrentPassword(Long memberId, String currentPassword) {
+        try {
+            MemberDto member = memberMapper.findById(memberId);
+
+            if (member == null) {
+                return false;
+            }
+
+            // 소셜 계정은 비밀번호가 없음
+            if (member.getProvider() != Provider.local) {
+                return false;
+            }
+
+            // 암호화된 비밀번호와 비교 (BCrypt 사용 가정)
+            return passwordEncoder.matches(currentPassword, member.getPassword());
+
+        } catch (Exception e) {
+            System.out.println("비밀번호 확인 실패: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 비밀번호 변경
+     */
+    public String changePassword(Long memberId, String newPassword) throws CommonExceptionTemplate {
+        try {
+            MemberDto member = memberMapper.findById(memberId);
+
+            if (member == null) {
+                throw new CommonExceptionTemplate(404, "회원을 찾을 수 없습니다.");
+            }
+
+            // 소셜 계정은 비밀번호 변경 불가
+            if (member.getProvider() != Provider.local) {
+                throw new CommonExceptionTemplate(403, "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.");
+            }
+
+            // 새 비밀번호 암호화
+            String encodedPassword = passwordEncoder.encode(newPassword);
+
+            // 비밀번호 업데이트
+            member.setPassword(encodedPassword);
+            member.setUpdatedAt(LocalDateTime.now());
+            MemberEntity updatedMember = new MemberEntity();
+            updatedMember.copyNotNullMembers(member);
+
+            memberRepository.save(updatedMember);
+
+            return "비밀번호가 성공적으로 변경되었습니다.";
+
+        } catch (CommonExceptionTemplate e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CommonExceptionTemplate(500, "비밀번호 변경 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
 }
