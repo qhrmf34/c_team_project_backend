@@ -30,8 +30,9 @@ public class PaymentMethodService {
     private final MemberRepository memberRepository;
     private final MemberMapper memberMapper;
 
+
     /**
-     * 결제수단 등록 (토스 빌링키 발급 및 저장) - 이메일 제거된 버전
+     * 결제수단 등록 - copyMembers 사용하여 단순화
      */
     public PaymentMethodDto registerPaymentMethod(CardRegistrationRequestDto request, Long memberId) throws CommonExceptionTemplate {
         if (request == null || memberId == null) {
@@ -41,7 +42,7 @@ public class PaymentMethodService {
         try {
             log.info("회원 ID: {}의 결제수단 등록 시작", memberId);
 
-            // 1. 회원 존재 여부 확인 (MyBatis 사용)
+            // 1. 회원 존재 여부 확인
             MemberDto memberDto = memberMapper.findById(memberId);
             if (memberDto == null) {
                 throw MemberException.NOT_EXIST_DATA.getException();
@@ -50,7 +51,7 @@ public class PaymentMethodService {
             // 2. 요청 데이터 유효성 검증
             validateCardRequest(request);
 
-            // 3. 토스에 빌링키 등록 요청 (이메일 없이)
+            // 3. 토스에 빌링키 등록 요청
             TossBillingResponseDto tossResponse = tossPaymentService.registerBillingKey(request, memberId);
 
             // 4. 빌링키 중복 체크
@@ -63,15 +64,26 @@ public class PaymentMethodService {
             PaymentMethodEntity entity = new PaymentMethodEntity();
             entity.setMemberId(memberId);
             entity.setTossKey(tossResponse.getBillingKey());
+            entity.setCardLastFour(request.getCardNumber().substring(request.getCardNumber().length() - 4));
+
+            // 토스 응답에서 카드사 정보 추출
+            if (tossResponse.getCard() != null) {
+                entity.setCardCompany(tossResponse.getCard().getCompany());
+            }
+            entity.setCardType(determineCardType(request.getCardNumber()));
             entity.setCreatedAt(LocalDateTime.now());
             entity.setUpdatedAt(LocalDateTime.now());
 
             PaymentMethodEntity savedEntity = paymentMethodRepository.save(entity);
-            log.info("결제수단 등록 완료 - ID: {}, 회원 ID: {}, 토스키: {}",
-                    savedEntity.getId(), memberId, savedEntity.getTossKey());
 
-            // 6. DTO 변환 후 반환
-            return convertToDto(savedEntity);
+            // 6. DTO로 변환 - copyMembers 사용
+            PaymentMethodDto resultDto = new PaymentMethodDto();
+            resultDto.copyMembers(savedEntity);  // 인터페이스의 default 메서드 활용!
+
+            log.info("결제수단 등록 완료 - ID: {}, 회원 ID: {}, 카드 끝자리: {}, 카드사: {}",
+                    savedEntity.getId(), memberId, savedEntity.getCardLastFour(), savedEntity.getCardCompany());
+
+            return resultDto;
 
         } catch (CommonExceptionTemplate e) {
             log.error("회원 ID: {}의 결제수단 등록 실패 - CommonException", memberId, e);
@@ -80,6 +92,24 @@ public class PaymentMethodService {
             log.error("회원 ID: {}의 결제수단 등록 실패 - 예상치 못한 오류", memberId, e);
             throw new CommonExceptionTemplate(500, "결제수단 등록에 실패했습니다: " + e.getMessage());
         }
+    }
+
+    /**
+     * 카드번호로 카드 타입 결정
+     */
+    private String determineCardType(String cardNumber) {
+        if (cardNumber.startsWith("4")) {
+            return "VISA";
+        } else if (cardNumber.startsWith("5") || cardNumber.startsWith("2")) {
+            return "MasterCard";
+        } else if (cardNumber.startsWith("3")) {
+            return "AMEX";
+        } else if (cardNumber.startsWith("35")) {
+            return "JCB";
+        } else if (cardNumber.startsWith("30")) {
+            return "DinersClub";
+        }
+        return "기타";
     }
 
     /**
@@ -229,21 +259,10 @@ public class PaymentMethodService {
         return paymentMethods.get(0); // 첫 번째를 기본으로 사용
     }
 
-    /**
-     * PaymentMethodEntity를 PaymentMethodDto로 변환
-     */
-    private PaymentMethodDto convertToDto(PaymentMethodEntity entity) {
-        PaymentMethodDto dto = new PaymentMethodDto();
-        dto.setId(entity.getId());
-        dto.setMemberId(entity.getMemberId());
-        dto.setTossKey(entity.getTossKey());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        return dto;
-    }
+
 
     /**
-     * 민감한 정보 마스킹 처리 (보안)
+     * 민감한 정보 마스킹 처리 제거 (이제 토스키만 마스킹)
      */
     private void maskSensitiveData(PaymentMethodDto dto) {
         if (dto.getTossKey() != null) {
@@ -256,5 +275,6 @@ public class PaymentMethodService {
                 dto.setTossKey(masked);
             }
         }
+        // cardLastFour는 마스킹하지 않음 (이미 마지막 4자리만 저장)
     }
 }

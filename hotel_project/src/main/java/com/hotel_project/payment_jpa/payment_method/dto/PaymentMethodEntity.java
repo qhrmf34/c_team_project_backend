@@ -30,6 +30,15 @@ public class PaymentMethodEntity implements IPaymentMethod {
     @Column(unique = true, nullable = false, length = 50)
     private String tossKey;
 
+    @Column(length = 4)
+    private String cardLastFour;
+
+    @Column(length = 50)
+    private String cardCompany;
+
+    @Column(length = 20)
+    private String cardType;
+
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;

@@ -10,7 +10,7 @@ public interface IPaymentMethod extends IId {
     void setId(Long id);
 
     Long getMemberId();
-    void setMemberId(Long memberId); // 이게 굳이 있을이유가 있나?
+    void setMemberId(Long memberId);
 
     @JsonIgnore
     IId getMember();
@@ -19,29 +19,44 @@ public interface IPaymentMethod extends IId {
     String getTossKey();
     void setTossKey(String tossKey);
 
+    // 새로 추가되는 카드 정보 필드들
+    String getCardLastFour();
+    void setCardLastFour(String cardLastFour);
+
+    String getCardCompany();
+    void setCardCompany(String cardCompany);
+
+    String getCardType();
+    void setCardType(String cardType);
+
     LocalDateTime getCreatedAt();
     void setCreatedAt(LocalDateTime createdAt);
 
     LocalDateTime getUpdatedAt();
     void setUpdatedAt(LocalDateTime updatedAt);
 
-    //insert 용
+    //insert 용 - 새 필드들 추가
     default void copyMembers(IPaymentMethod iPaymentMethod) {
         if (iPaymentMethod == null){ return;}
         setId(iPaymentMethod.getId());
         setMember(iPaymentMethod.getMember());
         setTossKey(iPaymentMethod.getTossKey());
+        setCardLastFour(iPaymentMethod.getCardLastFour());
+        setCardCompany(iPaymentMethod.getCardCompany());
+        setCardType(iPaymentMethod.getCardType());
         setCreatedAt(iPaymentMethod.getCreatedAt());
         setUpdatedAt(iPaymentMethod.getUpdatedAt());
     }
 
-    //update 용
+    //update 용 - 새 필드들 추가
     default void copyNotNullMembers(IPaymentMethod iPaymentMethod) {
         if (iPaymentMethod == null){ return;}
         if (iPaymentMethod.getId() != null) { setId(iPaymentMethod.getId()); }
         if (iPaymentMethod.getMember() != null) { setMember(iPaymentMethod.getMember()); }
         if (iPaymentMethod.getTossKey() != null) { setTossKey(iPaymentMethod.getTossKey()); }
+        if (iPaymentMethod.getCardLastFour() != null) { setCardLastFour(iPaymentMethod.getCardLastFour()); }
+        if (iPaymentMethod.getCardCompany() != null) { setCardCompany(iPaymentMethod.getCardCompany()); }
+        if (iPaymentMethod.getCardType() != null) { setCardType(iPaymentMethod.getCardType()); }
         if (iPaymentMethod.getUpdatedAt() != null) { setUpdatedAt(iPaymentMethod.getUpdatedAt()); }
     }
 }
-

@@ -9,6 +9,9 @@
             id,
             member_id as memberId,
             toss_key as tossKey,
+            card_last_four as cardLastFour,
+            card_company as cardCompany,
+            card_type as cardType,
             created_at as createdAt,
             updated_at as updatedAt
         FROM payment_method_tbl
@@ -21,6 +24,9 @@
             id,
             member_id as memberId,
             toss_key as tossKey,
+            card_last_four as cardLastFour,
+            card_company as cardCompany,
+            card_type as cardType,
             created_at as createdAt,
             updated_at as updatedAt
         FROM payment_method_tbl
@@ -32,6 +38,9 @@
             id,
             member_id as memberId,
             toss_key as tossKey,
+            card_last_four as cardLastFour,
+            card_company as cardCompany,
+            card_type as cardType,
             created_at as createdAt,
             updated_at as updatedAt
         FROM payment_method_tbl
