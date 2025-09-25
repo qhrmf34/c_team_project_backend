@@ -36,14 +36,15 @@ public class MemberService {
             throw new CommonExceptionTemplate(400, "비밀번호가 일치하지 않습니다.");
         }
 
+        if (memberRepository.existsByPhoneNumber(signupRequest.getPhoneNumber())) {
+            throw new CommonExceptionTemplate(409, "이미 사용 중인 전화번호입니다.");
+        }
         // 중복 체크 - JPA 사용
         if (memberRepository.existsByEmail(signupRequest.getEmail())) {
             throw MemberException.DUPLICATE_DATA.getException();
         }
 
-        if (memberRepository.existsByPhoneNumber(signupRequest.getPhoneNumber())) {
-            throw new CommonExceptionTemplate(409, "이미 사용 중인 전화번호입니다.");
-        }
+
 
         // 새 회원 생성
         MemberEntity newMember = new MemberEntity();

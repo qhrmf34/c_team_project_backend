@@ -161,7 +161,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(200, "회원 정보 조회 완료", profile));
     }
 
-    @PutMapping("/profile")
+    @PostMapping("/profile")
     @Operation(summary = "회원 정보 수정", description = "JWT 토큰으로 회원 정보를 수정합니다.")
     public ResponseEntity<ApiResponse<MemberDto>> updateProfile(
             @RequestHeader("Authorization") String authorization,
