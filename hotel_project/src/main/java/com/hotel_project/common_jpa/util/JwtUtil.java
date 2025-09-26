@@ -1,5 +1,6 @@
 package com.hotel_project.common_jpa.util;
 
+import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -126,15 +127,14 @@ public class JwtUtil {
                 .getBody();
     }
 
+
     /**
-     * HTTP Authorization 헤더에서 토큰 추출
-     * @param authorizationHeader Authorization 헤더 값
-     * @return JWT 토큰 (Bearer 접두사 제거)
+     * Authorization 헤더에서 토큰 추출
      */
-    public String extractTokenFromHeader(String authorizationHeader) {
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7);
+    public String extractToken(String authorization) throws CommonExceptionTemplate {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new CommonExceptionTemplate(401, "Bearer 토큰이 필요합니다.");
         }
-        return null;
+        return authorization.substring(7);
     }
 }

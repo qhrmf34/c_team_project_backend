@@ -70,7 +70,7 @@ public class MemberController {
     public ResponseEntity<ApiResponse<String>> logout(
             @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
 
-        String token = extractToken(authorization);
+        String token = jwtUtil.extractToken(authorization);
 
         // 토큰에서 JWT ID 추출
         String jwtId = jwtUtil.getJwtIdFromToken(token);
@@ -155,7 +155,7 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberDto>> getProfile(
             @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
 
-        String token = extractToken(authorization);
+        String token = jwtUtil.extractToken(authorization);
         MemberDto profile = memberService.getMemberDtoByToken(token);
 
         return ResponseEntity.ok(ApiResponse.success(200, "회원 정보 조회 완료", profile));
@@ -167,7 +167,7 @@ public class MemberController {
             @RequestHeader("Authorization") String authorization,
             @RequestBody MemberDto memberDto) throws CommonExceptionTemplate {
 
-        String token = extractToken(authorization);
+        String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
         if (currentMember.getProvider() != Provider.local) {
@@ -184,7 +184,7 @@ public class MemberController {
     public ResponseEntity<ApiResponse<String>> deleteProfile(
             @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
 
-        String token = extractToken(authorization);
+        String token = jwtUtil.extractToken(authorization);
         MemberDto member = memberService.getMemberDtoByToken(token);
 
         String result = memberService.deleteMember(member.getId());
@@ -205,7 +205,7 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
-        String token = extractToken(authorization);
+        String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
         // 소셜 계정은 비밀번호가 없음
@@ -242,7 +242,7 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, "새 비밀번호가 일치하지 않습니다.");
         }
 
-        String token = extractToken(authorization);
+        String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
         // 소셜 계정은 비밀번호 변경 불가
@@ -253,13 +253,5 @@ public class MemberController {
         String result = memberService.changePassword(currentMember.getId(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success(200, result, null));
     }
-    /**
-     * Authorization 헤더에서 토큰 추출
-     */
-    private String extractToken(String authorization) throws CommonExceptionTemplate {
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new CommonExceptionTemplate(401, "Bearer 토큰이 필요합니다.");
-        }
-        return authorization.substring(7);
-    }
+
 }
