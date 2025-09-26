@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hotel_project.hotel_jpa.city.mapper.CityMapper">
+
+    <resultMap id="cityResultMap" type="com.hotel_project.hotel_jpa.city.dto.CityDto">
+        <id property="id" column="id"/>
+        <result property="cityName" column="city_name"/>
+        <result property="cityContent" column="city_content"/>
+        <result property="countryId" column="country_id"/>
+        <association property="countryDto" javaType="com.hotel_project.hotel_jpa.country.dto.CountryDto">
+            <id property="id" column="country_id"/>
+            <result property="countryName" column="country_name"/>
+            <result property="idd" column="country_idd"/>
+        </association>
+    </resultMap>
+
+    <select id="findAll" resultMap="cityResultMap">
+        SELECT c.id, c.city_name, c.city_content, c.country_id,
+        co.country_name, co.idd as country_idd
+        FROM city_tbl c
+        LEFT JOIN country_tbl co ON c.country_id = co.id
+        <where>
+            <if test="search != null and search != ''">
+                c.city_name LIKE CONCAT('%', #{search}, '%')
+                OR co.country_name LIKE CONCAT('%', #{search}, '%')
+            </if>
+        </where>
+        ORDER BY c.id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        FROM city_tbl c
+        LEFT JOIN country_tbl co ON c.country_id = co.id
+        <where>
+            <if test="search != null and search != ''">
+                c.city_name LIKE CONCAT('%', #{search}, '%')
+                OR co.country_name LIKE CONCAT('%', #{search}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="findById" resultMap="cityResultMap">
+        SELECT c.id, c.city_name, c.city_content, c.country_id,
+               co.country_name, co.idd as country_idd
+        FROM city_tbl c
+                 LEFT JOIN country_tbl co ON c.country_id = co.id
+        WHERE c.id = #{id}
+    </select>
+
+    <select id="findByName" resultMap="cityResultMap">
+        SELECT c.id, c.city_name, c.city_content, c.country_id,
+               co.country_name, co.idd as country_idd
+        FROM city_tbl c
+                 LEFT JOIN country_tbl co ON c.country_id = co.id
+        WHERE c.city_name LIKE CONCAT('%', #{cityName}, '%')
+        ORDER BY c.city_name
+    </select>
+
+</mapper>
