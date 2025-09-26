@@ -3,6 +3,7 @@ package com.hotel_project.hotel_jpa.city.controller;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.hotel_jpa.city.dto.CityDto;
+import com.hotel_project.hotel_jpa.city.dto.CityViewDto;
 import com.hotel_project.hotel_jpa.city.service.CityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,7 +16,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/cities")
@@ -26,14 +26,14 @@ public class CityController {
     private CityService cityService;
 
     @GetMapping
-    @Operation(summary = "전체 도시 조회", description = "모든 도시를 조회합니다.")
-    public ResponseEntity<ApiResponse<Page<CityDto>>> findAll(
+    @Operation(summary = "도시 검색", description = "도시명으로 검색합니다. 검색어가 없으면 전체 조회")
+    public ResponseEntity<ApiResponse<Page<CityViewDto>>> findByName(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<CityDto> cities = cityService.findAll(pageable, search);
+        Page<CityViewDto> cities = cityService.findByName(pageable, search);
         return ResponseEntity.ok(ApiResponse.success(200, "success", cities));
     }
 
@@ -42,13 +42,6 @@ public class CityController {
     public ResponseEntity<ApiResponse<CityDto>> findById(@PathVariable Long id) throws CommonExceptionTemplate {
         CityDto cityDto = cityService.findById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "success", cityDto));
-    }
-
-    @GetMapping("/search")
-    @Operation(summary = "도시 이름으로 검색", description = "도시 이름으로 검색합니다.")
-    public ResponseEntity<ApiResponse<List<CityDto>>> findByName(@RequestParam String name) throws CommonExceptionTemplate {
-        List<CityDto> cities = cityService.findByName(name);
-        return ResponseEntity.ok(ApiResponse.success(200, "success", cities));
     }
 
     @PostMapping

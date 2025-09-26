@@ -24,29 +24,28 @@ public class CountryService {
     private final CountryRepository countryRepository;
     private final CountryMapper countryMapper;
 
-    // SELECT - MyBatis 사용 (페이지네이션 포함)
-    public Page<CountryDto> findAll(Pageable pageable, String search) {
-        List<CountryDto> content = countryMapper.findAll(search, pageable.getOffset(), pageable.getPageSize());
-        long total = countryMapper.countAll(search);
+    // 이름 검색으로 통합 (페이지네이션 포함, 검색어 없으면 전체 조회)
+    public Page<CountryDto> findByName(Pageable pageable, String countryName) {
+        List<CountryDto> content = countryMapper.findByName(countryName, pageable.getOffset(), pageable.getPageSize());
+        long total = countryMapper.countByName(countryName);
         return new PageImpl<>(content, pageable, total);
     }
 
+    // Repository로 변경
     public CountryDto findById(Long id) throws CommonExceptionTemplate {
         if (id == null) {
             throw MemberException.INVALID_ID.getException();
         }
-        CountryDto countryDto = countryMapper.findById(id);
-        if (countryDto == null) {
+
+        Optional<CountryEntity> entityOptional = countryRepository.findById(id);
+        if (!entityOptional.isPresent()) {
             throw MemberException.NOT_EXIST_DATA.getException();
         }
-        return countryDto;
-    }
 
-    public List<CountryDto> findByName(String countryName) throws CommonExceptionTemplate {
-        if (countryName == null || countryName.trim().isEmpty()) {
-            throw MemberException.INVALID_DATA.getException();
-        }
-        return countryMapper.findByName(countryName);
+        CountryEntity entity = entityOptional.get();
+        CountryDto dto = new CountryDto();
+        dto.copyMembers(entity);
+        return dto;
     }
 
     // INSERT - JPA 사용
@@ -55,7 +54,6 @@ public class CountryService {
             throw MemberException.INVALID_DATA.getException();
         }
 
-        // 중복 체크
         if (countryDto.getCountryName() != null &&
                 countryRepository.existsByCountryName(countryDto.getCountryName().trim())) {
             throw MemberException.DUPLICATE_DATA.getException();
@@ -83,7 +81,6 @@ public class CountryService {
 
         CountryEntity entity = entityOptional.get();
 
-        // 중복 체크(이름이 변경될 때만)
         if (countryDto.getCountryName() != null &&
                 !countryDto.getCountryName().equals(entity.getCountryName()) &&
                 countryRepository.existsByCountryNameAndIdNot(countryDto.getCountryName(), countryDto.getId())) {
@@ -107,4 +104,3 @@ public class CountryService {
         return "delete ok";
     }
 }
-

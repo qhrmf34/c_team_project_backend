@@ -3,6 +3,7 @@ package com.hotel_project.hotel_jpa.city_image.controller;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.hotel_jpa.city_image.dto.CityImageDto;
+import com.hotel_project.hotel_jpa.city_image.dto.CityImageViewDto;
 import com.hotel_project.hotel_jpa.city_image.service.CityImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/city_images")
@@ -27,14 +27,14 @@ public class CityImageController {
     private CityImageService cityImageService;
 
     @GetMapping
-    @Operation(summary = "전체 도시 이미지 조회", description = "모든 도시 이미지를 조회합니다.")
-    public ResponseEntity<ApiResponse<Page<CityImageDto>>> findAll(
+    @Operation(summary = "도시 이미지 검색", description = "도시 이미지명으로 검색합니다. 검색어가 없으면 전체 조회")
+    public ResponseEntity<ApiResponse<Page<CityImageViewDto>>> findByName(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<CityImageDto> cityImages = cityImageService.findAll(pageable, search);
+        Page<CityImageViewDto> cityImages = cityImageService.findByName(pageable, search);
         return ResponseEntity.ok(ApiResponse.success(200, "success", cityImages));
     }
 
@@ -43,13 +43,6 @@ public class CityImageController {
     public ResponseEntity<ApiResponse<CityImageDto>> findById(@PathVariable Long id) throws CommonExceptionTemplate {
         CityImageDto cityImageDto = cityImageService.findById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "success", cityImageDto));
-    }
-
-    @GetMapping("/search")
-    @Operation(summary = "도시 이미지 검색", description = "도시 이름으로 이미지를 검색합니다.")
-    public ResponseEntity<ApiResponse<List<CityImageDto>>> findByName(@RequestParam String name) throws CommonExceptionTemplate {
-        List<CityImageDto> cityImages = cityImageService.findByName(name);
-        return ResponseEntity.ok(ApiResponse.success(200, "success", cityImages));
     }
 
     @PostMapping

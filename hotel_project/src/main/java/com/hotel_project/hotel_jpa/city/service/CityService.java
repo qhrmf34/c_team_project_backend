@@ -3,6 +3,7 @@ package com.hotel_project.hotel_jpa.city.service;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.exception.MemberException;
 import com.hotel_project.hotel_jpa.city.dto.CityDto;
+import com.hotel_project.hotel_jpa.city.dto.CityViewDto;
 import com.hotel_project.hotel_jpa.city.dto.CityEntity;
 import com.hotel_project.hotel_jpa.city.mapper.CityMapper;
 import com.hotel_project.hotel_jpa.city.repository.CityRepository;
@@ -24,29 +25,28 @@ public class CityService {
     private final CityRepository cityRepository;
     private final CityMapper cityMapper;
 
-    // SELECT - MyBatis 사용 (페이지네이션 포함)
-    public Page<CityDto> findAll(Pageable pageable, String search) {
-        List<CityDto> content = cityMapper.findAll(search, pageable.getOffset(), pageable.getPageSize());
-        long total = cityMapper.countAll(search);
+    // 이름 검색으로 통합 (페이지네이션 포함, 검색어 없으면 전체 조회) - ViewDto 반환
+    public Page<CityViewDto> findByName(Pageable pageable, String cityName) {
+        List<CityViewDto> content = cityMapper.findByName(cityName, pageable.getOffset(), pageable.getPageSize());
+        long total = cityMapper.countByName(cityName);
         return new PageImpl<>(content, pageable, total);
     }
 
+    // Repository로 변경 - 기존 CityDto 반환 (수정/등록용)
     public CityDto findById(Long id) throws CommonExceptionTemplate {
         if (id == null) {
             throw MemberException.INVALID_ID.getException();
         }
-        CityDto cityDto = cityMapper.findById(id);
-        if (cityDto == null) {
+
+        Optional<CityEntity> entityOptional = cityRepository.findById(id);
+        if (!entityOptional.isPresent()) {
             throw MemberException.NOT_EXIST_DATA.getException();
         }
-        return cityDto;
-    }
 
-    public List<CityDto> findByName(String cityName) throws CommonExceptionTemplate {
-        if (cityName == null || cityName.trim().isEmpty()) {
-            throw MemberException.INVALID_DATA.getException();
-        }
-        return cityMapper.findByName(cityName);
+        CityEntity entity = entityOptional.get();
+        CityDto dto = new CityDto();
+        dto.copyMembers(entity);
+        return dto;
     }
 
     // INSERT - JPA 사용
@@ -55,7 +55,6 @@ public class CityService {
             throw MemberException.INVALID_DATA.getException();
         }
 
-        // 중복 체크
         if (cityDto.getCityName() != null &&
                 cityRepository.existsByCityName(cityDto.getCityName().trim())) {
             throw MemberException.DUPLICATE_DATA.getException();
@@ -83,7 +82,6 @@ public class CityService {
 
         CityEntity entity = entityOptional.get();
 
-        // 중복 체크(이름이 변경될 때만)
         if (cityDto.getCityName() != null &&
                 !cityDto.getCityName().equals(entity.getCityName()) &&
                 cityRepository.existsByCityNameAndIdNot(cityDto.getCityName(), cityDto.getId())) {

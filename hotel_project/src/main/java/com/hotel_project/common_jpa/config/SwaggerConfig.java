@@ -13,6 +13,7 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
+
                 .info(new Info()
                         .title("Hotel Management API")
                         .description("호텔 관리 시스템 API 문서")

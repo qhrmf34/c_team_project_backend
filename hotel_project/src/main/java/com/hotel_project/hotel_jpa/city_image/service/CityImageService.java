@@ -3,11 +3,11 @@ package com.hotel_project.hotel_jpa.city_image.service;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.exception.MemberException;
 import com.hotel_project.hotel_jpa.city_image.dto.CityImageDto;
+import com.hotel_project.hotel_jpa.city_image.dto.CityImageViewDto;
 import com.hotel_project.hotel_jpa.city_image.dto.CityImageEntity;
 import com.hotel_project.hotel_jpa.city_image.mapper.CityImageMapper;
 import com.hotel_project.hotel_jpa.city_image.repository.CityImageRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -34,29 +34,28 @@ public class CityImageService {
         return projectRoot + File.separator + "uploads";
     }
 
-    // SELECT - MyBatis 사용 (페이지네이션 포함)
-    public Page<CityImageDto> findAll(Pageable pageable, String search) {
-        List<CityImageDto> content = cityImageMapper.findAll(search, pageable.getOffset(), pageable.getPageSize());
-        long total = cityImageMapper.countAll(search);
+    // 이름 검색으로 통합 (페이지네이션 포함, 검색어 없으면 전체 조회) - ViewDto 반환
+    public Page<CityImageViewDto> findByName(Pageable pageable, String cityName) {
+        List<CityImageViewDto> content = cityImageMapper.findByName(cityName, pageable.getOffset(), pageable.getPageSize());
+        long total = cityImageMapper.countByName(cityName);
         return new PageImpl<>(content, pageable, total);
     }
 
+    // Repository로 변경 - 기존 CityImageDto 반환 (수정/등록용)
     public CityImageDto findById(Long id) throws CommonExceptionTemplate {
         if (id == null) {
             throw MemberException.INVALID_ID.getException();
         }
-        CityImageDto cityImageDto = cityImageMapper.findById(id);
-        if (cityImageDto == null) {
+
+        Optional<CityImageEntity> entityOptional = cityImageRepository.findById(id);
+        if (!entityOptional.isPresent()) {
             throw MemberException.NOT_EXIST_DATA.getException();
         }
-        return cityImageDto;
-    }
 
-    public List<CityImageDto> findByName(String cityName) throws CommonExceptionTemplate {
-        if (cityName == null || cityName.trim().isEmpty()) {
-            throw MemberException.INVALID_DATA.getException();
-        }
-        return cityImageMapper.findByName(cityName);
+        CityImageEntity entity = entityOptional.get();
+        CityImageDto dto = new CityImageDto();
+        dto.copyMembers(entity);
+        return dto;
     }
 
     // INSERT - JPA 사용
@@ -100,7 +99,6 @@ public class CityImageService {
             throw MemberException.NOT_EXIST_DATA.getException();
         }
 
-        // 파일도 함께 삭제
         Optional<CityImageEntity> entity = cityImageRepository.findById(id);
         if (entity.isPresent() && entity.get().getCityImagePath() != null) {
             deleteFile(entity.get().getCityImagePath());
@@ -117,7 +115,6 @@ public class CityImageService {
         }
 
         try {
-            // 절대 경로 사용
             String uploadBasePath = getUploadPath();
             String cityUploadPath = uploadBasePath + File.separator + "city";
 
@@ -152,4 +149,3 @@ public class CityImageService {
         }
     }
 }
-

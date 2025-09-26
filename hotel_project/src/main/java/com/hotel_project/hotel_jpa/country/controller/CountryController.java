@@ -15,7 +15,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/countries")
@@ -26,29 +25,24 @@ public class CountryController {
     private CountryService countryService;
 
     @GetMapping
-    @Operation(summary = "전체 국가 조회", description = "모든 국가를 조회합니다.")
-    public ResponseEntity<ApiResponse<Page<CountryDto>>> findAll(
+    @Operation(summary = "국가 검색", description = "국가명으로 검색합니다. 검색어가 없으면 전체 조회")
+    public ResponseEntity<ApiResponse<Page<CountryDto>>> findByName(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<CountryDto> countries = countryService.findAll(pageable, search);
+        Page<CountryDto> countries = countryService.findByName(pageable, search);
         return ResponseEntity.ok(ApiResponse.success(200, "success", countries));
     }
+
+    // 이제 search endpoint는 제거됨 (findByName으로 통합)
 
     @GetMapping("/{id}")
     @Operation(summary = "국가 단건 조회", description = "ID로 국가를 조회합니다.")
     public ResponseEntity<ApiResponse<CountryDto>> findById(@PathVariable Long id) throws CommonExceptionTemplate {
         CountryDto countryDto = countryService.findById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "success", countryDto));
-    }
-
-    @GetMapping("/search")
-    @Operation(summary = "국가 이름으로 검색", description = "국가 이름으로 검색합니다.")
-    public ResponseEntity<ApiResponse<List<CountryDto>>> findByName(@RequestParam String name) throws CommonExceptionTemplate {
-        List<CountryDto> countries = countryService.findByName(name);
-        return ResponseEntity.ok(ApiResponse.success(200, "success", countries));
     }
 
     @PostMapping

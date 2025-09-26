@@ -2,52 +2,28 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hotel_project.hotel_jpa.country.mapper.CountryMapper">
 
-    <!-- Result Map -->
-    <resultMap id="countryResultMap" type="com.hotel_project.hotel_jpa.country.dto.CountryDto">
-        <id property="id" column="id"/>
-        <result property="countryName" column="country_name"/>
-        <result property="idd" column="idd"/>
-    </resultMap>
-
-    <!-- 전체 조회 (페이지네이션) -->
-    <select id="findAll" resultMap="countryResultMap">
-        SELECT id, country_name, idd
+    <!-- 이름 검색 통합 (페이지네이션, 검색어 없으면 전체 조회) -->
+    <select id="findByName" resultType="com.hotel_project.hotel_jpa.country.dto.CountryDto">
+        SELECT id, country_name as countryName, idd
         FROM country_tbl
         <where>
-            <if test="search != null and search != ''">
-                country_name LIKE CONCAT('%', #{search}, '%')
-                OR idd LIKE CONCAT('%', #{search}, '%')
+            <if test="countryName != null and countryName != ''">
+                country_name LIKE CONCAT('%', #{countryName}, '%')
             </if>
         </where>
-        ORDER BY id DESC
+        ORDER BY id ASC
         LIMIT #{size} OFFSET #{offset}
     </select>
 
-    <!-- 전체 개수 조회 -->
-    <select id="countAll" resultType="long">
+    <!-- 개수 조회 (검색어 없으면 전체 개수) -->
+    <select id="countByName" resultType="long">
         SELECT COUNT(*)
         FROM country_tbl
         <where>
-            <if test="search != null and search != ''">
-                country_name LIKE CONCAT('%', #{search}, '%')
-                OR idd LIKE CONCAT('%', #{search}, '%')
+            <if test="countryName != null and countryName != ''">
+                country_name LIKE CONCAT('%', #{countryName}, '%')
             </if>
         </where>
-    </select>
-
-    <!-- ID로 단건 조회 -->
-    <select id="findById" resultMap="countryResultMap">
-        SELECT id, country_name, idd
-        FROM country_tbl
-        WHERE id = #{id}
-    </select>
-
-    <!-- 이름으로 검색 -->
-    <select id="findByName" resultMap="countryResultMap">
-        SELECT id, country_name, idd
-        FROM country_tbl
-        WHERE country_name LIKE CONCAT('%', #{countryName}, '%')
-        ORDER BY country_name
     </select>
 
 </mapper>

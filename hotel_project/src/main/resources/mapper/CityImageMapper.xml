@@ -2,67 +2,46 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hotel_project.hotel_jpa.city_image.mapper.CityImageMapper">
 
-    <resultMap id="cityImageResultMap" type="com.hotel_project.hotel_jpa.city_image.dto.CityImageDto">
-        <id property="id" column="id"/>
-        <result property="cityImageName" column="city_image_name"/>
-        <result property="cityImagePath" column="city_image_path"/>
-        <result property="cityImageSize" column="city_image_size"/>
-        <result property="cityImageIndex" column="city_image_index"/>
-        <result property="createdAt" column="created_at"/>
-        <result property="cityId" column="city_id"/>
-        <association property="cityDto" javaType="com.hotel_project.hotel_jpa.city.dto.CityDto">
-            <id property="id" column="city_id"/>
-            <result property="cityName" column="city_name"/>
-            <result property="cityContent" column="city_content"/>
-            <result property="countryId" column="country_id"/>
-        </association>
-    </resultMap>
-
-    <select id="findAll" resultMap="cityImageResultMap">
-        SELECT ci.id, ci.city_image_name, ci.city_image_path, ci.city_image_size,
-        ci.city_image_index, ci.created_at, ci.city_id,
-        c.city_name, c.city_content, c.country_id
+    <!-- 이름 검색 통합 (페이지네이션, 검색어 없으면 전체 조회) - INNER JOIN으로 도시 이름 포함 -->
+    <select id="findByName" resultType="com.hotel_project.hotel_jpa.city_image.dto.CityImageViewDto">
+        SELECT
+        ci.id,
+        ci.city_image_name as cityImageName,
+        ci.city_image_path as cityImagePath,
+        ci.city_image_size as cityImageSize,
+        ci.city_image_index as cityImageIndex,
+        ci.created_at as createdAt,
+        ci.city_id as cityId,
+        c.city_name as cityName,
+        c.city_content as cityContent,
+        co.country_name as countryName
         FROM city_image_tbl ci
-        LEFT JOIN city_tbl c ON ci.city_id = c.id
+        INNER JOIN city_tbl c ON ci.city_id = c.id
+        INNER JOIN country_tbl co ON c.country_id = co.id
         <where>
-            <if test="search != null and search != ''">
-                ci.city_image_name LIKE CONCAT('%', #{search}, '%')
-                OR c.city_name LIKE CONCAT('%', #{search}, '%')
+            <if test="cityName != null and cityName != ''">
+                ci.city_image_name LIKE CONCAT('%', #{cityName}, '%')
+                OR c.city_name LIKE CONCAT('%', #{cityName}, '%')
+                OR co.country_name LIKE CONCAT('%', #{cityName}, '%')
             </if>
         </where>
-        ORDER BY ci.id DESC
+        ORDER BY ci.id ASC
         LIMIT #{size} OFFSET #{offset}
     </select>
 
-    <select id="countAll" resultType="long">
+    <!-- 개수 조회 (검색어 없으면 전체 개수) -->
+    <select id="countByName" resultType="long">
         SELECT COUNT(*)
         FROM city_image_tbl ci
-        LEFT JOIN city_tbl c ON ci.city_id = c.id
+        INNER JOIN city_tbl c ON ci.city_id = c.id
+        INNER JOIN country_tbl co ON c.country_id = co.id
         <where>
-            <if test="search != null and search != ''">
-                ci.city_image_name LIKE CONCAT('%', #{search}, '%')
-                OR c.city_name LIKE CONCAT('%', #{search}, '%')
+            <if test="cityName != null and cityName != ''">
+                ci.city_image_name LIKE CONCAT('%', #{cityName}, '%')
+                OR c.city_name LIKE CONCAT('%', #{cityName}, '%')
+                OR co.country_name LIKE CONCAT('%', #{cityName}, '%')
             </if>
         </where>
-    </select>
-
-    <select id="findById" resultMap="cityImageResultMap">
-        SELECT ci.id, ci.city_image_name, ci.city_image_path, ci.city_image_size,
-               ci.city_image_index, ci.created_at, ci.city_id,
-               c.city_name, c.city_content, c.country_id
-        FROM city_image_tbl ci
-                 LEFT JOIN city_tbl c ON ci.city_id = c.id
-        WHERE ci.id = #{id}
-    </select>
-
-    <select id="findByName" resultMap="cityImageResultMap">
-        SELECT ci.id, ci.city_image_name, ci.city_image_path, ci.city_image_size,
-               ci.city_image_index, ci.created_at, ci.city_id,
-               c.city_name, c.city_content, c.country_id
-        FROM city_image_tbl ci
-                 LEFT JOIN city_tbl c ON ci.city_id = c.id
-        WHERE c.city_name LIKE CONCAT('%', #{cityName}, '%')
-        ORDER BY ci.city_image_index, ci.created_at
     </select>
 
 </mapper>
