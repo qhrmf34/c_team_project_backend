@@ -161,7 +161,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(200, "회원 정보 조회 완료", profile));
     }
 
-    @PutMapping("/profile")
+    @PostMapping("/profile")
     @Operation(summary = "회원 정보 수정", description = "JWT 토큰으로 회원 정보를 수정합니다.")
     public ResponseEntity<ApiResponse<MemberDto>> updateProfile(
             @RequestHeader("Authorization") String authorization,
@@ -170,6 +170,10 @@ public class MemberController {
         String token = extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
+        if (currentMember.getProvider() != Provider.local) {
+            throw new CommonExceptionTemplate(403,
+                    "소셜 로그인 계정은 회원 정보를 수정할 수 없습니다. Provider: " + currentMember.getProvider());
+        }
         MemberDto updatedProfile = memberService.updateMemberAndReturnDto(currentMember.getId(), memberDto);
 
         return ResponseEntity.ok(ApiResponse.success(200, "회원 정보 수정 완료", updatedProfile));
@@ -186,7 +190,69 @@ public class MemberController {
         String result = memberService.deleteMember(member.getId());
         return ResponseEntity.ok(ApiResponse.success(200, "회원 탈퇴가 완료되었습니다.", result));
     }
+    @PostMapping("/match-password")
+    @Operation(summary = "현재 비밀번호 확인", description = "현재 비밀번호가 일치하는지 확인합니다.")
+    public ResponseEntity<ApiResponse<String>> matchPassword(
+            @RequestHeader("Authorization") String authorization,
+            @Valid @RequestBody MatchPasswordRequest request,
+            BindingResult bindingResult) throws CommonExceptionTemplate {
 
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            bindingResult.getFieldErrors().forEach(error ->
+                    errorMessages.append(error.getDefaultMessage()).append(" ")
+            );
+            throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
+        }
+
+        String token = extractToken(authorization);
+        MemberDto currentMember = memberService.getMemberDtoByToken(token);
+
+        // 소셜 계정은 비밀번호가 없음
+        if (currentMember.getProvider() != Provider.local) {
+            throw new CommonExceptionTemplate(403, "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.");
+        }
+
+        boolean isMatch = memberService.verifyCurrentPassword(currentMember.getId(), request.getPassword());
+
+        if (!isMatch) {
+            throw new CommonExceptionTemplate(400, "현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(200, "비밀번호가 확인되었습니다.", null));
+    }
+
+    @PostMapping("/account-reset-password")
+    @Operation(summary = "계정 비밀번호 변경", description = "로그인된 사용자의 비밀번호를 변경합니다.")
+    public ResponseEntity<ApiResponse<String>> changeAccountPassword(
+            @RequestHeader("Authorization") String authorization,
+            @Valid @RequestBody ChangePasswordRequest request,
+            BindingResult bindingResult) throws CommonExceptionTemplate {
+
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            bindingResult.getFieldErrors().forEach(error ->
+                    errorMessages.append(error.getDefaultMessage()).append(" ")
+            );
+            throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
+        }
+
+        // 비밀번호 확인
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new CommonExceptionTemplate(400, "새 비밀번호가 일치하지 않습니다.");
+        }
+
+        String token = extractToken(authorization);
+        MemberDto currentMember = memberService.getMemberDtoByToken(token);
+
+        // 소셜 계정은 비밀번호 변경 불가
+        if (currentMember.getProvider() != Provider.local) {
+            throw new CommonExceptionTemplate(403, "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.");
+        }
+
+        String result = memberService.changePassword(currentMember.getId(), request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success(200, result, null));
+    }
     /**
      * Authorization 헤더에서 토큰 추출
      */

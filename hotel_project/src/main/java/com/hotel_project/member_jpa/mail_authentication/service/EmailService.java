@@ -72,7 +72,6 @@ public class EmailService {
 
         mailAuthenticationRepository.save(mailAuth);
 
-        // 여기서 트랜잭션이 커밋됨
 
         // 이메일 전송
         sendVerificationEmail(email, verificationCode, "비밀번호 재설정");

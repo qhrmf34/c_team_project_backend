@@ -27,6 +27,12 @@ public class PaymentMethodDto implements IPaymentMethod {
     @Size(max = 50)
     private String tossKey;
 
+    private String cardLastFour;      // 카드번호 마지막 4자리
+
+    private String cardCompany;       // 카드사 (KB, 삼성, 현대 등)
+
+    private String cardType;          // 카드 타입 (VISA, MasterCard 등)
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

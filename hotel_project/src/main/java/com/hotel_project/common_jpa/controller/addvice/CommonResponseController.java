@@ -11,6 +11,8 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
+import java.util.Map;
+
 @RestControllerAdvice
 public class CommonResponseController implements ResponseBodyAdvice<Object> {
     @Override
@@ -37,6 +39,13 @@ public class CommonResponseController implements ResponseBodyAdvice<Object> {
         // Already wrapped → skip
         if (body instanceof ApiResponse)
             return body;
+        // **에러 응답은 래핑하지 않음**
+        if (body instanceof Map) {
+            Map<String, Object> mapBody = (Map<String, Object>) body;
+            if (mapBody.containsKey("code") && mapBody.containsKey("message")) {
+                return body; // 에러 응답은 그대로 반환
+            }
+        }
 
         // Handle String specially (Spring uses StringHttpMessageConverter)
         if (body instanceof String) {
