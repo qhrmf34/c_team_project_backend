@@ -7,11 +7,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FreebiesRepository extends JpaRepository<FreebiesEntity, Long> {
 
-    // 무료시설명 중복 체크
-    boolean existsByFreebiesName(String freebiesName);
+    // 국가명 중복 체크
+    boolean existsByFreebiesName(String countryName);
 
-    // 무료시설명 중복 체크 (특정 ID 제외)
-    boolean existsByFreebiesNameAndIdNot(String freebiesName, Long id);
+    // 국가명 중복 체크 (특정 ID 제외)
+    boolean existsByFreebiesNameAndIdNot(String countryName, Long id);
 
     // ID 존재 여부 체크
     boolean existsById(Long id);

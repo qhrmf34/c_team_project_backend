@@ -12,7 +12,7 @@ public interface IFreebies extends IId {
 
     /*insert 용*/
     default void copyMembers(IFreebies iFreebies){
-        if(getFreebiesName() == null){
+        if(iFreebies == null){
             return;
         }
         setId(iFreebies.getId());
@@ -20,7 +20,7 @@ public interface IFreebies extends IId {
     }
     /*update 용*/
     default void copyNotNullMembers(IFreebies iFreebies){
-        if(getFreebiesName() == null){
+        if(iFreebies == null){
             return;
         }
         if(iFreebies.getId()!=null){
