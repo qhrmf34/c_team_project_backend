@@ -1,4 +1,4 @@
-package com.hotel_project.hotel_jpa.hotel_image;
+package com.hotel_project.hotel_jpa.hotel_image.dto;
 
 import com.hotel_project.common_jpa.dto.IId;
 import com.hotel_project.hotel_jpa.hotel.dto.HotelEntity;

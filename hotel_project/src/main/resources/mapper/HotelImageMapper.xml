@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hotel_project.hotel_jpa.hotel_image.mapper.HotelImageMapper">
+
+    <!-- 이름 검색 통합 (페이지네이션, 검색어 없으면 전체 조회) - INNER JOIN으로 호텔명 포함 -->
+    <select id="findByName" resultType="com.hotel_project.hotel_jpa.hotel_image.dto.HotelImageViewDto">
+        SELECT
+        hi.id,
+        hi.hotel_image_name as hotelImageName,
+        hi.hotel_image_path as hotelImagePath,
+        hi.hotel_image_index as hotelImageIndex,
+        hi.created_at as createdAt,
+        hi.hotel_id as hotelId,
+        h.hotel_name as hotelName,
+        c.city_name as cityName,
+        co.country_name as countryName
+        FROM hotel_image_tbl hi
+        INNER JOIN hotel_tbl h ON hi.hotel_id = h.id
+        INNER JOIN city_tbl c ON h.city_id = c.id
+        INNER JOIN country_tbl co ON c.country_id = co.id
+        <where>
+            <if test="hotelName != null and hotelName != ''">
+                h.hotel_name LIKE CONCAT('%', #{hotelName}, '%')
+                OR hi.hotel_image_name LIKE CONCAT('%', #{hotelName}, '%')
+                OR c.city_name LIKE CONCAT('%', #{hotelName}, '%')
+                OR co.country_name LIKE CONCAT('%', #{hotelName}, '%')
+            </if>
+        </where>
+        ORDER BY hi.id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 개수 조회 (검색어 없으면 전체 개수) -->
+    <select id="countByName" resultType="long">
+        SELECT COUNT(*)
+        FROM hotel_image_tbl hi
+        INNER JOIN hotel_tbl h ON hi.hotel_id = h.id
+        INNER JOIN city_tbl c ON h.city_id = c.id
+        INNER JOIN country_tbl co ON c.country_id = co.id
+        <where>
+            <if test="hotelName != null and hotelName != ''">
+                h.hotel_name LIKE CONCAT('%', #{hotelName}, '%')
+                OR hi.hotel_image_name LIKE CONCAT('%', #{hotelName}, '%')
+                OR c.city_name LIKE CONCAT('%', #{hotelName}, '%')
+                OR co.country_name LIKE CONCAT('%', #{hotelName}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
