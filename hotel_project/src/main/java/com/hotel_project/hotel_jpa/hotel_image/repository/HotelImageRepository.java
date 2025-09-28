@@ -10,6 +10,6 @@ public interface HotelImageRepository extends JpaRepository<HotelImageEntity, Lo
     // ID 존재 여부 체크
     boolean existsById(Long id);
 
-    // 도시별 이미지 개수 조회
+    // 호텔별 이미지 개수 조회
     long countByHotelEntityId(Long HotelId);
 }
