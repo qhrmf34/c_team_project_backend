@@ -25,7 +25,7 @@ public class HotelController {
     private HotelService hotelService;
 
     @GetMapping
-    @Operation(summary = "도시 검색", description = "도시명으로 검색합니다. 검색어가 없으면 전체 조회")
+    @Operation(summary = "호텔 검색", description = "호텔명으로 검색합니다. 검색어가 없으면 전체 조회")
     public ResponseEntity<ApiResponse<Page<HotelViewDto>>> findByName(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -37,14 +37,14 @@ public class HotelController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "도시 단건 조회", description = "ID로 도시를 조회합니다.")
+    @Operation(summary = "호텔 단건 조회", description = "ID로 호텔를 조회합니다.")
     public ResponseEntity<ApiResponse<HotelDto>> findById(@PathVariable Long id) throws CommonExceptionTemplate {
         HotelDto hotelDto = hotelService.findById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "success", hotelDto));
     }
 
     @PostMapping
-    @Operation(summary = "도시 등록", description = "새로운 도시를 등록합니다.")
+    @Operation(summary = "호텔 등록", description = "새로운 호텔를 등록합니다.")
     public ResponseEntity<ApiResponse<String>> save(@Valid @RequestBody HotelDto hotelDto, BindingResult bindingResult) throws CommonExceptionTemplate {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
@@ -57,7 +57,7 @@ public class HotelController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "도시 수정", description = "기존 도시 정보를 수정합니다.")
+    @Operation(summary = "호텔 수정", description = "기존 호텔 정보를 수정합니다.")
     public ResponseEntity<ApiResponse<String>> update(@PathVariable Long id, @RequestBody HotelDto hotelDto) throws CommonExceptionTemplate {
         hotelDto.setId(id);
         String result = hotelService.update(hotelDto);
@@ -65,7 +65,7 @@ public class HotelController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "도시 삭제", description = "도시를 삭제합니다.")
+    @Operation(summary = "호텔 삭제", description = "호텔를 삭제합니다.")
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) throws CommonExceptionTemplate {
         String result = hotelService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(200, "success", result));
