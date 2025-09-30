@@ -6,68 +6,69 @@ import com.hotel_project.hotel_jpa.freebies.dto.FreebiesDto;
 import com.hotel_project.hotel_jpa.freebies.service.FreebiesService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/test")
-//@CrossOrigin("*")  // Vue 개발 서버 주소
-@Tag(name = "Freebies API", description = "무료시설 관리 API")
+@RequestMapping("/api/admin/freebies")
+@Tag(name = "Freebies API", description = "무료 시설 관리 API")
 public class FreebiesController {
 
     @Autowired
     private FreebiesService freebiesService;
 
-    @GetMapping("/freebies")
-    @Operation(summary = "전체 무료시설 조회", description = "모든 무료시설을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<FreebiesDto>>> findAll() {
-        List<FreebiesDto> freebiesList = freebiesService.findAll();
-        return ResponseEntity.ok(ApiResponse.success(200, "success", freebiesList));
+    @GetMapping
+    @Operation(summary = "국가 검색", description = "국가명으로 검색합니다. 검색어가 없으면 전체 조회")
+    public ResponseEntity<ApiResponse<Page<FreebiesDto>>> findByName(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FreebiesDto> countries = freebiesService.findByName(pageable, search);
+        return ResponseEntity.ok(ApiResponse.success(200, "success", countries));
     }
 
+    // 이제 search endpoint는 제거됨 (findByName으로 통합)
+
     @GetMapping("/{id}")
-    @Operation(summary = "무료시설 단건 조회", description = "ID로 무료시설을 조회합니다.")
+    @Operation(summary = "국가 단건 조회", description = "ID로 국가를 조회합니다.")
     public ResponseEntity<ApiResponse<FreebiesDto>> findById(@PathVariable Long id) throws CommonExceptionTemplate {
         FreebiesDto freebiesDto = freebiesService.findById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "success", freebiesDto));
     }
 
-    @GetMapping("/search")
-    @Operation(summary = "무료시설 이름으로 검색", description = "무료시설 이름으로 검색합니다.")
-    public ResponseEntity<ApiResponse<List<FreebiesDto>>> findByName(@RequestParam String name) throws CommonExceptionTemplate {
-        List<FreebiesDto> freebiesList = freebiesService.findByName(name);
-        return ResponseEntity.ok(ApiResponse.success(200, "success", freebiesList));
-    }
-
     @PostMapping
-    @Operation(summary = "무료시설 등록", description = "새로운 무료시설을 등록합니다.")
-    public String save(@Valid @RequestBody FreebiesDto freebiesDto, BindingResult bindingResult) throws CommonExceptionTemplate {
+    @Operation(summary = "국가 등록", description = "새로운 국가를 등록합니다.")
+    public ResponseEntity<ApiResponse<String>> save(@Valid @RequestBody FreebiesDto freebiesDto, BindingResult bindingResult) throws CommonExceptionTemplate {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
             bindingResult.getFieldErrors().forEach(error ->
-                    errorMessages.append(error.getDefaultMessage()).append(" ")
-            );
+                    errorMessages.append(error.getDefaultMessage()).append(" "));
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
-
-        return freebiesService.insert(freebiesDto);
+        String result = freebiesService.insert(freebiesDto);
+        return ResponseEntity.ok(ApiResponse.success(200, "success", result));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "무료시설 수정", description = "기존 무료시설 정보를 수정합니다.")
-    public String update(@PathVariable Long id, @RequestBody FreebiesDto freebiesDto) throws CommonExceptionTemplate {
+    @Operation(summary = "국가 수정", description = "기존 국가 정보를 수정합니다.")
+    public ResponseEntity<ApiResponse<String>> update(@PathVariable Long id, @RequestBody FreebiesDto freebiesDto) throws CommonExceptionTemplate {
         freebiesDto.setId(id);
-        return freebiesService.update(freebiesDto);
+        String result = freebiesService.update(freebiesDto);
+        return ResponseEntity.ok(ApiResponse.success(200, "success", result));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "무료시설 삭제", description = "무료시설을 삭제합니다.")
-    public String delete(@PathVariable Long id) throws CommonExceptionTemplate {
-        return freebiesService.delete(id);
+    @Operation(summary = "국가 삭제", description = "국가를 삭제합니다.")
+    public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) throws CommonExceptionTemplate {
+        String result = freebiesService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success(200, "success", result));
     }
 }

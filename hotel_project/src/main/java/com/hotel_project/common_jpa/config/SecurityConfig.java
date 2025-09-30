@@ -4,6 +4,7 @@ import com.hotel_project.member_jpa.member.dto.LoginResponse;
 import com.hotel_project.member_jpa.member.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,6 +27,9 @@ public class SecurityConfig {
     private CustomOAuth2UserService customOAuth2UserService;
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Value("${FRONTEND_URL:http://localhost:8080}")
+    private String frontendUrl;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -64,6 +68,7 @@ public class SecurityConfig {
                         .successHandler((request, response, authentication) -> {
                             System.out.println("=== 소셜 로그인 성공 핸들러 실행 ===");
                             System.out.println("인증 객체: " + authentication.getName());
+                            System.out.println("사용할 프론트엔드 URL: " + frontendUrl);
 
                             try {
                                 // CustomOAuth2UserService에서 생성된 토큰과 사용자 정보 가져오기
@@ -83,9 +88,10 @@ public class SecurityConfig {
                                     // URL 인코딩
                                     String encodedUserInfo = URLEncoder.encode(userInfoJson, StandardCharsets.UTF_8);
 
-                                    // 토큰과 사용자 정보를 URL 파라미터로 전달
+                                    // 토큰과 사용자 정보를 URL 파라미터로 전달 (동적 URL 사용)
                                     String redirectUrl = String.format(
-                                            "http://localhost:8080/auth/callback?token=%s&userInfo=%s",
+                                            "%s/auth/callback?token=%s&userInfo=%s",
+                                            frontendUrl,
                                             loginResponse.getToken(),
                                             encodedUserInfo
                                     );
@@ -98,20 +104,20 @@ public class SecurityConfig {
                                     response.sendRedirect(redirectUrl);
                                 } else {
                                     System.out.println("LoginResponse가 세션에 없습니다.");
-                                    response.sendRedirect("http://localhost:8080/login?error=no_token");
+                                    response.sendRedirect(frontendUrl + "/login?error=no_token");
                                 }
 
                             } catch (Exception e) {
                                 System.out.println("리다이렉트 처리 실패: " + e.getMessage());
                                 e.printStackTrace();
-                                response.sendRedirect("http://localhost:8080/login?error=redirect_failed");
+                                response.sendRedirect(frontendUrl + "/login?error=redirect_failed");
                             }
                         })
                         // ★★★ failureHandler는 단순하게 ★★★
                         .failureHandler((request, response, exception) -> {
                             System.out.println("=== 소셜 로그인 실패 ===");
                             System.out.println("오류: " + exception.getMessage());
-                            response.sendRedirect("http://localhost:8080/login?error=oauth_failed");
+                            response.sendRedirect(frontendUrl + "/login?error=oauth_failed");
                         })
                 )
                 .csrf(csrf -> csrf.disable())
@@ -131,7 +137,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:8080",
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "http://localhost:180"  // Docker 프론트엔드 포트 추가
         ));
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"

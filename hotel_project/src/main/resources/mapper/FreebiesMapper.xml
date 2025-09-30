@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hotel_project.hotel_jpa.freebies.mapper.FreebiesMapper">
+
+    <!-- 이름 검색 통합 (페이지네이션, 검색어 없으면 전체 조회) -->
+    <select id="findByName" resultType="com.hotel_project.hotel_jpa.freebies.dto.FreebiesDto">
+        SELECT id, freebies_name as freebiesName
+        FROM freebies_tbl
+        <where>
+            <if test="freebiesName != null and freebiesName != ''">
+                freebies_name LIKE CONCAT('%', #{freebiesName}, '%')
+            </if>
+        </where>
+        ORDER BY id ASC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 개수 조회 (검색어 없으면 전체 개수) -->
+    <select id="countByName" resultType="long">
+        SELECT COUNT(*)
+        FROM freebies_tbl
+        <where>
+            <if test="freebiesName != null and freebiesName != ''">
+                freebies_name LIKE CONCAT('%', #{freebiesName}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
