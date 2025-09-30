@@ -40,8 +40,7 @@ public class PaymentsDto implements IPayments {
     private CouponDto couponDto;
 
     @NotNull(message = "최종 결제 금액은 필수 입력 입니다.")
-    @Digits(integer = 10, fraction = 2, message = "최종 결제 금액은 최대 10자리 정수, 2자리 소수까지 가능합니다.")
-    private BigDecimal paymentAmount;
+    private Long paymentAmount;
 
     @NotNull(message = "결제 날짜는 필수 입력 입니다.")
     private LocalDateTime paymentDate;
@@ -52,8 +51,8 @@ public class PaymentsDto implements IPayments {
     @Size(max = 100, message = "토스 결제 키는 100자 이하로 입력해야합니다.")
     private String tossPaymentKey;
 
-    @Digits(integer = 10, fraction = 2, message = "환불 금액은 최대 10자리 정수, 2자리 소수까지 가능합니다.")
-    private BigDecimal refundAmount;
+    @NotNull
+    private Boolean refund;
 
     private LocalDateTime refundDate;
 

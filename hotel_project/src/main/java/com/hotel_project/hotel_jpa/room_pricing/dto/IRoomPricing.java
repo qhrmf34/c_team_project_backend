@@ -21,8 +21,8 @@ public interface IRoomPricing extends IId {
     LocalDate getDate();
     void setDate(LocalDate date);
 
-    BigDecimal getPrice();
-    void setPrice(BigDecimal price);
+    Long getPrice();
+    void setPrice(Long price);
 
     LocalDateTime getCreatedAt();
     void setCreatedAt(LocalDateTime createdAt);

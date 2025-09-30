@@ -33,8 +33,8 @@ public class RoomPricingEntity implements IRoomPricing{
     @Column(nullable = false)
     private LocalDate date;
 
-    @Column(nullable = false,columnDefinition = "DECIMAL(10,2)")
-    private BigDecimal price;
+    @Column(nullable = false)
+    private Long price;
 
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP")
