@@ -34,8 +34,6 @@ public class HotelImageDto implements IHotelImage {
 
     private Long hotelImageSize;
 
-    private Integer hotelImageIndex;
-
     private LocalDateTime createdAt;
 
     @Override

@@ -8,7 +8,6 @@
         hi.id,
         hi.hotel_image_name as hotelImageName,
         hi.hotel_image_path as hotelImagePath,
-        hi.hotel_image_index as hotelImageIndex,
         hi.created_at as createdAt,
         hi.hotel_id as hotelId,
         h.hotel_name as hotelName,

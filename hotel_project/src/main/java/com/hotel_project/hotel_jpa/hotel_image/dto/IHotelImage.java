@@ -25,9 +25,6 @@ public interface IHotelImage extends IId {
     Long getHotelImageSize();
     void setHotelImageSize(Long hotelImageSize);
 
-    Integer getHotelImageIndex();
-    void setHotelImageIndex(Integer hotelImageIndex);
-
     LocalDateTime getCreatedAt();
     void setCreatedAt(LocalDateTime createdAt);
 
@@ -41,7 +38,6 @@ public interface IHotelImage extends IId {
         setHotelImageName(iHotelImage.getHotelImageName());
         setHotelImagePath(iHotelImage.getHotelImagePath());
         setHotelImageSize(iHotelImage.getHotelImageSize());
-        setHotelImageIndex(iHotelImage.getHotelImageIndex());
         setCreatedAt(iHotelImage.getCreatedAt());
     }
 
@@ -63,9 +59,6 @@ public interface IHotelImage extends IId {
         }
         if (iHotelImage.getHotelImageSize() != null) {
             setHotelImageSize(iHotelImage.getHotelImageSize());
-        }
-        if (iHotelImage.getHotelImageIndex() != null) {
-            setHotelImageIndex(iHotelImage.getHotelImageIndex());
         }
     }
 }

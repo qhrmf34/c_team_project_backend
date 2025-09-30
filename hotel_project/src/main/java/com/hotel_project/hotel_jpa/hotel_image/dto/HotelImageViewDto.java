@@ -12,7 +12,6 @@ public class HotelImageViewDto {
     private Long id;
     private String hotelImageName;
     private String hotelImagePath;
-    private Integer hotelImageIndex;
     private LocalDateTime createdAt;
 
     // 외래키 정보 (INNER JOIN으로 가져온 데이터)
