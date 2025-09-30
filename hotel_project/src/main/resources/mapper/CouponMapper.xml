@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hotel_project.payment_jpa.coupon.mapper.CouponMapper">
+
+    <!-- 이름 검색 통합 (페이지네이션, 검색어 없으면 전체 조회) -->
+    <select id="findByName" resultType="com.hotel_project.payment_jpa.coupon.dto.CouponViewDto">
+        SELECT
+        id,
+        coupon_name as couponName,
+        discount,
+        last_date as lastDate,
+        is_active as isActive
+        FROM coupon_tbl
+        <where>
+            <if test="CouponName != null and CouponName != ''">
+                coupon_name LIKE CONCAT('%', #{CouponName}, '%')
+            </if>
+        </where>
+        ORDER BY id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 개수 조회 (검색어 없으면 전체 개수) -->
+    <select id="countByName" resultType="long">
+        SELECT COUNT(*)
+        FROM coupon_tbl
+        <where>
+            <if test="CouponName != null and CouponName != ''">
+                coupon_name LIKE CONCAT('%', #{CouponName}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
