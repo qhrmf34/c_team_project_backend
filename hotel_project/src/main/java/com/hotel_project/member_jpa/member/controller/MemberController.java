@@ -71,17 +71,11 @@ public class MemberController {
             @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
 
         String token = jwtUtil.extractToken(authorization);
-
-        // 토큰에서 JWT ID 추출
         String jwtId = jwtUtil.getJwtIdFromToken(token);
-
-        // 블랙리스트에 추가
         tokenBlacklistService.addToBlacklist(jwtId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "로그아웃이 완료되었습니다.", null));
     }
-
-    // ========== 비밀번호 재설정 관련 API (MyBatis 방식) ==========
 
     @PostMapping("/forgot-password")
     @Operation(summary = "비밀번호 재설정 요청", description = "이메일로 인증 코드를 전송합니다.")
@@ -138,17 +132,13 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
-        // 비밀번호 확인
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new CommonExceptionTemplate(400, "비밀번호가 일치하지 않습니다.");
         }
 
-        // 인증 코드 재확인 제거 - 이미 verify-reset-code에서 검증 완료
         String result = memberService.resetPasswordDirect(request.getEmail(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success(200, result, null));
     }
-
-    // ========== 기존 API들 ==========
 
     @GetMapping("/profile")
     @Operation(summary = "회원 정보 조회", description = "JWT 토큰으로 회원 정보를 조회합니다.")
@@ -190,6 +180,7 @@ public class MemberController {
         String result = memberService.deleteMember(member.getId());
         return ResponseEntity.ok(ApiResponse.success(200, "회원 탈퇴가 완료되었습니다.", result));
     }
+
     @PostMapping("/match-password")
     @Operation(summary = "현재 비밀번호 확인", description = "현재 비밀번호가 일치하는지 확인합니다.")
     public ResponseEntity<ApiResponse<String>> matchPassword(
@@ -208,7 +199,6 @@ public class MemberController {
         String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
-        // 소셜 계정은 비밀번호가 없음
         if (currentMember.getProvider() != Provider.local) {
             throw new CommonExceptionTemplate(403, "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.");
         }
@@ -237,7 +227,6 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
-        // 비밀번호 확인
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new CommonExceptionTemplate(400, "새 비밀번호가 일치하지 않습니다.");
         }
@@ -245,7 +234,6 @@ public class MemberController {
         String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
-        // 소셜 계정은 비밀번호 변경 불가
         if (currentMember.getProvider() != Provider.local) {
             throw new CommonExceptionTemplate(403, "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.");
         }
@@ -253,5 +241,4 @@ public class MemberController {
         String result = memberService.changePassword(currentMember.getId(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success(200, result, null));
     }
-
 }
