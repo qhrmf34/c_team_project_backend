@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/member")
 @RequiredArgsConstructor
-@Tag(name = "Member API", description = "회원 관리 API")
+@Tag(name = "Member API", description = "회원 관리API")
 public class MemberController {
 
     private final MemberService memberService;
@@ -29,17 +29,17 @@ public class MemberController {
     private final JwtUtil jwtUtil;
     private final TokenBlacklistService tokenBlacklistService;
 
+    // ================= 회원가입 / 로그인 =================
     @PostMapping("/signup")
     @Operation(summary = "일반 회원가입", description = "이메일/비밀번호로 회원가입합니다.")
     public ResponseEntity<ApiResponse<LoginResponse>> signup(
             @Valid @RequestBody SignupRequest signupRequest,
-            BindingResult bindingResult) throws CommonExceptionTemplate {
-
+            BindingResult bindingResult
+    ) throws CommonExceptionTemplate {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errorMessages.append(error.getDefaultMessage()).append(" ")
-            );
+            bindingResult.getFieldErrors()
+                    .forEach(error -> errorMessages.append(error.getDefaultMessage()).append(" "));
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
@@ -51,13 +51,12 @@ public class MemberController {
     @Operation(summary = "일반 로그인", description = "이메일/비밀번호로 로그인합니다.")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
             @Valid @RequestBody LoginRequest loginRequest,
-            BindingResult bindingResult) throws CommonExceptionTemplate {
-
+            BindingResult bindingResult
+    ) throws CommonExceptionTemplate {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errorMessages.append(error.getDefaultMessage()).append(" ")
-            );
+            bindingResult.getFieldErrors()
+                    .forEach(error -> errorMessages.append(error.getDefaultMessage()).append(" "));
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
@@ -67,33 +66,28 @@ public class MemberController {
 
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "현재 토큰을 무효화합니다.")
-    public ResponseEntity<ApiResponse<String>> logout(
-            @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
-
-        String token = extractToken(authorization);
-
+    public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String authorization)
+            throws CommonExceptionTemplate {
+        String token = jwtUtil.extractToken(authorization);
         // 토큰에서 JWT ID 추출
         String jwtId = jwtUtil.getJwtIdFromToken(token);
-
         // 블랙리스트에 추가
         tokenBlacklistService.addToBlacklist(jwtId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "로그아웃이 완료되었습니다.", null));
     }
 
-    // ========== 비밀번호 재설정 관련 API (MyBatis 방식) ==========
-
+    // ================= 비밀번호 재설정 관련 API =================
     @PostMapping("/forgot-password")
     @Operation(summary = "비밀번호 재설정 요청", description = "이메일로 인증 코드를 전송합니다.")
     public ResponseEntity<ApiResponse<String>> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request,
-            BindingResult bindingResult) throws CommonExceptionTemplate {
-
+            BindingResult bindingResult
+    ) throws CommonExceptionTemplate {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errorMessages.append(error.getDefaultMessage()).append(" ")
-            );
+            bindingResult.getFieldErrors()
+                    .forEach(error -> errorMessages.append(error.getDefaultMessage()).append(" "));
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
@@ -105,18 +99,16 @@ public class MemberController {
     @Operation(summary = "비밀번호 재설정 인증 코드 확인", description = "인증 코드를 확인합니다.")
     public ResponseEntity<ApiResponse<String>> verifyResetCode(
             @Valid @RequestBody VerifyCodeRequest request,
-            BindingResult bindingResult) throws CommonExceptionTemplate {
-
+            BindingResult bindingResult
+    ) throws CommonExceptionTemplate {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errorMessages.append(error.getDefaultMessage()).append(" ")
-            );
+            bindingResult.getFieldErrors()
+                    .forEach(error -> errorMessages.append(error.getDefaultMessage()).append(" "));
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
         boolean isValid = emailService.verifyCode(request.getEmail(), request.getVerificationCode());
-
         if (!isValid) {
             throw new CommonExceptionTemplate(400, "유효하지 않거나 만료된 인증 코드입니다.");
         }
@@ -128,13 +120,12 @@ public class MemberController {
     @Operation(summary = "비밀번호 재설정", description = "새로운 비밀번호로 재설정합니다.")
     public ResponseEntity<ApiResponse<String>> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request,
-            BindingResult bindingResult) throws CommonExceptionTemplate {
-
+            BindingResult bindingResult
+    ) throws CommonExceptionTemplate {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errorMessages.append(error.getDefaultMessage()).append(" ")
-            );
+            bindingResult.getFieldErrors()
+                    .forEach(error -> errorMessages.append(error.getDefaultMessage()).append(" "));
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
@@ -148,16 +139,13 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(200, result, null));
     }
 
-    // ========== 기존 API들 ==========
-
+    // ================= 기존 API =================
     @GetMapping("/profile")
     @Operation(summary = "회원 정보 조회", description = "JWT 토큰으로 회원 정보를 조회합니다.")
-    public ResponseEntity<ApiResponse<MemberDto>> getProfile(
-            @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
-
-        String token = extractToken(authorization);
+    public ResponseEntity<ApiResponse<MemberDto>> getProfile(@RequestHeader("Authorization") String authorization)
+            throws CommonExceptionTemplate {
+        String token = jwtUtil.extractToken(authorization);
         MemberDto profile = memberService.getMemberDtoByToken(token);
-
         return ResponseEntity.ok(ApiResponse.success(200, "회원 정보 조회 완료", profile));
     }
 
@@ -165,47 +153,45 @@ public class MemberController {
     @Operation(summary = "회원 정보 수정", description = "JWT 토큰으로 회원 정보를 수정합니다.")
     public ResponseEntity<ApiResponse<MemberDto>> updateProfile(
             @RequestHeader("Authorization") String authorization,
-            @RequestBody MemberDto memberDto) throws CommonExceptionTemplate {
-
-        String token = extractToken(authorization);
+            @RequestBody MemberDto memberDto
+    ) throws CommonExceptionTemplate {
+        String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
         if (currentMember.getProvider() != Provider.local) {
             throw new CommonExceptionTemplate(403,
                     "소셜 로그인 계정은 회원 정보를 수정할 수 없습니다. Provider: " + currentMember.getProvider());
         }
-        MemberDto updatedProfile = memberService.updateMemberAndReturnDto(currentMember.getId(), memberDto);
 
+        MemberDto updatedProfile = memberService.updateMemberAndReturnDto(currentMember.getId(), memberDto);
         return ResponseEntity.ok(ApiResponse.success(200, "회원 정보 수정 완료", updatedProfile));
     }
 
     @DeleteMapping("/profile")
     @Operation(summary = "회원 탈퇴", description = "JWT 토큰으로 회원을 탈퇴시킵니다.")
-    public ResponseEntity<ApiResponse<String>> deleteProfile(
-            @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
-
-        String token = extractToken(authorization);
+    public ResponseEntity<ApiResponse<String>> deleteProfile(@RequestHeader("Authorization") String authorization)
+            throws CommonExceptionTemplate {
+        String token = jwtUtil.extractToken(authorization);
         MemberDto member = memberService.getMemberDtoByToken(token);
-
         String result = memberService.deleteMember(member.getId());
         return ResponseEntity.ok(ApiResponse.success(200, "회원 탈퇴가 완료되었습니다.", result));
     }
+
     @PostMapping("/match-password")
     @Operation(summary = "현재 비밀번호 확인", description = "현재 비밀번호가 일치하는지 확인합니다.")
     public ResponseEntity<ApiResponse<String>> matchPassword(
             @RequestHeader("Authorization") String authorization,
             @Valid @RequestBody MatchPasswordRequest request,
-            BindingResult bindingResult) throws CommonExceptionTemplate {
-
+            BindingResult bindingResult
+    ) throws CommonExceptionTemplate {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errorMessages.append(error.getDefaultMessage()).append(" ")
-            );
+            bindingResult.getFieldErrors()
+                    .forEach(error -> errorMessages.append(error.getDefaultMessage()).append(" "));
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
-        String token = extractToken(authorization);
+        String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
         // 소셜 계정은 비밀번호가 없음
@@ -214,7 +200,6 @@ public class MemberController {
         }
 
         boolean isMatch = memberService.verifyCurrentPassword(currentMember.getId(), request.getPassword());
-
         if (!isMatch) {
             throw new CommonExceptionTemplate(400, "현재 비밀번호가 일치하지 않습니다.");
         }
@@ -227,13 +212,12 @@ public class MemberController {
     public ResponseEntity<ApiResponse<String>> changeAccountPassword(
             @RequestHeader("Authorization") String authorization,
             @Valid @RequestBody ChangePasswordRequest request,
-            BindingResult bindingResult) throws CommonExceptionTemplate {
-
+            BindingResult bindingResult
+    ) throws CommonExceptionTemplate {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errorMessages.append(error.getDefaultMessage()).append(" ")
-            );
+            bindingResult.getFieldErrors()
+                    .forEach(error -> errorMessages.append(error.getDefaultMessage()).append(" "));
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
@@ -242,7 +226,7 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, "새 비밀번호가 일치하지 않습니다.");
         }
 
-        String token = extractToken(authorization);
+        String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
         // 소셜 계정은 비밀번호 변경 불가
@@ -252,14 +236,5 @@ public class MemberController {
 
         String result = memberService.changePassword(currentMember.getId(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success(200, result, null));
-    }
-    /**
-     * Authorization 헤더에서 토큰 추출
-     */
-    private String extractToken(String authorization) throws CommonExceptionTemplate {
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new CommonExceptionTemplate(401, "Bearer 토큰이 필요합니다.");
-        }
-        return authorization.substring(7);
     }
 }
