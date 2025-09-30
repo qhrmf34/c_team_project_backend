@@ -45,8 +45,8 @@ public class PaymentsEntity implements IPayments{
     @Transient
     private Long couponId;
 
-    @Column(precision = 10, scale = 2,nullable = false)
-    private BigDecimal paymentAmount;
+    @Column(nullable = false)
+    private Long paymentAmount;
 
     @Column(nullable = false)
     private LocalDateTime paymentDate;
@@ -57,8 +57,8 @@ public class PaymentsEntity implements IPayments{
     @Column(length = 100)
     private String tossPaymentKey;
 
-    @Column(precision = 10, scale = 2,nullable = false)
-    private BigDecimal refundAmount;
+    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    private Boolean refund;
 
     @Column(nullable = true,
             columnDefinition = "TIMESTAMP")

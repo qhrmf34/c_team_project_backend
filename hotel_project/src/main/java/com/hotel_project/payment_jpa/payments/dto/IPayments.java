@@ -31,8 +31,8 @@ public interface IPayments extends IId {
     Long getCouponId();
     void setCouponId(Long couponId);
 
-    BigDecimal getPaymentAmount();
-    void setPaymentAmount(BigDecimal paymentAmount);
+    Long getPaymentAmount();
+    void setPaymentAmount(Long paymentAmount);
 
     LocalDateTime getPaymentDate();
     void setPaymentDate(LocalDateTime paymentDate);
@@ -43,8 +43,8 @@ public interface IPayments extends IId {
     String getTossPaymentKey();
     void setTossPaymentKey(String tossPaymentKey);
 
-    BigDecimal getRefundAmount();
-    void setRefundAmount(BigDecimal refundAmount);
+    Boolean getRefund();
+    void setRefund(Boolean refund);
 
     LocalDateTime getRefundDate();
     void setRefundDate(LocalDateTime refundDate);
@@ -64,7 +64,7 @@ public interface IPayments extends IId {
         setPaymentDate(iPayments.getPaymentDate());
         setPaymentStatus(iPayments.getPaymentStatus());
         setTossPaymentKey(iPayments.getTossPaymentKey());
-        setRefundAmount(iPayments.getRefundAmount());
+        setRefund(iPayments.getRefund());
         setRefundDate(iPayments.getRefundDate());
         setUpdatedAt(iPayments.getUpdatedAt());
     }
@@ -81,7 +81,7 @@ public interface IPayments extends IId {
         if (iPayments.getPaymentDate() != null) { setPaymentDate(iPayments.getPaymentDate()); }
         if (iPayments.getPaymentStatus() != null) { setPaymentStatus(iPayments.getPaymentStatus()); }
         if (iPayments.getTossPaymentKey() != null) { setTossPaymentKey(iPayments.getTossPaymentKey()); }
-        if (iPayments.getRefundAmount() != null) { setRefundAmount(iPayments.getRefundAmount()); }
+        if (iPayments.getRefund() != null) { setRefund(iPayments.getRefund()); }
         if (iPayments.getRefundDate() != null) { setRefundDate(iPayments.getRefundDate()); }
         if (iPayments.getUpdatedAt() != null) { setUpdatedAt(iPayments.getUpdatedAt()); }
     }

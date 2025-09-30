@@ -29,8 +29,7 @@ public class RoomPricingDto implements IRoomPricing{
     private LocalDate date;
 
     @NotNull(message = "가격은 필수 입력 입니다.")
-    @Digits(integer = 10, fraction = 2, message = "가격은 최대 10자리 정수, 2자리 소수까지 가능합니다.")
-    private BigDecimal price;
+    private Long price;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

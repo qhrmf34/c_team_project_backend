@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class RoomPricingViewDto {
     private Long id;
     private LocalDate date;
-    private BigDecimal price;
+    private Long price;
 
     private Long roomId;
     private String roomName;
