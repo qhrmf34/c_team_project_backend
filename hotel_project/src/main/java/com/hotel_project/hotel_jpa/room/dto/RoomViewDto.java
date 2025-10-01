@@ -19,6 +19,7 @@ public class RoomViewDto {
     private ViewType roomView;
 
     // 외래키 정보 (INNER JOIN으로 가져온 데이터)
+    private Long hotelId;
     private String hotelName;
     private String cityName;
 }
