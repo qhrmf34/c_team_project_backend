@@ -13,6 +13,7 @@
         CAST(r.room_single_bed AS UNSIGNED) as roomSingleBed,
         CAST(r.room_double_bed AS UNSIGNED) as roomDoubleBed,
         r.room_view as roomView,
+        r.hotel_id as hotelId,
         h.hotel_name as hotelName
         FROM room_tbl r
         INNER JOIN hotel_tbl h ON r.hotel_id = h.id
