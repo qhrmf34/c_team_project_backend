@@ -33,8 +33,6 @@ public class HotelAmenitiesEntity implements IHotelAmenities {
     @Transient
     private Long amenitiesId;
 
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    private Boolean isAvailable = false;
 
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP")

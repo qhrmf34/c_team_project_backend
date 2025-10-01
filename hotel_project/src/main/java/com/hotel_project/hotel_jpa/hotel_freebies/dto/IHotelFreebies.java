@@ -24,8 +24,6 @@ public interface IHotelFreebies extends IId {
     IId getFreebies();
     void setFreebies(IId freebies);
 
-    Boolean getIsAvailable();
-    void setIsAvailable(Boolean isAvailable);
 
     LocalDateTime getCreatedAt();
     void setCreatedAt(LocalDateTime createdAt);
@@ -40,7 +38,6 @@ public interface IHotelFreebies extends IId {
         setId(iHotel_freebies.getId());
         setHotel(iHotel_freebies.getHotel());
         setFreebies(iHotel_freebies.getFreebies());
-        setIsAvailable(iHotel_freebies.getIsAvailable());
         setCreatedAt(iHotel_freebies.getCreatedAt());
         setUpdatedAt(iHotel_freebies.getUpdatedAt());
     }
@@ -52,7 +49,6 @@ public interface IHotelFreebies extends IId {
         if (iHotel_freebies.getId() != null) { setId(iHotel_freebies.getId());}
         if (iHotel_freebies.getHotel() != null) { setHotel(iHotel_freebies.getHotel());}
         if (iHotel_freebies.getFreebies() != null) { setFreebies(iHotel_freebies.getFreebies());}
-        if (iHotel_freebies.getIsAvailable() != null) { setIsAvailable(iHotel_freebies.getIsAvailable());}
         if (iHotel_freebies.getUpdatedAt() != null) { setUpdatedAt(iHotel_freebies.getUpdatedAt());}
     }
 }

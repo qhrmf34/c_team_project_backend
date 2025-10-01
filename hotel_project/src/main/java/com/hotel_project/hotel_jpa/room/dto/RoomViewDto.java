@@ -16,7 +16,7 @@ public class RoomViewDto {
     private BigDecimal basePrice;
     private Byte roomSingleBed;
     private Byte roomDoubleBed;
-    private String roomView;
+    private ViewType roomView;
 
     // 외래키 정보 (INNER JOIN으로 가져온 데이터)
     private String hotelName;

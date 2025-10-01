@@ -50,7 +50,8 @@ public class HotelService {
     }
 
     // INSERT - JPA 사용
-    public String insert(HotelDto hotelDto) throws CommonExceptionTemplate {
+// INSERT 메서드 수정 - String 대신 Long 반환
+    public Long insert(HotelDto hotelDto) throws CommonExceptionTemplate {
         if (hotelDto == null) {
             throw MemberException.INVALID_DATA.getException();
         }
@@ -62,8 +63,9 @@ public class HotelService {
 
         HotelEntity entity = new HotelEntity();
         entity.copyMembers(hotelDto);
-        hotelRepository.save(entity);
-        return "insert ok";
+        HotelEntity saved = hotelRepository.save(entity);
+
+        return saved.getId(); // 생성된 ID 반환
     }
 
     // UPDATE - JPA 사용

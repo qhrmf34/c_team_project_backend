@@ -34,9 +34,6 @@ public class HotelImageEntity implements IHotelImage {
 
     private Long hotelImageSize;
 
-    @Column(nullable = false)
-    private Integer hotelImageIndex;
-
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;

@@ -29,9 +29,6 @@ public class HotelFreebiesDto implements IHotelFreebies {
     @NotNull
     private Long freebiesId;
 
-    @NotNull(message = "이용 가능 여부는 필수 입력입니다.")
-    private Boolean isAvailable;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
