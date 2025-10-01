@@ -32,8 +32,8 @@ public interface IRoom extends IId {
     Integer getRoomNumber();
     void setRoomNumber(Integer roomNumber);
 
-    String getRoomView();
-    void setRoomView(String roomView);
+    ViewType getRoomView();
+    void setRoomView(ViewType roomView);
 
     LocalDateTime getCreatedAt();
     void setCreatedAt(LocalDateTime createdAt);

@@ -16,6 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/admin/hotels")
 @Tag(name = "Hotels API", description = "호텔 관리 API")
@@ -44,15 +47,25 @@ public class HotelController {
     }
 
     @PostMapping
-    @Operation(summary = "호텔 등록", description = "새로운 호텔를 등록합니다.")
-    public ResponseEntity<ApiResponse<String>> save(@Valid @RequestBody HotelDto hotelDto, BindingResult bindingResult) throws CommonExceptionTemplate {
+    @Operation(summary = "호텔 등록", description = "새로운 호텔을 등록합니다.")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> save(
+            @Valid @RequestBody HotelDto hotelDto,
+            BindingResult bindingResult) throws CommonExceptionTemplate {
+
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
             bindingResult.getFieldErrors().forEach(error ->
                     errorMessages.append(error.getDefaultMessage()).append(" "));
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
-        String result = hotelService.insert(hotelDto);
+
+        Long hotelId = hotelService.insert(hotelDto);
+
+        // ID와 메시지를 함께 반환
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", hotelId);
+        result.put("message", "insert ok");
+
         return ResponseEntity.ok(ApiResponse.success(200, "success", result));
     }
 

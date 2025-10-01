@@ -43,8 +43,9 @@ public class RoomEntity implements IRoom{
     @Column(nullable = false)
     private Integer roomNumber;
 
-    @Column(nullable = false, length = 30)
-    private String roomView;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ViewType roomView;
 
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP")
