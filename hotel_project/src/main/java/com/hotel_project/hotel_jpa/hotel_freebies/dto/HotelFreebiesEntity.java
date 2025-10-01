@@ -35,9 +35,6 @@ public class HotelFreebiesEntity implements IHotelFreebies {
     @Transient
     private Long freebiesId;
 
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    private Boolean isAvailable = false;
-
     @Column(nullable = false, updatable = false
             ,columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;

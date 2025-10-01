@@ -29,9 +29,6 @@ public class HotelAmenitiesDto implements IHotelAmenities{
     @NotNull
     private Long amenitiesId;
 
-    @NotNull(message = "이용 가능 여부는 필수 입력입니다.")
-    private Boolean isAvailable;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
