@@ -55,11 +55,6 @@ public class RoomService {
             throw MemberException.INVALID_DATA.getException();
         }
 
-        if (roomDto.getRoomName() != null &&
-                roomRepository.existsByRoomName(roomDto.getRoomName().trim())) {
-            throw MemberException.DUPLICATE_DATA.getException();
-        }
-
         RoomEntity entity = new RoomEntity();
         entity.copyMembers(roomDto);
         roomRepository.save(entity);
