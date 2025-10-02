@@ -16,4 +16,5 @@ public interface MemberMapper {
 
     // Provider와 ProviderId로 회원 조회 (소셜 로그인용)
     MemberDto findByProviderAndProviderId(@Param("provider") Provider provider, @Param("providerId") String providerId);
+    
 }

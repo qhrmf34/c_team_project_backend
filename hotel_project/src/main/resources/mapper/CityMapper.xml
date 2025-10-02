@@ -35,5 +35,34 @@
             </if>
         </where>
     </select>
-
+    <!-- 추천 도시 목록 조회 (이미지와 최저가 포함) -->
+    <select id="findFeaturedCities" resultType="com.hotel_project.hotel_jpa.city.dto.CityHotelOneDto">
+        SELECT
+            c.id,
+            c.city_name as cityName,
+            c.city_content as cityContent,
+            c.country_id as countryId,
+            co.country_name as countryName,
+            co.idd as countryIdd,
+            ci.city_image_path as cityImagePath,
+            (
+                SELECT MIN(r.base_price)
+                FROM hotel_tbl h
+                         INNER JOIN room_tbl r ON h.id = r.hotel_id
+                WHERE h.city_id = c.id
+            ) as minPrice
+        FROM city_tbl c
+                 INNER JOIN country_tbl co ON c.country_id = co.id
+                 LEFT JOIN (
+            SELECT city_id, city_image_path
+            FROM city_image_tbl
+        ) ci ON c.id = ci.city_id
+        WHERE EXISTS (
+            SELECT 1
+            FROM hotel_tbl h
+            WHERE h.city_id = c.id
+        )
+        ORDER BY c.id ASC
+            LIMIT #{limit}
+    </select>
 </mapper>

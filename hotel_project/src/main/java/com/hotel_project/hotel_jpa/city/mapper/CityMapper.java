@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.city.mapper;
 
+import com.hotel_project.hotel_jpa.city.dto.CityHotelOneDto;
 import com.hotel_project.hotel_jpa.city.dto.CityViewDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -16,4 +17,7 @@ public interface CityMapper {
 
     // 개수 조회 (검색어 없으면 전체 개수)
     long countByName(@Param("cityName") String cityName);
+
+    // 추천 도시 목록 조회 (이미지와 최저가 포함)
+    List<CityHotelOneDto> findFeaturedCities(@Param("limit") int limit);
 }

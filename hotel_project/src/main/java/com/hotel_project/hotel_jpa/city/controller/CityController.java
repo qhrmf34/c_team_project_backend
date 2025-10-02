@@ -3,6 +3,7 @@ package com.hotel_project.hotel_jpa.city.controller;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.hotel_jpa.city.dto.CityDto;
+import com.hotel_project.hotel_jpa.city.dto.CityHotelOneDto;
 import com.hotel_project.hotel_jpa.city.dto.CityViewDto;
 import com.hotel_project.hotel_jpa.city.service.CityService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +17,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/cities")
@@ -70,5 +73,12 @@ public class CityController {
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) throws CommonExceptionTemplate {
         String result = cityService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(200, "success", result));
+    }
+    @GetMapping("/featured")
+    @Operation(summary = "추천 도시 목록", description = "메인 페이지에 표시할 추천 도시 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<CityHotelOneDto>>> getFeaturedCities(
+            @RequestParam(defaultValue = "4") int limit) {
+        List<CityHotelOneDto> cities = cityService.findFeaturedCities(limit);
+        return ResponseEntity.ok(ApiResponse.success(200, "success", cities));
     }
 }
