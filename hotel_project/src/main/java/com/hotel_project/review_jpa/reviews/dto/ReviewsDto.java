@@ -25,7 +25,6 @@ public class ReviewsDto implements IReviews {
     @JsonIgnore
     private MemberDto memberDto;
 
-    @NotNull
     private Long memberId;
 
     @JsonIgnore
@@ -49,6 +48,10 @@ public class ReviewsDto implements IReviews {
 
     @NotNull(message = "리뷰 카드를 선택 해주세요.")
     private ReviewCard reviewCard;
+
+    private String memberName;
+
+    private String profileImage;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

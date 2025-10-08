@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hotel_project.review_jpa.reviews.mapper.ReviewsMapper">
+
+    <resultMap id="ReviewsDtoMap" type="com.hotel_project.review_jpa.reviews.dto.ReviewsDto">
+        <id property="id" column="id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="hotelId" column="hotel_id"/>
+        <result property="reservationsId" column="reservations_id"/>
+        <result property="rating" column="rating"/>
+        <result property="reviewContent" column="review_content"/>
+        <result property="reviewCard" column="review_card"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="memberName" column="memberName"/>
+        <result property="profileImage" column="profileImage"/>
+    </resultMap>
+
+    <!-- 특정 호텔의 모든 리뷰 조회 -->
+    <select id="findByHotelId" resultMap="ReviewsDtoMap">
+        SELECT
+            r.id,
+            r.member_id,
+            r.hotel_id,
+            r.reservations_id,
+            r.rating,
+            r.review_content,
+            r.review_card,
+            r.created_at,
+            r.updated_at,
+            CONCAT(m.first_name, ' ', m.last_name) as memberName,
+            mi.member_image_path as profileImage
+        FROM reviews_tbl r
+                 LEFT JOIN member_tbl m ON r.member_id = m.id
+                 LEFT JOIN member_image_tbl mi ON m.id = mi.member_id AND mi.image_type = 'PROFILE'
+        WHERE r.hotel_id = #{hotelId}
+        ORDER BY r.created_at DESC
+    </select>
+
+    <!-- 필터링된 리뷰 조회 -->
+    <select id="findFilteredReviews" resultMap="ReviewsDtoMap">
+        SELECT
+        r.id,
+        r.member_id,
+        r.hotel_id,
+        r.reservations_id,
+        r.rating,
+        r.review_content,
+        r.review_card,
+        r.created_at,
+        r.updated_at,
+        CONCAT(m.first_name, ' ', m.last_name) as memberName,
+        mi.member_image_path as profileImage
+        FROM reviews_tbl r
+        LEFT JOIN member_tbl m ON r.member_id = m.id
+        LEFT JOIN member_image_tbl mi ON m.id = mi.member_id AND mi.image_type = 'PROFILE'
+        WHERE r.hotel_id = #{hotelId}
+        <if test="reviewCard != null">
+            AND r.review_card = #{reviewCard}
+        </if>
+        <choose>
+            <when test="sortBy == 'highest'">
+                ORDER BY r.rating DESC, r.created_at DESC
+            </when>
+            <when test="sortBy == 'lowest'">
+                ORDER BY r.rating ASC, r.created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY r.created_at DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- ReviewCard별 리뷰 개수 통계 -->
+    <select id="getReviewCardStats" resultType="map">
+        SELECT
+            review_card as reviewCard,
+            COUNT(*) as count
+        FROM reviews_tbl
+        WHERE hotel_id = #{hotelId}
+        GROUP BY review_card
+    </select>
+
+    <!-- 호텔의 평균 평점과 리뷰 개수 -->
+    <select id="getHotelRatingStats" resultType="map">
+        SELECT
+            COALESCE(AVG(rating), 0.0) as averageRating,
+            COUNT(*) as reviewCount
+        FROM reviews_tbl
+        WHERE hotel_id = #{hotelId}
+    </select>
+
+    <!-- 중복 리뷰 체크 -->
+    <select id="existsByMemberIdAndHotelId" resultType="boolean">
+        SELECT
+            CASE
+                WHEN COUNT(*) > 0 THEN TRUE
+                ELSE FALSE
+                END
+        FROM reviews_tbl
+        WHERE member_id = #{memberId}
+          AND hotel_id = #{hotelId}
+    </select>
+
+</mapper>

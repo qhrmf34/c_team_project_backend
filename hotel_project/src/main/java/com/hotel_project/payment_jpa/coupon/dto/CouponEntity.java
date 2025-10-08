@@ -62,5 +62,8 @@ public class CouponEntity implements ICoupon {
         if (updatedAt == null) {
             updatedAt = LocalDateTime.now();
         }
+        if (lastDate == null) {
+            lastDate = createdAt.toLocalDate().plusMonths(1);
+        }
     }
 }

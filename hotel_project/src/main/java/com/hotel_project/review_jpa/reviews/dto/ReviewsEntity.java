@@ -45,7 +45,7 @@ public class ReviewsEntity implements IReviews {
     @Transient
     private Long reservationsId;
 
-    @Column(columnDefinition = "DECIMAL(1,1) DEFAULT 0.0")
+    @Column(columnDefinition = "DECIMAL(2,1) DEFAULT 0.0")
     private BigDecimal rating;
 
     @Lob

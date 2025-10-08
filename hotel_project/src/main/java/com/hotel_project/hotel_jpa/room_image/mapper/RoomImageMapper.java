@@ -1,9 +1,10 @@
 package com.hotel_project.hotel_jpa.room_image.mapper;
 
-import com.hotel_project.hotel_jpa.hotel_image.dto.HotelImageViewDto;
+import com.hotel_project.hotel_jpa.room_image.dto.RoomImageDto;
 import com.hotel_project.hotel_jpa.room_image.dto.RoomImageViewDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -17,4 +18,6 @@ public interface RoomImageMapper {
 
     // 개수 조회 (검색어 없으면 전체 개수)
     long countByName(@Param("roomName") String roomName);
+
+    List<RoomImageDto> findByRoomId(@Param("roomId") Long roomId);
 }

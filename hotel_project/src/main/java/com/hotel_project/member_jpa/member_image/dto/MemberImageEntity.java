@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Builder
+@Table(name = "member_image_tbl")
 public class MemberImageEntity implements IMemberImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

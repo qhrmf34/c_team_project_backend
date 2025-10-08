@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hotel_project.hotel_jpa.hotel.mapper.HotelPublicMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="HotelSummaryResultMap" type="com.hotel_project.hotel_jpa.hotel.dto.HotelSummaryDto">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="image" column="image"/>
+        <result property="imageCount" column="imageCount"/>
+        <result property="price" column="price"/>
+        <result property="currency" column="currency"/>
+        <result property="location" column="location"/>
+        <result property="stars" column="stars"/>
+        <result property="type" column="type"/>
+        <result property="hotelType" column="hotelType"/>
+        <result property="amenitiesCount" column="amenitiesCount"/>
+        <result property="rating" column="rating"/>
+        <result property="ratingText" column="ratingText"/>
+        <result property="reviewCount" column="reviewCount"/>
+        <result property="wishlisted" column="wishlisted"/>
+        <result property="cityName" column="cityName"/>
+    </resultMap>
+
+    <!-- 호텔 검색 -->
+    <select id="searchHotels" resultMap="HotelSummaryResultMap">
+        SELECT
+        h.id,
+        h.hotel_name as title,
+        (SELECT hi.hotel_image_path
+        FROM hotel_image_tbl hi
+        WHERE hi.hotel_id = h.id
+        ORDER BY hi.created_at ASC
+        LIMIT 1) as image,
+        (SELECT COUNT(*)
+        FROM hotel_image_tbl hi2
+        WHERE hi2.hotel_id = h.id) as imageCount,
+        (SELECT MIN(r.base_price)
+        FROM room_tbl r
+        WHERE r.hotel_id = h.id) as price,
+        'KRW' as currency,
+        CONCAT(c.city_name, ', ', co.country_name) as location,
+        h.hotel_star as stars,
+        NULL as type,
+        h.hotel_type as hotelType,
+        (SELECT COUNT(*)
+        FROM hotel_amenities_tbl ha
+        WHERE ha.hotel_id = h.id) as amenitiesCount,
+        h.hotel_rating as rating,
+        NULL as ratingText,
+        0 as reviewCount,
+        FALSE as wishlisted,
+        c.city_name as cityName
+        FROM hotel_tbl h
+        LEFT JOIN city_tbl c ON h.city_id = c.id
+        LEFT JOIN country_tbl co ON c.country_id = co.id
+        WHERE 1=1
+
+        <if test="destination != null and destination != ''">
+            AND (h.hotel_name LIKE CONCAT('%', #{destination}, '%')
+            OR c.city_name LIKE CONCAT('%', #{destination}, '%')
+            OR co.country_name LIKE CONCAT('%', #{destination}, '%'))
+        </if>
+
+        <if test="hotelType != null and hotelType != ''">
+            AND h.hotel_type = #{hotelType}
+        </if>
+
+        <if test="rating != null and rating > 0">
+            AND h.hotel_rating &gt;= #{rating}
+        </if>
+
+        <if test="minPrice != null or maxPrice != null">
+            AND h.id IN (
+            SELECT DISTINCT r.hotel_id
+            FROM room_tbl r
+            WHERE 1=1
+            <if test="minPrice != null">
+                AND r.base_price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND r.base_price &lt;= #{maxPrice}
+            </if>
+            )
+        </if>
+
+        <!-- Freebies AND 조건: 선택한 모든 freebies를 가진 호텔만 검색 -->
+        <if test="freebies != null and freebies.size() > 0">
+            <foreach collection="freebies" item="freebieId">
+                AND EXISTS (
+                SELECT 1
+                FROM hotel_freebies_tbl hf
+                WHERE hf.hotel_id = h.id
+                AND hf.freebies_id = #{freebieId}
+                )
+            </foreach>
+        </if>
+
+        <!-- Amenities AND 조건: 선택한 모든 amenities를 가진 호텔만 검색 -->
+        <if test="amenities != null and amenities.size() > 0">
+            <foreach collection="amenities" item="amenityId">
+                AND EXISTS (
+                SELECT 1
+                FROM hotel_amenities_tbl ha
+                WHERE ha.hotel_id = h.id
+                AND ha.amenities_id = #{amenityId}
+                )
+            </foreach>
+        </if>
+
+        <choose>
+            <when test="sortBy == 'price_asc'">
+                ORDER BY price ASC
+            </when>
+            <when test="sortBy == 'price_desc'">
+                ORDER BY price DESC
+            </when>
+            <when test="sortBy == 'rating'">
+                ORDER BY h.hotel_rating DESC
+            </when>
+            <otherwise>
+                ORDER BY h.hotel_rating DESC, h.hotel_star DESC
+            </otherwise>
+        </choose>
+
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 검색 결과 총 개수 -->
+    <select id="countSearchHotels" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT h.id)
+        FROM hotel_tbl h
+        LEFT JOIN city_tbl c ON h.city_id = c.id
+        LEFT JOIN country_tbl co ON c.country_id = co.id
+        WHERE 1=1
+
+        <if test="destination != null and destination != ''">
+            AND (h.hotel_name LIKE CONCAT('%', #{destination}, '%')
+            OR c.city_name LIKE CONCAT('%', #{destination}, '%')
+            OR co.country_name LIKE CONCAT('%', #{destination}, '%'))
+        </if>
+
+        <if test="hotelType != null and hotelType != ''">
+            AND h.hotel_type = #{hotelType}
+        </if>
+
+        <if test="rating != null and rating > 0">
+            AND h.hotel_rating &gt;= #{rating}
+        </if>
+
+        <if test="minPrice != null or maxPrice != null">
+            AND h.id IN (
+            SELECT DISTINCT r.hotel_id
+            FROM room_tbl r
+            WHERE 1=1
+            <if test="minPrice != null">
+                AND r.base_price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND r.base_price &lt;= #{maxPrice}
+            </if>
+            )
+        </if>
+
+        <!-- Freebies AND 조건 -->
+        <if test="freebies != null and freebies.size() > 0">
+            <foreach collection="freebies" item="freebieId">
+                AND EXISTS (
+                SELECT 1
+                FROM hotel_freebies_tbl hf
+                WHERE hf.hotel_id = h.id
+                AND hf.freebies_id = #{freebieId}
+                )
+            </foreach>
+        </if>
+
+        <!-- Amenities AND 조건 -->
+        <if test="amenities != null and amenities.size() > 0">
+            <foreach collection="amenities" item="amenityId">
+                AND EXISTS (
+                SELECT 1
+                FROM hotel_amenities_tbl ha
+                WHERE ha.hotel_id = h.id
+                AND ha.amenities_id = #{amenityId}
+                )
+            </foreach>
+        </if>
+    </select>
+
+    <!-- 호텔 상세 조회 - 수정 -->
+    <select id="findHotelDetailById" resultType="com.hotel_project.hotel_jpa.hotel.dto.HotelDetailDto">
+        SELECT
+            h.id,
+            h.hotel_name as hotelName,
+            h.hotel_content as description,
+            CONCAT(c.city_name, ', ', co.country_name) as address,
+            c.city_name as cityName,
+            co.country_name as countryName,
+            h.hotel_latitude as latitude,
+            h.hotel_longitude as longitude,
+            h.hotel_number as phoneNumber,
+            h.hotel_type as hotelType,
+            h.hotel_star as starRating,
+            h.hotel_rating as averageRating,
+            0 as reviewCount,
+            h.checkin_time as checkInTime,
+            h.checkout_time as checkOutTime,
+            (SELECT MIN(r.base_price)
+             FROM room_tbl r
+             WHERE r.hotel_id = h.id) as minPrice,
+            FALSE as wishlisted
+        FROM hotel_tbl h
+                 LEFT JOIN city_tbl c ON h.city_id = c.id
+                 LEFT JOIN country_tbl co ON c.country_id = co.id
+        WHERE h.id = #{hotelId}
+    </select>
+
+    <!-- 호텔의 무료 서비스 조회 - FreebiesDto 사용 -->
+    <select id="findFreebiesByHotelId" resultType="com.hotel_project.hotel_jpa.freebies.dto.FreebiesDto">
+        SELECT
+            f.id,
+            f.freebies_name as freebiesName
+        FROM freebies_tbl f
+                 INNER JOIN hotel_freebies_tbl hf ON f.id = hf.freebies_id
+        WHERE hf.hotel_id = #{hotelId}
+        ORDER BY f.id
+    </select>
+
+    <!-- 호텔의 편의시설 조회 - AmenitiesDto 사용 -->
+    <select id="findAmenitiesByHotelId" resultType="com.hotel_project.hotel_jpa.amenities.dto.AmenitiesDto">
+        SELECT
+            a.id,
+            a.amenities_name as amenitiesName
+        FROM amenities_tbl a
+                 INNER JOIN hotel_amenities_tbl ha ON a.id = ha.amenities_id
+        WHERE ha.hotel_id = #{hotelId}
+        ORDER BY a.id
+    </select>
+
+    <!-- 호텔 이미지 조회 -->
+    <select id="findImagesByHotelId" resultType="java.lang.String">
+        SELECT hotel_image_path
+        FROM hotel_image_tbl
+        WHERE hotel_id = #{hotelId}
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- 호텔의 객실 조회 (날짜별 가용성 포함) -->
+    <select id="findAvailableRoomsByHotelId" resultType="com.hotel_project.hotel_jpa.room.dto.RoomDto">
+        SELECT
+            r.id,
+            r.hotel_id as hotelId,
+            r.room_name as roomName,
+            r.room_single_bed as roomSingleBed,
+            r.room_double_bed as roomDoubleBed,
+            COALESCE(rp.price, r.base_price) as basePrice,
+            r.room_number as roomNumber,
+            r.room_view as roomView,
+            r.created_at as createdAt,
+            r.updated_at as updatedAt
+        FROM room_tbl r
+                 LEFT JOIN room_pricing_tbl rp ON r.id = rp.room_id
+            AND rp.date BETWEEN #{checkIn} AND #{checkOut}
+        WHERE r.hotel_id = #{hotelId}
+        GROUP BY r.id
+        ORDER BY r.base_price ASC
+    </select>
+
+    <!-- 호텔의 전체 객실 조회 -->
+    <select id="findRoomsByHotelId" resultType="com.hotel_project.hotel_jpa.room.dto.RoomDto">
+        SELECT
+            r.id,
+            r.hotel_id as hotelId,
+            r.room_name as roomName,
+            r.room_single_bed as roomSingleBed,
+            r.room_double_bed as roomDoubleBed,
+            r.base_price as basePrice,
+            r.room_number as roomNumber,
+            r.room_view as roomView,
+            r.created_at as createdAt,
+            r.updated_at as updatedAt
+        FROM room_tbl r
+        WHERE r.hotel_id = #{hotelId}
+        ORDER BY r.base_price ASC
+    </select>
+
+    <!-- 호텔 리뷰 조회 -->
+    <select id="findReviewsByHotelId" resultType="com.hotel_project.review_jpa.reviews.dto.ReviewsDto">
+        SELECT
+            r.id,
+            r.member_id as memberId,
+            r.hotel_id as hotelId,
+            r.reservations_id as reservationsId,
+            r.rating,
+            r.review_content as reviewContent,
+            r.review_card as reviewCard,
+            r.created_at as createdAt,
+            r.updated_at as updatedAt
+        FROM reviews_tbl r
+        WHERE r.hotel_id = #{hotelId}
+        ORDER BY r.created_at DESC
+            LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 무료 서비스 옵션 조회 - FreebiesDto 사용 -->
+    <select id="findFreebiesOptions" resultType="com.hotel_project.hotel_jpa.freebies.dto.FreebiesDto">
+        SELECT
+            id,
+            freebies_name as freebiesName
+        FROM freebies_tbl
+        ORDER BY id
+    </select>
+
+    <!-- 편의시설 옵션 조회 - AmenitiesDto 사용 -->
+    <select id="findAmenitiesOptions" resultType="com.hotel_project.hotel_jpa.amenities.dto.AmenitiesDto">
+        SELECT
+            id,
+            amenities_name as amenitiesName
+        FROM amenities_tbl
+        ORDER BY id
+    </select>
+
+    <!-- 가격 범위 조회 -->
+    <select id="findPriceRange" resultType="com.hotel_project.hotel_jpa.hotel.dto.PriceRangeDto">
+        SELECT
+            MIN(base_price) as min,
+            MAX(base_price) as max
+        FROM room_tbl
+    </select>
+
+    <!-- 호텔 타입별 개수 조회 -->
+    <select id="countByType" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM hotel_tbl
+        WHERE hotel_type = #{hotelType}
+    </select>
+
+</mapper>

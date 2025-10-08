@@ -42,4 +42,18 @@
         </where>
     </select>
 
+    <!-- 객실별 이미지 조회 (추가) -->
+    <select id="findByRoomId" resultType="com.hotel_project.hotel_jpa.room_image.dto.RoomImageDto">
+        SELECT
+            id,
+            room_id as roomId,
+            room_image_name as roomImageName,
+            room_image_path as roomImagePath,
+            room_image_size as roomImageSize,
+            created_at as createdAt
+        FROM room_image_tbl
+        WHERE room_id = #{roomId}
+        ORDER BY created_at ASC
+    </select>
+
 </mapper>

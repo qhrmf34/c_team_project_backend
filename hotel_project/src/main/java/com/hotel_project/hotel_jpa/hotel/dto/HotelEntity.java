@@ -58,8 +58,8 @@ public class HotelEntity implements IHotel{
     @Column(nullable = false)
     private LocalTime checkoutTime;
 
-    @Column(columnDefinition = "DECIMAL(2,1) DEFAULT 0.0")
-    private BigDecimal hotelRating = new BigDecimal("0.0");
+    @Column(columnDefinition = "DECIMAL(2,1)")
+    private BigDecimal hotelRating;
 
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP")
@@ -110,6 +110,9 @@ public class HotelEntity implements IHotel{
         }
         if (updatedAt == null) {
             updatedAt = now;
+        }
+        if (hotelRating == null) {
+            hotelRating = BigDecimal.ZERO;
         }
     }
 
