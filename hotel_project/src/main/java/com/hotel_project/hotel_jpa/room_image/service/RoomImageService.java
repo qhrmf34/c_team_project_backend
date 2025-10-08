@@ -148,4 +148,13 @@ public class RoomImageService {
             System.err.println("파일 삭제 실패: " + filePath);
         }
     }
+
+    // 객실별 이미지 조회 - MyBatis Mapper 사용
+    public List<RoomImageDto> findByRoomId(Long roomId) throws CommonExceptionTemplate {
+        if (roomId == null) {
+            throw MemberException.INVALID_ID.getException();
+        }
+
+        return roomImageMapper.findByRoomId(roomId);
+    }
 }
