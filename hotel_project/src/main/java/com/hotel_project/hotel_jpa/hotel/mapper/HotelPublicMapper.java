@@ -82,4 +82,6 @@ public interface HotelPublicMapper {
             @Param("maxPrice") Integer maxPrice,
             @Param("freebies") List<Long> freebies,
             @Param("amenities") List<Long> amenities
-    );}
+    );
+    List<HotelSummaryDto> findWishlistHotelsByMemberId(@Param("memberId") Long memberId);
+}

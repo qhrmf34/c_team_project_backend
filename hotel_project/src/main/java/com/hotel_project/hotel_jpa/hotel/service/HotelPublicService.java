@@ -212,4 +212,24 @@ public class HotelPublicService {
         }
         return stars + " Star Hotel";
     }
+    public List<HotelSummaryDto> getWishlistHotels(Long memberId) {
+        log.info("찜한 호텔 목록 조회 - memberId: {}", memberId);
+
+        List<HotelSummaryDto> hotels = hotelPublicMapper.findWishlistHotelsByMemberId(memberId);
+
+        for (HotelSummaryDto hotel : hotels) {
+            hotel.setFreebies(hotelPublicMapper.findFreebiesByHotelId(hotel.getId()));
+            hotel.setAmenities(hotelPublicMapper.findAmenitiesByHotelId(hotel.getId()));
+            hotel.setRatingText(getRatingText(hotel.getRating()));
+            hotel.setType(getStarTypeText(hotel.getStars()));
+            hotel.setCurrency("KRW");
+            hotel.setWishlisted(true); // 찜 목록이므로 모두 true
+
+            if (hotel.getImage() == null || hotel.getImage().isEmpty()) {
+                hotel.setImage("/images/hotel_img/hotel1.jpg");
+            }
+        }
+
+        return hotels;
+    }
 }
