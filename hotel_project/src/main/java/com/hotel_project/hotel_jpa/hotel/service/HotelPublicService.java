@@ -28,10 +28,12 @@ public class HotelPublicService {
     private final HotelRepository hotelRepository;
     private final CartMapper cartMapper;
 
+    // HotelPublicService.java
     public HotelSearchResponseDto searchHotels(HotelSearchRequestDto request, Pageable pageable, Long memberId) {
         log.info("호텔 검색 시작 - destination: {}, hotelType: {}, page: {}, memberId: {}",
                 request.getDestination(), request.getHotelType(), pageable.getPageNumber(), memberId);
 
+        // 기존 검색 로직...
         List<HotelSummaryDto> hotels = hotelPublicMapper.searchHotels(
                 request.getDestination(),
                 request.getCheckIn(),
@@ -61,7 +63,37 @@ public class HotelPublicService {
                 request.getAmenities()
         );
 
-        // 로그인한 경우 찜 목록 조회
+        // 검색 조건에 따른 호텔 타입별 카운트 조회 추가
+        Map<String, Long> hotelTypeCounts = new HashMap<>();
+        hotelTypeCounts.put("hotel", hotelPublicMapper.countByTypeWithFilters(
+                "hotel",
+                request.getDestination(),
+                request.getRating(),
+                request.getMinPrice(),
+                request.getMaxPrice(),
+                request.getFreebies(),
+                request.getAmenities()
+        ));
+        hotelTypeCounts.put("motel", hotelPublicMapper.countByTypeWithFilters(
+                "motel",
+                request.getDestination(),
+                request.getRating(),
+                request.getMinPrice(),
+                request.getMaxPrice(),
+                request.getFreebies(),
+                request.getAmenities()
+        ));
+        hotelTypeCounts.put("resort", hotelPublicMapper.countByTypeWithFilters(
+                "resort",
+                request.getDestination(),
+                request.getRating(),
+                request.getMinPrice(),
+                request.getMaxPrice(),
+                request.getFreebies(),
+                request.getAmenities()
+        ));
+
+        // 기존 로그인 사용자 찜 목록 조회...
         List<Long> wishlistedHotelIds = new ArrayList<>();
         if (memberId != null) {
             wishlistedHotelIds = cartMapper.findHotelIdsByMemberId(memberId);
@@ -78,7 +110,6 @@ public class HotelPublicService {
                 hotel.setImage("/images/hotel_img/hotel1.jpg");
             }
 
-            // 찜 상태 설정
             hotel.setWishlisted(wishlistedHotelIds.contains(hotel.getId()));
         }
 
@@ -88,6 +119,7 @@ public class HotelPublicService {
                 .currentPage(pageable.getPageNumber())
                 .totalPages((int) Math.ceil((double) totalCount / pageable.getPageSize()))
                 .pageSize(pageable.getPageSize())
+                .hotelTypeCounts(hotelTypeCounts)  // 추가
                 .build();
     }
 
@@ -145,9 +177,6 @@ public class HotelPublicService {
         List<String> hotelTypes = Arrays.asList("hotel", "motel", "resort");
 
         Map<String, Long> hotelTypeCounts = new HashMap<>();
-        hotelTypeCounts.put("hotel", hotelPublicMapper.countByType("hotel"));
-        hotelTypeCounts.put("motel", hotelPublicMapper.countByType("motel"));
-        hotelTypeCounts.put("resort", hotelPublicMapper.countByType("resort"));
 
         return FilterOptionsDto.builder()
                 .freebies(freebies)

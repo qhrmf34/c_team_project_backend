@@ -2,6 +2,7 @@ package com.hotel_project.hotel_jpa.hotel.dto;
 
 import lombok.*;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -14,4 +15,5 @@ public class HotelSearchResponseDto {
     private Integer currentPage;
     private Integer totalPages;
     private Integer pageSize;
+    private Map<String, Long> hotelTypeCounts;
 }

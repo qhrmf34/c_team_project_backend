@@ -336,5 +336,58 @@
         FROM hotel_tbl
         WHERE hotel_type = #{hotelType}
     </select>
+    <!-- 검색 조건에 따른 호텔 타입별 개수 조회 -->
+    <select id="countByTypeWithFilters" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT h.id)
+        FROM hotel_tbl h
+        LEFT JOIN city_tbl c ON h.city_id = c.id
+        LEFT JOIN country_tbl co ON c.country_id = co.id
+        WHERE h.hotel_type = #{hotelType}
 
+        <if test="destination != null and destination != ''">
+            AND (h.hotel_name LIKE CONCAT('%', #{destination}, '%')
+            OR c.city_name LIKE CONCAT('%', #{destination}, '%')
+            OR co.country_name LIKE CONCAT('%', #{destination}, '%'))
+        </if>
+
+        <if test="rating != null and rating > 0">
+            AND h.hotel_rating &gt;= #{rating}
+        </if>
+
+        <if test="minPrice != null or maxPrice != null">
+            AND h.id IN (
+            SELECT DISTINCT r.hotel_id
+            FROM room_tbl r
+            WHERE 1=1
+            <if test="minPrice != null">
+                AND r.base_price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND r.base_price &lt;= #{maxPrice}
+            </if>
+            )
+        </if>
+
+        <if test="freebies != null and freebies.size() > 0">
+            <foreach collection="freebies" item="freebieId">
+                AND EXISTS (
+                SELECT 1
+                FROM hotel_freebies_tbl hf
+                WHERE hf.hotel_id = h.id
+                AND hf.freebies_id = #{freebieId}
+                )
+            </foreach>
+        </if>
+
+        <if test="amenities != null and amenities.size() > 0">
+            <foreach collection="amenities" item="amenityId">
+                AND EXISTS (
+                SELECT 1
+                FROM hotel_amenities_tbl ha
+                WHERE ha.hotel_id = h.id
+                AND ha.amenities_id = #{amenityId}
+                )
+            </foreach>
+        </if>
+    </select>
 </mapper>
