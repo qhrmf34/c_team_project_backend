@@ -7,6 +7,7 @@ import com.hotel_project.hotel_jpa.freebies.dto.FreebiesDto;
 import com.hotel_project.hotel_jpa.hotel.dto.*;
 import com.hotel_project.hotel_jpa.hotel.mapper.HotelPublicMapper;
 import com.hotel_project.hotel_jpa.hotel.repository.HotelRepository;
+import com.hotel_project.member_jpa.cart.mapper.CartMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -15,10 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -28,10 +26,11 @@ public class HotelPublicService {
 
     private final HotelPublicMapper hotelPublicMapper;
     private final HotelRepository hotelRepository;
+    private final CartMapper cartMapper;
 
-    public HotelSearchResponseDto searchHotels(HotelSearchRequestDto request, Pageable pageable) {
-        log.info("호텔 검색 시작 - destination: {}, hotelType: {}, page: {}",
-                request.getDestination(), request.getHotelType(), pageable.getPageNumber());
+    public HotelSearchResponseDto searchHotels(HotelSearchRequestDto request, Pageable pageable, Long memberId) {
+        log.info("호텔 검색 시작 - destination: {}, hotelType: {}, page: {}, memberId: {}",
+                request.getDestination(), request.getHotelType(), pageable.getPageNumber(), memberId);
 
         List<HotelSummaryDto> hotels = hotelPublicMapper.searchHotels(
                 request.getDestination(),
@@ -62,6 +61,12 @@ public class HotelPublicService {
                 request.getAmenities()
         );
 
+        // 로그인한 경우 찜 목록 조회
+        List<Long> wishlistedHotelIds = new ArrayList<>();
+        if (memberId != null) {
+            wishlistedHotelIds = cartMapper.findHotelIdsByMemberId(memberId);
+        }
+
         for (HotelSummaryDto hotel : hotels) {
             hotel.setFreebies(hotelPublicMapper.findFreebiesByHotelId(hotel.getId()));
             hotel.setAmenities(hotelPublicMapper.findAmenitiesByHotelId(hotel.getId()));
@@ -73,7 +78,8 @@ public class HotelPublicService {
                 hotel.setImage("/images/hotel_img/hotel1.jpg");
             }
 
-            hotel.setWishlisted(false);
+            // 찜 상태 설정
+            hotel.setWishlisted(wishlistedHotelIds.contains(hotel.getId()));
         }
 
         return HotelSearchResponseDto.builder()
@@ -85,7 +91,7 @@ public class HotelPublicService {
                 .build();
     }
 
-    public HotelDetailDto getHotelDetail(Long hotelId, LocalDate checkIn, LocalDate checkOut) throws CommonExceptionTemplate {
+    public HotelDetailDto getHotelDetail(Long hotelId, LocalDate checkIn, LocalDate checkOut, Long memberId) throws CommonExceptionTemplate {
         if (hotelId == null) {
             throw MemberException.INVALID_ID.getException();
         }
@@ -113,7 +119,13 @@ public class HotelPublicService {
         // 리뷰 조회 (ReviewsDto 사용)
         hotel.setReviews(hotelPublicMapper.findReviewsByHotelId(hotelId, 0, 10));
 
-        hotel.setWishlisted(false);
+        // 찜 상태 조회
+        if (memberId != null) {
+            int count = cartMapper.existsByMemberIdAndHotelId(memberId, hotelId);
+            hotel.setWishlisted(count > 0);
+        } else {
+            hotel.setWishlisted(false);
+        }
 
         return hotel;
     }
