@@ -10,13 +10,13 @@ import java.util.Optional;
 public interface CartRepository extends JpaRepository<CartEntity, Long> {
 
     // 장바구니 단건 조회 (존재 여부 확인용)
-    Optional<CartEntity> findByMemberEntity_IdAndRoomEntity_Id(Long memberId, Long roomId);
+    Optional<CartEntity> findByMemberEntity_IdAndHotelEntity_Id(Long memberId, Long hotelId);
 
     // 장바구니 ID로 조회 (권한 확인용)
     Optional<CartEntity> findById(Long id);
 
     // 장바구니에서 삭제
-    void deleteByMemberEntity_IdAndRoomEntity_Id(Long memberId, Long roomId);
+    void deleteByMemberEntity_IdAndHotelEntity_Id(Long memberId, Long hotelId);
 
     // 장바구니 전체 삭제 (회원별)
     void deleteByMemberEntity_Id(Long memberId);

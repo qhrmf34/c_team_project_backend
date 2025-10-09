@@ -11,7 +11,6 @@ import lombok.*;
 @Builder
 public class CartToggleRequest {
 
-    @NotNull(message = "객실 ID는 필수입니다.")
-    @JsonProperty("hotelId")
-    private Long roomId;
+    @NotNull(message = "호텔 ID는 필수입니다.")
+    private Long hotelId;
 }

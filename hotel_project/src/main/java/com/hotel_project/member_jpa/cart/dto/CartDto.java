@@ -2,6 +2,7 @@ package com.hotel_project.member_jpa.cart.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hotel_project.common_jpa.dto.IId;
+import com.hotel_project.hotel_jpa.hotel.dto.HotelDto;
 import com.hotel_project.hotel_jpa.room.dto.RoomDto;
 import com.hotel_project.member_jpa.member.dto.MemberDto;
 import jakarta.validation.constraints.NotNull;
@@ -24,10 +25,10 @@ public class CartDto implements ICart {
     private MemberDto memberDto;
 
     @JsonIgnore
-    private Long roomId;
+    private Long hotelId;
 
     @NotNull
-    private RoomDto roomDto;
+    private HotelDto hotelDto;
 
     private LocalDateTime createdAt;
 
@@ -71,41 +72,41 @@ public class CartDto implements ICart {
     }
 
     @Override
-    public IId getRoom(){
-        return this.roomDto;
+    public IId getHotel(){
+        return this.hotelDto;
     }
 
     @Override
-    public void setRoom(IId iId) {
+    public void setHotel(IId iId) {
         if(iId == null){
             return;
         }
-        if(this.roomDto == null){
-            this.roomDto = new RoomDto();
+        if(this.hotelDto == null){
+            this.hotelDto = new HotelDto();
         }
-        this.roomDto.copyMembersId(iId);
+        this.hotelDto.copyMembersId(iId);
     }
 
     @Override
-    public Long getRoomId(){
-        if (this.roomDto != null){
-            return this.roomDto.getId();
+    public Long getHotelId(){
+        if (this.hotelDto != null){
+            return this.hotelDto.getId();
         }
-        return this.roomId;
+        return this.hotelId;
     }
 
     @Override
-    public void setRoomId(Long roomId) {
-        if(roomId == null){
-            if(this.roomDto != null && this.roomDto.getId() != null){
-                this.roomDto.setId(this.roomDto.getId());
+    public void setHotelId(Long hotelId) {
+        if(hotelId == null){
+            if(this.hotelDto != null && this.hotelDto.getId() != null){
+                this.hotelDto.setId(this.hotelDto.getId());
             }
             return;
         }
-        this.roomId = roomId;
-        if(this.roomDto == null){
-            this.roomDto = new RoomDto();
+        this.hotelId = hotelId;
+        if(this.hotelDto == null){
+            this.hotelDto = new HotelDto();
         }
-        this.roomDto.setId(roomId);
+        this.hotelDto.setId(hotelId);
     }
 }

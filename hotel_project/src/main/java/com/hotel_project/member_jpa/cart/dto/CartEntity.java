@@ -1,7 +1,7 @@
 package com.hotel_project.member_jpa.cart.dto;
 
 import com.hotel_project.common_jpa.dto.IId;
-import com.hotel_project.hotel_jpa.room.dto.RoomEntity;
+import com.hotel_project.hotel_jpa.hotel.dto.HotelEntity;
 import com.hotel_project.member_jpa.member.dto.MemberEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -30,11 +30,11 @@ public class CartEntity implements ICart {
     private Long memberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id", nullable = false)
-    private RoomEntity roomEntity;
+    @JoinColumn(name = "hotel_id", nullable = false)
+    private HotelEntity hotelEntity;
 
     @Transient
-    private Long roomId;
+    private Long hotelId;
 
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP")
@@ -74,36 +74,36 @@ public class CartEntity implements ICart {
     }
 
     @Override
-    public IId getRoom(){
-        return this.roomEntity;
+    public IId getHotel(){
+        return this.hotelEntity;
     }
 
     @Override
-    public void setRoom(IId iId) {
+    public void setHotel(IId iId) {
         if (iId == null) {
             return;
         }
-        if (this.roomEntity == null) {
-            this.roomEntity = new RoomEntity();
+        if (this.hotelEntity == null) {
+            this.hotelEntity = new HotelEntity();
         }
         this.memberEntity.copyMembersId(iId);
     }
 
     @Override
-    public Long getRoomId(){
-        return this.roomId != null ? this.roomEntity.getId() : null;
+    public Long getHotelId(){
+        return this.hotelId != null ? this.hotelEntity.getId() : null;
     }
 
     @Override
-    public void setRoomId(Long roomId) {
-        if (roomId == null) {
+    public void setHotelId(Long hotelId) {
+        if (hotelId == null) {
             throw new IllegalArgumentException("roomId cannot be null");
         }
-        if (this.roomEntity == null) {
-            this.roomEntity = new RoomEntity();
+        if (this.hotelEntity == null) {
+            this.hotelEntity = new HotelEntity();
         }
-        this.roomEntity.setId(roomId);
-        this.roomId = roomId;
+        this.hotelEntity.setId(hotelId);
+        this.hotelId = hotelId;
     }
 
     @PrePersist

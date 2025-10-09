@@ -8,7 +8,7 @@
     <resultMap id="CartDetailResultMap" type="com.hotel_project.member_jpa.cart.dto.CartDto">
         <id property="id" column="cart_id"/>
         <result property="memberId" column="member_id"/>
-        <result property="roomId" column="room_id"/>
+        <result property="hotelId" column="hotel_id"/>
         <result property="createdAt" column="created_at"/>
 
         <!-- MemberDto 매핑 -->
@@ -18,43 +18,57 @@
             <result property="email" column="member_email"/>
         </association>
 
-        <!-- RoomDto 매핑 -->
-        <association property="roomDto" javaType="com.hotel_project.hotel_jpa.room.dto.RoomDto">
-            <id property="id" column="room_id"/>
-            <result property="roomName" column="room_name"/>
-            <result property="basePrice" column="base_price"/>
-            <result property="maxOccupancy" column="max_occupancy"/>
-            <result property="roomSize" column="room_size"/>
-            <result property="hotelId" column="hotel_id"/>
+        <!-- HotelDto 매핑 -->
+        <association property="hotelDto" javaType="com.hotel_project.hotel_jpa.hotel.dto.HotelDto">
+            <id property="id" column="hotel_id"/>
+            <result property="cityId" column="city_id"/>
+            <result property="hotelType" column="hotel_type"/>
+            <result property="hotelName" column="hotel_name"/>
+            <result property="hotelLatitude" column="hotel_latitude"/>
+            <result property="hotelLongitude" column="hotel_longitude"/>
+            <result property="hotelContent" column="hotel_content"/>
+            <result property="hotelStar" column="hotel_star"/>
+            <result property="freebiesNumber" column="freebies_number"/>
+            <result property="hotelNumber" column="hotel_number"/>
+            <result property="checkinTime" column="checkin_time"/>
+            <result property="checkoutTime" column="checkout_time"/>
+            <result property="hotelRating" column="hotel_rating"/>
         </association>
     </resultMap>
 
     <!-- 장바구니 조회 (회원별) - 상세 정보 포함 -->
     <select id="findByMemberId" resultMap="CartDetailResultMap">
         SELECT
-            c.id as cart_id,
+            c.id AS cart_id,
             c.member_id,
-            c.room_id,
+            c.hotel_id,
             c.created_at,
-            m.name as member_name,
-            m.email as member_email,
-            r.room_name,
-            r.base_price,
-            r.max_occupancy,
-            r.room_size,
-            r.hotel_id
+            m.name AS member_name,
+            m.email AS member_email,
+            h.city_id,
+            h.hotel_type,
+            h.hotel_name,
+            h.hotel_latitude,
+            h.hotel_longitude,
+            h.hotel_content,
+            h.hotel_star,
+            h.freebies_number,
+            h.hotel_number,
+            h.checkin_time,
+            h.checkout_time,
+            h.hotel_rating
         FROM cart_tbl c
                  LEFT JOIN member_tbl m ON c.member_id = m.id
-                 LEFT JOIN room_tbl r ON c.room_id = r.id
+                 LEFT JOIN hotel_tbl h ON c.hotel_id = h.id
         WHERE c.member_id = #{memberId}
         ORDER BY c.created_at DESC
     </select>
 
     <!-- 장바구니 존재 여부 -->
-    <select id="existsByMemberIdAndRoomId" resultType="int">
+    <select id="existsByMemberIdAndHotelId" resultType="int">
         SELECT COUNT(*)
         FROM cart_tbl
-        WHERE member_id = #{memberId} AND room_id = #{roomId}
+        WHERE member_id = #{memberId} AND hotel_id = #{hotelId}
     </select>
 
     <!-- 장바구니 개수 조회 -->
@@ -64,9 +78,9 @@
         WHERE member_id = #{memberId}
     </select>
 
-    <!-- 객실 ID 목록 조회 (회원별) -->
-    <select id="findRoomIdsByMemberId" resultType="long">
-        SELECT room_id
+    <!-- 호텔 ID 목록 조회 (회원별) -->
+    <select id="findHotelIdsByMemberId" resultType="long">
+        SELECT hotel_id
         FROM cart_tbl
         WHERE member_id = #{memberId}
         ORDER BY created_at DESC
