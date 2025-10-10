@@ -29,7 +29,7 @@ public class CartController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/toggle")
-    @Operation(summary = "장바구니 토글", description = "객실 장바구니 추가/제거")
+    @Operation(summary = "장바구니 토글", description = "호텔 장바구니 추가/제거")
     public ResponseEntity<ApiResponse<Boolean>> toggleCart(
             @Valid @RequestBody CartToggleRequest request,
             @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
@@ -42,11 +42,11 @@ public class CartController {
 
         Long memberId = jwtUtil.getMemberIdFromToken(token);
 
-        boolean isAdded = cartService.toggle(memberId, request.getRoomId());
+        boolean isAdded = cartService.toggle(memberId, request.getHotelId());
         String message = isAdded ? "장바구니에 추가되었습니다." : "장바구니에서 제거되었습니다.";
 
-        log.info("장바구니 토글 완료 - memberId: {}, roomId: {}, isAdded: {}",
-                memberId, request.getRoomId(), isAdded);
+        log.info("장바구니 토글 완료 - memberId: {}, hotelId: {}, isAdded: {}",
+                memberId, request.getHotelId(), isAdded);
 
         return ResponseEntity.ok(ApiResponse.success(200, message, isAdded));
     }
@@ -68,10 +68,10 @@ public class CartController {
         return ResponseEntity.ok(ApiResponse.success(200, "success", carts));
     }
 
-    @DeleteMapping("/{roomId}")
+    @DeleteMapping("/{hotelId}")
     @Operation(summary = "장바구니에서 삭제")
     public ResponseEntity<ApiResponse<String>> deleteCart(
-            @PathVariable Long roomId,
+            @PathVariable Long hotelId,
             @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
 
         String token = jwtUtil.extractToken(authorization);
@@ -81,7 +81,7 @@ public class CartController {
         }
 
         Long memberId = jwtUtil.getMemberIdFromToken(token);
-        cartService.delete(memberId, roomId);
+        cartService.delete(memberId, hotelId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "장바구니에서 삭제되었습니다.", null));
     }
@@ -121,10 +121,10 @@ public class CartController {
         return ResponseEntity.ok(ApiResponse.success(200, "장바구니가 비워졌습니다.", null));
     }
 
-    @GetMapping("/check/{roomId}")
+    @GetMapping("/check/{hotelId}")
     @Operation(summary = "장바구니 포함 여부 확인")
     public ResponseEntity<ApiResponse<Boolean>> checkCart(
-            @PathVariable Long roomId,
+            @PathVariable Long hotelId,
             @RequestHeader(value = "Authorization", required = false) String authorization) {
 
         try {
@@ -139,7 +139,7 @@ public class CartController {
             }
 
             Long memberId = jwtUtil.getMemberIdFromToken(token);
-            boolean isInCart = cartService.isInCart(memberId, roomId);
+            boolean isInCart = cartService.isInCart(memberId, hotelId);
 
             return ResponseEntity.ok(ApiResponse.success(200, "success", isInCart));
         } catch (Exception e) {

@@ -43,13 +43,13 @@ public class ReservationsEntity implements IReservations{
     private LocalDate checkOutDate;
 
     @Column(nullable = false, columnDefinition = "INT DEFAULT 1")
-    private Integer guestsCount = 1;
+    private Integer guestsCount;
 
     @Column(precision = 10, scale = 2, nullable = false)
     private BigDecimal basePayment;
 
-    @Column(nullable = false, columnDefinition = "TINYINT DEFAULT 0")
-    private Boolean reservationsStatus = false;
+    @Column(nullable = false, columnDefinition = "TINYINT DEFAULT 1")
+    private Boolean reservationsStatus;
 
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP")

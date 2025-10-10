@@ -16,12 +16,12 @@ public interface ICart extends IId {
     IId getMember();
     void setMember(IId member);
 
-    Long getRoomId();
-    void setRoomId(Long roomId);
+    Long getHotelId();
+    void setHotelId(Long roomId);
 
     @JsonIgnore
-    IId getRoom();
-    void setRoom(IId room);
+    IId getHotel();
+    void setHotel(IId hotel);
 
     LocalDateTime getCreatedAt();
     void setCreatedAt(LocalDateTime createdAt);
@@ -32,7 +32,7 @@ public interface ICart extends IId {
         }
         setId(iCart.getId());
         setMember(iCart.getMember());
-        setRoom(iCart.getRoom());
+        setHotel(iCart.getHotel());
         setCreatedAt(iCart.getCreatedAt());
     }
 
@@ -42,6 +42,6 @@ public interface ICart extends IId {
         }
         if (iCart.getId() != null) {setId(iCart.getId());}
         if (iCart.getMember() != null) {setMember(iCart.getMember());}
-        if (iCart.getRoom() != null) {setRoom(iCart.getRoom());}
+        if (iCart.getHotel() != null) {setHotel(iCart.getHotel());}
     }
 }

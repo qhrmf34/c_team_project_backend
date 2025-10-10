@@ -1,8 +1,8 @@
 package com.hotel_project.member_jpa.cart.service;
 
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
-import com.hotel_project.hotel_jpa.room.dto.RoomEntity;
-import com.hotel_project.hotel_jpa.room.repository.RoomRepository;
+import com.hotel_project.hotel_jpa.hotel.dto.HotelEntity;
+import com.hotel_project.hotel_jpa.hotel.repository.HotelRepository;
 import com.hotel_project.member_jpa.cart.dto.CartDto;
 import com.hotel_project.member_jpa.cart.dto.CartEntity;
 import com.hotel_project.member_jpa.cart.mapper.CartMapper;
@@ -31,26 +31,26 @@ public class CartService {
     private MemberRepository memberRepository;
 
     @Autowired
-    private RoomRepository roomRepository;
+    private HotelRepository hotelRepository;
 
     /**
      * 장바구니 토글 (추가/제거) - Repository 사용
      */
     @Transactional
-    public boolean toggle(Long memberId, Long roomId) throws CommonExceptionTemplate {
-        log.info("장바구니 토글 - memberId: {}, roomId: {}", memberId, roomId);
+    public boolean toggle(Long memberId, Long hotelId) throws CommonExceptionTemplate {
+        log.info("장바구니 토글 - memberId: {}, hotelId: {}", memberId, hotelId);
 
         // 회원 존재 확인
         MemberEntity member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CommonExceptionTemplate(404, "회원을 찾을 수 없습니다."));
 
         // 객실 존재 확인
-        RoomEntity room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new CommonExceptionTemplate(404, "객실을 찾을 수 없습니다."));
+        HotelEntity hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new CommonExceptionTemplate(404, "호텔을 찾을 수 없습니다."));
 
         // 이미 장바구니에 있는지 확인
         Optional<CartEntity> existing = cartRepository
-                .findByMemberEntity_IdAndRoomEntity_Id(memberId, roomId);
+                .findByMemberEntity_IdAndHotelEntity_Id(memberId, hotelId);
 
         if (existing.isPresent()) {
             // 이미 장바구니에 있는 경우 -> 삭제 (Repository 사용)
@@ -61,7 +61,7 @@ public class CartService {
             // 장바구니에 없는 경우 -> 추가 (Repository 사용)
             CartEntity cart = new CartEntity();
             cart.setMemberEntity(member);
-            cart.setRoomEntity(room);
+            cart.setHotelEntity(hotel);
             cartRepository.save(cart);
             log.info("장바구니에 추가 - cartId: {}", cart.getId());
             return true;
@@ -89,10 +89,10 @@ public class CartService {
      * 장바구니에서 삭제 (회원ID + 객실ID) - Repository 사용
      */
     @Transactional
-    public void delete(Long memberId, Long roomId) throws CommonExceptionTemplate {
-        log.info("장바구니 삭제 - memberId: {}, roomId: {}", memberId, roomId);
+    public void delete(Long memberId, Long hotelId) throws CommonExceptionTemplate {
+        log.info("장바구니 삭제 - memberId: {}, hotelId: {}", memberId, hotelId);
 
-        CartEntity cart = cartRepository.findByMemberEntity_IdAndRoomEntity_Id(memberId, roomId)
+        CartEntity cart = cartRepository.findByMemberEntity_IdAndHotelEntity_Id(memberId, hotelId)
                 .orElseThrow(() -> new CommonExceptionTemplate(404, "장바구니에 없습니다."));
 
         cartRepository.delete(cart);
@@ -133,22 +133,22 @@ public class CartService {
      * 장바구니 포함 여부 확인 - Mapper 사용
      */
     @Transactional(readOnly = true)
-    public boolean isInCart(Long memberId, Long roomId) {
-        if (memberId == null || roomId == null) {
+    public boolean isInCart(Long memberId, Long hotelId) {
+        if (memberId == null || hotelId == null) {
             return false;
         }
-        return cartMapper.existsByMemberIdAndRoomId(memberId, roomId) > 0;
+        return cartMapper.existsByMemberIdAndHotelId(memberId, hotelId) > 0;
     }
 
     /**
      * 장바구니의 객실 ID 목록 조회 - Mapper 사용
      */
     @Transactional(readOnly = true)
-    public List<Long> getCartRoomIds(Long memberId) {
+    public List<Long> getCarthotelIds(Long memberId) {
         if (memberId == null) {
             return List.of();
         }
-        return cartMapper.findRoomIdsByMemberId(memberId);
+        return cartMapper.findHotelIdsByMemberId(memberId);
     }
 
     /**

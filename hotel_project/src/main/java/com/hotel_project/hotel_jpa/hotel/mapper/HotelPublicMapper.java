@@ -73,5 +73,15 @@ public interface HotelPublicMapper {
 
     PriceRangeDto findPriceRange();
 
-    Long countByType(String hotelType);
+    // HotelPublicMapper.java
+    Long countByTypeWithFilters(
+            @Param("hotelType") String hotelType,
+            @Param("destination") String destination,
+            @Param("rating") Integer rating,
+            @Param("minPrice") Integer minPrice,
+            @Param("maxPrice") Integer maxPrice,
+            @Param("freebies") List<Long> freebies,
+            @Param("amenities") List<Long> amenities
+    );
+    List<HotelSummaryDto> findWishlistHotelsByMemberId(@Param("memberId") Long memberId);
 }

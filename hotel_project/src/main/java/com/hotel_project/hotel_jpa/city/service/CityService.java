@@ -3,6 +3,7 @@ package com.hotel_project.hotel_jpa.city.service;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.exception.MemberException;
 import com.hotel_project.hotel_jpa.city.dto.CityDto;
+import com.hotel_project.hotel_jpa.city.dto.CityHotelOneDto;
 import com.hotel_project.hotel_jpa.city.dto.CityViewDto;
 import com.hotel_project.hotel_jpa.city.dto.CityEntity;
 import com.hotel_project.hotel_jpa.city.mapper.CityMapper;
@@ -103,5 +104,9 @@ public class CityService {
         }
         cityRepository.deleteById(id);
         return "delete ok";
+    }
+    // 추천 도시 목록 조회
+    public List<CityHotelOneDto> findFeaturedCities(int limit) {
+        return cityMapper.findFeaturedCities(limit);
     }
 }

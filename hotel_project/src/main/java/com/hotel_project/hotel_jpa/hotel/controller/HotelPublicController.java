@@ -1,9 +1,12 @@
 package com.hotel_project.hotel_jpa.hotel.controller;
 
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
+import com.hotel_project.common_jpa.exception.MemberException;
 import com.hotel_project.common_jpa.util.ApiResponse;
+import com.hotel_project.common_jpa.util.JwtUtil;
 import com.hotel_project.hotel_jpa.hotel.dto.*;
 import com.hotel_project.hotel_jpa.hotel.service.HotelPublicService;
+import com.hotel_project.member_jpa.member.dto.MemberDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,6 +27,9 @@ public class HotelPublicController {
 
     @Autowired
     private HotelPublicService hotelPublicService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @GetMapping
     @Operation(summary = "호텔 검색 및 필터링")
@@ -70,7 +76,22 @@ public class HotelPublicController {
             @RequestParam(defaultValue = "0") int page,
 
             @Parameter(description = "페이지 크기")
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        // JWT에서 memberId 추출
+        Long memberId = null;
+        if (authorization != null) {
+            try {
+                String token = jwtUtil.extractToken(authorization);
+                if (jwtUtil.validateToken(token)) {
+                    memberId = jwtUtil.getMemberIdFromToken(token);
+                }
+            } catch (Exception e) {
+                // 토큰 오류 시 무시하고 비로그인 상태로 처리
+            }
+        }
 
         HotelSearchRequestDto searchRequest = HotelSearchRequestDto.builder()
                 .destination(destination)
@@ -88,7 +109,7 @@ public class HotelPublicController {
                 .build();
 
         Pageable pageable = PageRequest.of(page, size);
-        HotelSearchResponseDto result = hotelPublicService.searchHotels(searchRequest, pageable);
+        HotelSearchResponseDto result = hotelPublicService.searchHotels(searchRequest, pageable, memberId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "success", result));
     }
@@ -105,10 +126,25 @@ public class HotelPublicController {
 
             @Parameter(description = "체크아웃")
             @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut,
+
+            @RequestHeader(value = "Authorization", required = false) String authorization)
             throws CommonExceptionTemplate {
 
-        HotelDetailDto hotelDetail = hotelPublicService.getHotelDetail(id, checkIn, checkOut);
+        // JWT에서 memberId 추출
+        Long memberId = null;
+        if (authorization != null) {
+            try {
+                String token = jwtUtil.extractToken(authorization);
+                if (jwtUtil.validateToken(token)) {
+                    memberId = jwtUtil.getMemberIdFromToken(token);
+                }
+            } catch (Exception e) {
+                // 토큰 오류 시 무시하고 비로그인 상태로 처리
+            }
+        }
+
+        HotelDetailDto hotelDetail = hotelPublicService.getHotelDetail(id, checkIn, checkOut, memberId);
         return ResponseEntity.ok(ApiResponse.success(200, "success", hotelDetail));
     }
 
@@ -117,5 +153,26 @@ public class HotelPublicController {
     public ResponseEntity<ApiResponse<FilterOptionsDto>> getFilterOptions() {
         FilterOptionsDto filters = hotelPublicService.getFilterOptions();
         return ResponseEntity.ok(ApiResponse.success(200, "success", filters));
+    }
+
+    @GetMapping("/wishlist")
+    @Operation(summary = "찜한 호텔 목록 조회")
+    public ResponseEntity<ApiResponse<List<HotelSummaryDto>>> getWishlistHotels(
+            @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
+
+        // JWT에서 memberId 추출
+        String token = jwtUtil.extractToken(authorization);
+        if (!jwtUtil.validateToken(token)) {
+            throw new CommonExceptionTemplate(401, "로그인이 필요합니다.");
+        }
+        Long memberId = jwtUtil.getMemberIdFromToken(token);
+
+        if (memberId == null) {
+            throw MemberException.INVALID_ID.getException();
+        }
+
+        List<HotelSummaryDto> wishlistHotels = hotelPublicService.getWishlistHotels(memberId);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "success", wishlistHotels));
     }
 }
