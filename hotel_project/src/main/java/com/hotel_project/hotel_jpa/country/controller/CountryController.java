@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.country.controller;
 
+import com.hotel_project.common_jpa.dto.PublicSearchDto;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.hotel_jpa.country.dto.CountryDto;
@@ -27,12 +28,10 @@ public class CountryController {
     @GetMapping
     @Operation(summary = "국가 검색", description = "국가명으로 검색합니다. 검색어가 없으면 전체 조회")
     public ResponseEntity<ApiResponse<Page<CountryDto>>> findByName(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search) {
+            PublicSearchDto publicSearchDto) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<CountryDto> countries = countryService.findByName(pageable, search);
+        Pageable pageable = PageRequest.of(publicSearchDto.getPage(), publicSearchDto.getSize());
+        Page<CountryDto> countries = countryService.findByName(pageable, publicSearchDto.getSearch());
         return ResponseEntity.ok(ApiResponse.success(200, "success", countries));
     }
 

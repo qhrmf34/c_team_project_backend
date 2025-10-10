@@ -1,5 +1,6 @@
 package com.hotel_project.payment_jpa.coupon.controller;
 
+import com.hotel_project.common_jpa.dto.PublicSearchDto;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.payment_jpa.coupon.dto.CouponDto;
@@ -26,13 +27,11 @@ public class CouponController {
     @GetMapping
     @Operation(summary = "쿠폰 검색", description = "쿠폰명으로 검색합니다. 검색어가 없으면 전체 조회")
     public ResponseEntity<ApiResponse<Page<CouponDto>>> findByName(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search) {
+    PublicSearchDto publicSearchDto) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<CouponDto> countries = couponService.findByName(pageable, search);
-        return ResponseEntity.ok(ApiResponse.success(200, "success", countries));
+        Pageable pageable = PageRequest.of(publicSearchDto.getPage(), publicSearchDto.getSize());
+        Page<CouponDto> coupons = couponService.findByName(pageable, publicSearchDto.getSearch());
+        return ResponseEntity.ok(ApiResponse.success(200, "success", coupons));
     }
 
     // 이제 search endpoint는 제거됨 (findByName으로 통합)

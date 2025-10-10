@@ -10,10 +10,10 @@ import java.util.List;
 public interface CouponMapper {
 
     // 이름 검색 통합 (페이지네이션, 검색어 없으면 전체 조회)
-    List<CouponDto> findByName(@Param("CouponName") String countryName,
+    List<CouponDto> findByName(@Param("CouponName") String couponName,
                                @Param("offset") long offset,
                                @Param("size") int size);
 
     // 개수 조회 (검색어 없으면 전체 개수)
-    long countByName(@Param("CouponName") String countryName);
+    long countByName(@Param("CouponName") String couponName);
 }

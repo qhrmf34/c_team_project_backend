@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.hotel_amenities.controller;
 
+import com.hotel_project.common_jpa.dto.PublicSearchDto;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.hotel_jpa.hotel_amenities.dto.HotelAmenitiesDto;
@@ -27,12 +28,10 @@ public class HotelAmenitiesController {
     @GetMapping
     @Operation(summary = "호텔 편의시설 검색", description = "호텔명 또는 편의시설명으로 검색합니다. 검색어가 없으면 전체 조회")
     public ResponseEntity<ApiResponse<Page<HotelAmenitiesViewDto>>> findByName(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search) {
+    PublicSearchDto publicSearchDto) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<HotelAmenitiesViewDto> hotelAmenities = hotelAmenitiesService.findByName(pageable, search);
+        Pageable pageable = PageRequest.of(publicSearchDto.getPage(), publicSearchDto.getSize());
+        Page<HotelAmenitiesViewDto> hotelAmenities = hotelAmenitiesService.findByName(pageable, publicSearchDto.getSearch());
         return ResponseEntity.ok(ApiResponse.success(200, "success", hotelAmenities));
     }
 
