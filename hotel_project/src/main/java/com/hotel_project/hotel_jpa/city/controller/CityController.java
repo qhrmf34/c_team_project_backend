@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.city.controller;
 
+import com.hotel_project.common_jpa.dto.PublicSearchDto;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.hotel_jpa.city.dto.CityDto;
@@ -31,12 +32,10 @@ public class CityController {
     @GetMapping
     @Operation(summary = "도시 검색", description = "도시명으로 검색합니다. 검색어가 없으면 전체 조회")
     public ResponseEntity<ApiResponse<Page<CityViewDto>>> findByName(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search) {
+            PublicSearchDto publicSearchDto) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<CityViewDto> cities = cityService.findByName(pageable, search);
+        Pageable pageable = PageRequest.of(publicSearchDto.getPage(), publicSearchDto.getSize());
+        Page<CityViewDto> cities = cityService.findByName(pageable, publicSearchDto.getSearch());
         return ResponseEntity.ok(ApiResponse.success(200, "success", cities));
     }
 

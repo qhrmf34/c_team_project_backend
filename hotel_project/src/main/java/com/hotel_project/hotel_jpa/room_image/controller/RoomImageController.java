@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.room_image.controller;
 
+import com.hotel_project.common_jpa.dto.PublicSearchDto;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.hotel_jpa.room_image.dto.RoomImageDto;
@@ -30,12 +31,10 @@ public class RoomImageController {
     @GetMapping
     @Operation(summary = "객실 이미지 검색", description = "객실 이미지명으로 검색합니다. 검색어가 없으면 전체 조회")
     public ResponseEntity<ApiResponse<Page<RoomImageViewDto>>> findByName(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search) {
+    PublicSearchDto publicSearchDto) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<RoomImageViewDto> roomImages = roomImageService.findByName(pageable, search);
+        Pageable pageable = PageRequest.of(publicSearchDto.getPage(), publicSearchDto.getSize());
+        Page<RoomImageViewDto> roomImages = roomImageService.findByName(pageable, publicSearchDto.getSearch());
         return ResponseEntity.ok(ApiResponse.success(200, "success", roomImages));
     }
 
