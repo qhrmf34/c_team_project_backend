@@ -76,7 +76,7 @@ public class MemberCouponEntity implements IMemberCoupon{
     @Override
     public void setMemberId(Long memberId) {
         if (memberId == null) {
-            throw new IllegalStateException("set memberId: member is null");
+            throw new IllegalStateException("set memberId: memberId cannot be null");
         }
         if (this.memberEntity == null){
             this.memberEntity = new MemberEntity();
@@ -108,8 +108,8 @@ public class MemberCouponEntity implements IMemberCoupon{
 
     @Override
     public void setCouponId(Long couponId) {
-        if (this.couponId == null) {
-            throw new IllegalStateException("set couponId: coupon is null");
+        if (couponId == null) {
+            throw new IllegalStateException("set couponId: couponId cannot be null");
         }
         if (this.couponEntity == null){
             this.couponEntity = new CouponEntity();

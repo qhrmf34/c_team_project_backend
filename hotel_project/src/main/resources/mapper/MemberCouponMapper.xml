@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hotel_project.payment_jpa.member_coupon.mapper.MemberCouponMapper">
+
+    <!-- 회원의 쿠폰 목록 조회 -->
+    <select id="findCouponsByMemberId" resultType="com.hotel_project.payment_jpa.coupon.dto.CouponViewDto">
+        SELECT
+            c.id,
+            c.coupon_name as couponName,
+            c.discount,
+            c.last_date as lastDate,
+            c.is_active as isActive
+        FROM member_coupon_tbl mc
+                 INNER JOIN coupon_tbl c ON mc.coupon_id = c.id
+        WHERE mc.member_id = #{memberId}
+          AND mc.is_used = false
+          AND c.is_active = true
+          AND c.last_date >= CURDATE()
+        ORDER BY mc.created_at DESC
+    </select>
+
+    <!-- 회원이 가지고 있는 쿠폰 ID 목록 조회 -->
+    <select id="findCouponIdsByMemberId" resultType="long">
+        SELECT coupon_id
+        FROM member_coupon_tbl
+        WHERE member_id = #{memberId}
+    </select>
+
+</mapper>
