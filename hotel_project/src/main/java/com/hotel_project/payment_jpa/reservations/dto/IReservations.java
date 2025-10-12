@@ -26,13 +26,13 @@ public interface IReservations extends IId {
     void setRoomId(Long roomId);
 
     LocalDate getCheckInDate();
-    void setCheckInDate(LocalDate checkInDate);  // 파라미터명 수정
+    void setCheckInDate(LocalDate checkInDate);
 
     LocalDate getCheckOutDate();
-    void setCheckOutDate(LocalDate checkOutDate);  // 파라미터명 수정
+    void setCheckOutDate(LocalDate checkOutDate);
 
-    Integer getGuestsCount();  // 오타 수정: Guets → Guests
-    void setGuestsCount(Integer guestsCount);  // 오타 수정
+    Integer getGuestsCount();
+    void setGuestsCount(Integer guestsCount);
 
     BigDecimal getBasePayment();
     void setBasePayment(BigDecimal basePayment);
@@ -41,10 +41,10 @@ public interface IReservations extends IId {
     void setReservationsStatus(Boolean reservationsStatus);
 
     LocalDateTime getReservationsAt();
-    void setReservationsAt(LocalDateTime reservationsAt);  // 메서드명 통일
+    void setReservationsAt(LocalDateTime reservationsAt);
 
     LocalDateTime getUpdatedAt();
-    void setUpdatedAt(LocalDateTime updatedAt);  // 파라미터명 수정
+    void setUpdatedAt(LocalDateTime updatedAt);
 
     default void copyMembers(IReservations iReservations) {
         if (iReservations == null) {
@@ -55,10 +55,10 @@ public interface IReservations extends IId {
         setRoom(iReservations.getRoom());
         setCheckInDate(iReservations.getCheckInDate());
         setCheckOutDate(iReservations.getCheckOutDate());
-        setGuestsCount(iReservations.getGuestsCount());  // 오타 수정
+        setGuestsCount(iReservations.getGuestsCount());
         setBasePayment(iReservations.getBasePayment());
         setReservationsStatus(iReservations.getReservationsStatus());
-        setReservationsAt(iReservations.getReservationsAt());  // 메서드명 수정
+        setReservationsAt(iReservations.getReservationsAt());
         setUpdatedAt(iReservations.getUpdatedAt());
     }
 

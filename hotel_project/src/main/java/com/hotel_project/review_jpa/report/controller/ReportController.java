@@ -26,7 +26,7 @@ public class ReportController {
     private JwtUtil jwtUtil;
 
     @PostMapping
-    @Operation(summary = "리뷰 신고")
+    @Operation(summary = "리뷰 신고", description = "본인 리뷰 제외 + 중복 신고 방지")
     public ResponseEntity<ApiResponse<ReportDto>> createReport(
             @Valid @RequestBody ReportDto reportDto,
             @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
@@ -40,7 +40,8 @@ public class ReportController {
         Long memberId = jwtUtil.getMemberIdFromToken(token);
         reportDto.setMemberId(memberId);
 
-        ReportDto created = reportService.createReport(reportDto);
+        // 본인 리뷰 체크 포함된 메서드 사용
+        ReportDto created = reportService.createReportWithValidation(reportDto);
 
         log.info("리뷰 신고 완료 - memberId: {}, reviewId: {}, reportId: {}",
                 memberId, reportDto.getReviewsId(), created.getId());

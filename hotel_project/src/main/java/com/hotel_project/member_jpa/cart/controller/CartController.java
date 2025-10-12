@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/carts")
@@ -52,8 +53,29 @@ public class CartController {
     }
 
     @GetMapping
-    @Operation(summary = "내 장바구니 조회")
-    public ResponseEntity<ApiResponse<List<CartDto>>> getMyCarts(
+    @Operation(summary = "내 장바구니 조회 (페이지네이션)")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getMyCarts(
+            @RequestParam(defaultValue = "0") Integer offset,
+            @RequestParam(defaultValue = "3") Integer size,
+            @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
+
+        String token = jwtUtil.extractToken(authorization);
+
+        if (!jwtUtil.validateToken(token)) {
+            throw new CommonExceptionTemplate(401, "유효하지 않은 토큰입니다.");
+        }
+
+        Long memberId = jwtUtil.getMemberIdFromToken(token);
+
+        Map<String, Object> result = cartService.findByMemberIdWithPagination(
+                memberId, offset, size);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "success", result));
+    }
+
+    @GetMapping("/all")
+    @Operation(summary = "내 장바구니 전체 조회")
+    public ResponseEntity<ApiResponse<List<CartDto>>> getAllMyCarts(
             @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
 
         String token = jwtUtil.extractToken(authorization);

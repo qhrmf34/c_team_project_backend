@@ -14,34 +14,9 @@ import java.util.List;
 @Mapper
 public interface HotelPublicMapper {
 
-    List<HotelSummaryDto> searchHotels(
-            @Param("destination") String destination,
-            @Param("checkIn") LocalDate checkIn,
-            @Param("checkOut") LocalDate checkOut,
-            @Param("guests") Integer guests,
-            @Param("minPrice") Integer minPrice,
-            @Param("maxPrice") Integer maxPrice,
-            @Param("rating") Integer rating,
-            @Param("hotelType") String hotelType,
-            @Param("freebies") List<Long> freebies,
-            @Param("amenities") List<Long> amenities,
-            @Param("sortBy") String sortBy,
-            @Param("offset") long offset,
-            @Param("size") int size
-    );
+    List<HotelSummaryDto> searchHotels(HotelSearchRequestDto request);
 
-    Long countSearchHotels(
-            @Param("destination") String destination,
-            @Param("checkIn") LocalDate checkIn,
-            @Param("checkOut") LocalDate checkOut,
-            @Param("guests") Integer guests,
-            @Param("minPrice") Integer minPrice,
-            @Param("maxPrice") Integer maxPrice,
-            @Param("rating") Integer rating,
-            @Param("hotelType") String hotelType,
-            @Param("freebies") List<Long> freebies,
-            @Param("amenities") List<Long> amenities
-    );
+    Long countSearchHotels(HotelSearchRequestDto request);
 
     HotelDetailDto findHotelDetailById(@Param("hotelId") Long hotelId);
 
@@ -51,7 +26,6 @@ public interface HotelPublicMapper {
 
     List<String> findImagesByHotelId(@Param("hotelId") Long hotelId);
 
-    // RoomDto로 변경
     List<RoomDto> findAvailableRoomsByHotelId(
             @Param("hotelId") Long hotelId,
             @Param("checkIn") LocalDate checkIn,
@@ -60,11 +34,9 @@ public interface HotelPublicMapper {
 
     List<RoomDto> findRoomsByHotelId(@Param("hotelId") Long hotelId);
 
-    // ReviewsDto로 변경
     List<ReviewsDto> findReviewsByHotelId(
             @Param("hotelId") Long hotelId,
-            @Param("offset") long offset,
-            @Param("size") int size
+            @Param("offset") long offset
     );
 
     List<FreebiesDto> findFreebiesOptions();
@@ -73,15 +45,9 @@ public interface HotelPublicMapper {
 
     PriceRangeDto findPriceRange();
 
-    // HotelPublicMapper.java
-    Long countByTypeWithFilters(
-            @Param("hotelType") String hotelType,
-            @Param("destination") String destination,
-            @Param("rating") Integer rating,
-            @Param("minPrice") Integer minPrice,
-            @Param("maxPrice") Integer maxPrice,
-            @Param("freebies") List<Long> freebies,
-            @Param("amenities") List<Long> amenities
-    );
+    Long countByTypeWithFilters(HotelSearchRequestDto request);
+
     List<HotelSummaryDto> findWishlistHotelsByMemberId(@Param("memberId") Long memberId);
+
+    void updateHotelRating(@Param("hotelId") Long hotelId);
 }
