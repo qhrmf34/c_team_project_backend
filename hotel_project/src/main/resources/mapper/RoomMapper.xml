@@ -1,43 +1,189 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.hotel_project.hotel_jpa.room.mapper.RoomMapper">
 
-    <!-- 이름 검색 통합 (페이지네이션, 검색어 없으면 전체 조회) - INNER JOIN으로 호텔 이름 포함 -->
+    <select id="getRoomAvailabilityWithPricing" resultType="map">
+        WITH RECURSIVE date_series AS (
+            SELECT #{checkIn} as date
+        UNION ALL
+        SELECT DATE_ADD(date, INTERVAL 1 DAY)
+        FROM date_series
+        WHERE DATE_ADD(date, INTERVAL 1 DAY) &lt; #{checkOut}
+            ),
+            room_daily_status AS (
+            SELECT
+                ds.date,
+                r.id as room_id,
+                r.room_name,
+                r.room_single_bed,
+                r.room_double_bed,
+                r.base_price,
+                COALESCE(rp.price, r.base_price) as daily_price,
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1 FROM reservations_tbl res
+                        WHERE res.room_id = r.id
+                          AND ds.date BETWEEN res.check_in_date AND DATE_SUB(res.check_out_date, INTERVAL 1 DAY)
+                          AND res.reservations_status IN (1, 2)
+                    ) THEN FALSE
+                    ELSE TRUE
+                END as is_available
+            FROM room_tbl r
+            CROSS JOIN date_series ds
+            LEFT JOIN room_pricing_tbl rp
+                ON r.id = rp.room_id
+                AND rp.date = ds.date
+            WHERE r.hotel_id = #{hotelId}
+            ),
+            available_rooms AS (
+            SELECT
+            room_id,
+            room_name,
+            room_single_bed,
+            room_double_bed,
+            base_price,
+            SUM(daily_price) as total_price,
+            COUNT(date) as nights,
+            MIN(CASE WHEN is_available = FALSE THEN 1 ELSE 0 END) = 0 as is_available
+            FROM room_daily_status
+            GROUP BY room_id, room_name, room_single_bed, room_double_bed, base_price
+            HAVING is_available = TRUE
+            )
+        SELECT
+            MIN(room_id) as roomId,
+            room_name as roomName,
+            TRIM(room_name) as roomNameTrimmed,
+            CONCAT(
+                    CASE WHEN room_single_bed > 0
+                             THEN CONCAT(room_single_bed, ' Single')
+                         ELSE ''
+                        END,
+                    CASE WHEN room_single_bed > 0 AND room_double_bed > 0
+                             THEN ' + '
+                         ELSE ''
+                        END,
+                    CASE WHEN room_double_bed > 0
+                             THEN CONCAT(room_double_bed, ' Double')
+                         ELSE ''
+                        END
+            ) as bedType,
+            MIN(base_price) as basePrice,
+            MIN(total_price) as totalPrice,
+            MAX(nights) as nights,
+            COUNT(DISTINCT room_id) as availableCount
+        FROM available_rooms
+        GROUP BY TRIM(room_name), room_single_bed, room_double_bed
+        HAVING availableCount > 0
+        ORDER BY totalPrice ASC
+    </select>
+
+    <select id="getRoomDailyPrices" resultType="map">
+        WITH RECURSIVE date_series AS (
+            SELECT #{checkIn} as date
+        UNION ALL
+        SELECT DATE_ADD(date, INTERVAL 1 DAY)
+        FROM date_series
+        WHERE DATE_ADD(date, INTERVAL 1 DAY) &lt; #{checkOut}
+            )
+        SELECT
+            ds.date,
+            COALESCE(rp.price, r.base_price) as price,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM reservations_tbl res
+                    WHERE res.room_id = r.id
+                      AND ds.date BETWEEN res.check_in_date AND DATE_SUB(res.check_out_date, INTERVAL 1 DAY)
+                      AND res.reservations_status IN (1, 2)
+                ) THEN FALSE
+                ELSE TRUE
+                END as available
+        FROM room_tbl r
+                 CROSS JOIN date_series ds
+                 LEFT JOIN room_pricing_tbl rp
+                           ON r.id = rp.room_id
+                               AND rp.date = ds.date
+        WHERE r.id = #{roomId}
+        ORDER BY ds.date
+    </select>
+
     <select id="findByName" resultType="com.hotel_project.hotel_jpa.room.dto.RoomViewDto">
         SELECT
         r.id,
-        r.room_name as roomName,
-        r.room_number as roomNumber,
-        CAST(r.base_price AS UNSIGNED) as basePrice,
-        CAST(r.room_single_bed AS UNSIGNED) as roomSingleBed,
-        CAST(r.room_double_bed AS UNSIGNED) as roomDoubleBed,
-        r.room_view as roomView,
         r.hotel_id as hotelId,
+        r.room_name as roomName,
+        r.room_single_bed as roomSingleBed,
+        r.room_double_bed as roomDoubleBed,
+        r.base_price as basePrice,
+        r.room_number as roomNumber,
+        r.room_view as roomView,
+        r.created_at as createdAt,
+        r.updated_at as updatedAt,
         h.hotel_name as hotelName
         FROM room_tbl r
-        INNER JOIN hotel_tbl h ON r.hotel_id = h.id
+        LEFT JOIN hotel_tbl h ON r.hotel_id = h.id
         <where>
-            <if test="RoomName != null and RoomName != ''">
-                r.room_name LIKE CONCAT('%', #{RoomName}, '%')
-                OR h.hotel_name LIKE CONCAT('%', #{RoomName}, '%')
+            <if test="search != null and search != ''">
+                r.room_name LIKE CONCAT('%', #{search}, '%')
             </if>
         </where>
-        ORDER BY r.id ASC
-        LIMIT #{size} OFFSET #{offset}
+        ORDER BY r.id DESC
+        LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
     </select>
 
-    <!-- 개수 조회 (검색어 없으면 전체 개수) -->
-    <select id="countByName" resultType="long">
-        SELECT COUNT(*)
-        FROM room_tbl r
-        INNER JOIN hotel_tbl h ON r.hotel_id = h.id
-        <where>
-            <if test="RoomName != null and RoomName != ''">
-                r.room_name LIKE CONCAT('%', #{RoomName}, '%')
-                OR h.hotel_name LIKE CONCAT('%', #{RoomName}, '%')
-            </if>
-        </where>
+    <select id="findById" resultType="com.hotel_project.hotel_jpa.room.dto.RoomDto">
+        SELECT
+            id,
+            hotel_id as hotelId,
+            room_name as roomName,
+            room_single_bed as roomSingleBed,
+            room_double_bed as roomDoubleBed,
+            base_price as basePrice,
+            room_number as roomNumber,
+            room_view as roomView,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM room_tbl
+        WHERE id = #{id}
     </select>
+
+    <insert id="insert" parameterType="com.hotel_project.hotel_jpa.room.dto.RoomDto">
+        INSERT INTO room_tbl (
+            hotel_id,
+            room_name,
+            room_single_bed,
+            room_double_bed,
+            base_price,
+            room_number,
+            room_view
+        ) VALUES (
+                     #{hotelId},
+                     #{roomName},
+                     #{roomSingleBed},
+                     #{roomDoubleBed},
+                     #{basePrice},
+                     #{roomNumber},
+                     #{roomView}
+                 )
+    </insert>
+
+    <update id="update" parameterType="com.hotel_project.hotel_jpa.room.dto.RoomDto">
+        UPDATE room_tbl
+        SET
+            hotel_id = #{hotelId},
+            room_name = #{roomName},
+            room_single_bed = #{roomSingleBed},
+            room_double_bed = #{roomDoubleBed},
+            base_price = #{basePrice},
+            room_number = #{roomNumber},
+            room_view = #{roomView},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM room_tbl WHERE id = #{id}
+    </delete>
 
 </mapper>

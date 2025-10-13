@@ -14,7 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -22,10 +24,10 @@ import java.util.Optional;
 public class CartService {
 
     @Autowired
-    private CartRepository cartRepository;  // JPA Repository - CUD용
+    private CartRepository cartRepository;
 
     @Autowired
-    private CartMapper cartMapper;  // MyBatis Mapper - 조회용
+    private CartMapper cartMapper;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -40,25 +42,20 @@ public class CartService {
     public boolean toggle(Long memberId, Long hotelId) throws CommonExceptionTemplate {
         log.info("장바구니 토글 - memberId: {}, hotelId: {}", memberId, hotelId);
 
-        // 회원 존재 확인
         MemberEntity member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CommonExceptionTemplate(404, "회원을 찾을 수 없습니다."));
 
-        // 객실 존재 확인
         HotelEntity hotel = hotelRepository.findById(hotelId)
                 .orElseThrow(() -> new CommonExceptionTemplate(404, "호텔을 찾을 수 없습니다."));
 
-        // 이미 장바구니에 있는지 확인
         Optional<CartEntity> existing = cartRepository
                 .findByMemberEntity_IdAndHotelEntity_Id(memberId, hotelId);
 
         if (existing.isPresent()) {
-            // 이미 장바구니에 있는 경우 -> 삭제 (Repository 사용)
             cartRepository.delete(existing.get());
             log.info("장바구니에서 제거 - cartId: {}", existing.get().getId());
             return false;
         } else {
-            // 장바구니에 없는 경우 -> 추가 (Repository 사용)
             CartEntity cart = new CartEntity();
             cart.setMemberEntity(member);
             cart.setHotelEntity(hotel);
@@ -69,24 +66,52 @@ public class CartService {
     }
 
     /**
-     * 회원의 장바구니 목록 조회 - Mapper 사용
+     * 회원의 장바구니 목록 조회 (페이지네이션 지원)
      */
     @Transactional(readOnly = true)
-    public List<CartDto> findByMemberId(Long memberId) throws CommonExceptionTemplate {
-        log.info("장바구니 조회 - memberId: {}", memberId);
+    public Map<String, Object> findByMemberIdWithPagination(
+            Long memberId,
+            Integer offset,
+            Integer size
+    ) throws CommonExceptionTemplate {
+        log.info("장바구니 조회 (페이지네이션) - memberId: {}, offset: {}, size: {}",
+                memberId, offset, size);
 
         // 회원 존재 확인
         memberRepository.findById(memberId)
                 .orElseThrow(() -> new CommonExceptionTemplate(404, "회원을 찾을 수 없습니다."));
 
-        List<CartDto> carts = cartMapper.findByMemberId(memberId);
+        // 전체 개수 조회
+        int totalCount = cartMapper.countByMemberId(memberId);
+
+        // 장바구니 목록 조회 (페이지네이션)
+        List<CartDto> carts = cartMapper.findByMemberId(memberId, offset, size);
+
+        log.info("장바구니 조회 완료 - memberId: {}, count: {}, totalCount: {}",
+                memberId, carts.size(), totalCount);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("hotels", carts);
+        result.put("totalCount", totalCount);
+
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public List<CartDto> findByMemberId(Long memberId) throws CommonExceptionTemplate {
+        log.info("장바구니 조회 - memberId: {}", memberId);
+
+        memberRepository.findById(memberId)
+                .orElseThrow(() -> new CommonExceptionTemplate(404, "회원을 찾을 수 없습니다."));
+
+        List<CartDto> carts = cartMapper.findByMemberId(memberId, null, null);
         log.info("장바구니 조회 완료 - memberId: {}, count: {}", memberId, carts.size());
 
         return carts;
     }
 
     /**
-     * 장바구니에서 삭제 (회원ID + 객실ID) - Repository 사용
+     * 장바구니에서 삭제 (회원ID + 호텔ID) - Repository 사용
      */
     @Transactional
     public void delete(Long memberId, Long hotelId) throws CommonExceptionTemplate {
@@ -109,7 +134,6 @@ public class CartService {
         CartEntity cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new CommonExceptionTemplate(404, "장바구니 항목을 찾을 수 없습니다."));
 
-        // 본인의 장바구니인지 확인
         if (!cart.getMemberId().equals(memberId)) {
             throw new CommonExceptionTemplate(403, "권한이 없습니다.");
         }
@@ -141,10 +165,10 @@ public class CartService {
     }
 
     /**
-     * 장바구니의 객실 ID 목록 조회 - Mapper 사용
+     * 장바구니의 호텔 ID 목록 조회 - Mapper 사용
      */
     @Transactional(readOnly = true)
-    public List<Long> getCarthotelIds(Long memberId) {
+    public List<Long> getCartHotelIds(Long memberId) {
         if (memberId == null) {
             return List.of();
         }

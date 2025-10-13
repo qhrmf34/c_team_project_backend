@@ -10,7 +10,6 @@ import com.hotel_project.hotel_jpa.hotel.repository.HotelRepository;
 import com.hotel_project.member_jpa.cart.mapper.CartMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,77 +27,35 @@ public class HotelPublicService {
     private final HotelRepository hotelRepository;
     private final CartMapper cartMapper;
 
-    // HotelPublicService.java
-    public HotelSearchResponseDto searchHotels(HotelSearchRequestDto request, Pageable pageable, Long memberId) {
-        log.info("호텔 검색 시작 - destination: {}, hotelType: {}, page: {}, memberId: {}",
-                request.getDestination(), request.getHotelType(), pageable.getPageNumber(), memberId);
+    public HotelSearchResponseDto searchHotels(HotelSearchRequestDto request, Long memberId) {
+        log.info("호텔 검색 시작 - destination: {}, hotelType: {}, offset: {}, size: {}, memberId: {}",
+                request.getDestination(), request.getHotelType(), request.getOffset(), request.getSize(), memberId);
 
-        // 기존 검색 로직...
-        List<HotelSummaryDto> hotels = hotelPublicMapper.searchHotels(
-                request.getDestination(),
-                request.getCheckIn(),
-                request.getCheckOut(),
-                request.getGuests(),
-                request.getMinPrice(),
-                request.getMaxPrice(),
-                request.getRating(),
-                request.getHotelType(),
-                request.getFreebies(),
-                request.getAmenities(),
-                request.getSortBy(),
-                pageable.getOffset(),
-                pageable.getPageSize()
-        );
+        List<HotelSummaryDto> hotels = hotelPublicMapper.searchHotels(request);
+        Long totalCount = hotelPublicMapper.countSearchHotels(request);
 
-        Long totalCount = hotelPublicMapper.countSearchHotels(
-                request.getDestination(),
-                request.getCheckIn(),
-                request.getCheckOut(),
-                request.getGuests(),
-                request.getMinPrice(),
-                request.getMaxPrice(),
-                request.getRating(),
-                request.getHotelType(),
-                request.getFreebies(),
-                request.getAmenities()
-        );
-
-        // 검색 조건에 따른 호텔 타입별 카운트 조회 추가
+        // 현재 검색 조건으로 호텔 타입별 카운트 조회
         Map<String, Long> hotelTypeCounts = new HashMap<>();
-        hotelTypeCounts.put("hotel", hotelPublicMapper.countByTypeWithFilters(
-                "hotel",
-                request.getDestination(),
-                request.getRating(),
-                request.getMinPrice(),
-                request.getMaxPrice(),
-                request.getFreebies(),
-                request.getAmenities()
-        ));
-        hotelTypeCounts.put("motel", hotelPublicMapper.countByTypeWithFilters(
-                "motel",
-                request.getDestination(),
-                request.getRating(),
-                request.getMinPrice(),
-                request.getMaxPrice(),
-                request.getFreebies(),
-                request.getAmenities()
-        ));
-        hotelTypeCounts.put("resort", hotelPublicMapper.countByTypeWithFilters(
-                "resort",
-                request.getDestination(),
-                request.getRating(),
-                request.getMinPrice(),
-                request.getMaxPrice(),
-                request.getFreebies(),
-                request.getAmenities()
-        ));
 
-        // 기존 로그인 사용자 찜 목록 조회...
+        // 원본 hotelType 백업
+        String originalHotelType = request.getHotelType();
+
+        // 각 타입별로 현재 검색 조건을 적용하여 카운트
+        for (String type : Arrays.asList("hotel", "motel", "resort")) {
+            request.setHotelType(type);
+            hotelTypeCounts.put(type, hotelPublicMapper.countSearchHotels(request));
+        }
+
+        // 원본 hotelType 복원
+        request.setHotelType(originalHotelType);
+
+        // 로그인 사용자 찜 목록 조회
         List<Long> wishlistedHotelIds = new ArrayList<>();
         if (memberId != null) {
             wishlistedHotelIds = cartMapper.findHotelIdsByMemberId(memberId);
         }
 
+        // 호텔 상세 정보 보완
         for (HotelSummaryDto hotel : hotels) {
             hotel.setFreebies(hotelPublicMapper.findFreebiesByHotelId(hotel.getId()));
             hotel.setAmenities(hotelPublicMapper.findAmenitiesByHotelId(hotel.getId()));
@@ -116,10 +73,10 @@ public class HotelPublicService {
         return HotelSearchResponseDto.builder()
                 .hotels(hotels)
                 .totalCount(totalCount)
-                .currentPage(pageable.getPageNumber())
-                .totalPages((int) Math.ceil((double) totalCount / pageable.getPageSize()))
-                .pageSize(pageable.getPageSize())
-                .hotelTypeCounts(hotelTypeCounts)  // 추가
+                .currentPage(0)
+                .totalPages(1)
+                .pageSize(hotels.size())
+                .hotelTypeCounts(hotelTypeCounts)
                 .build();
     }
 
@@ -141,15 +98,15 @@ public class HotelPublicService {
         // 이미지 조회
         hotel.setImages(hotelPublicMapper.findImagesByHotelId(hotelId));
 
-        // 객실 정보 조회 (RoomDto 사용)
+        // 객실 정보 조회
         if (checkIn != null && checkOut != null) {
             hotel.setRooms(hotelPublicMapper.findAvailableRoomsByHotelId(hotelId, checkIn, checkOut));
         } else {
             hotel.setRooms(hotelPublicMapper.findRoomsByHotelId(hotelId));
         }
 
-        // 리뷰 조회 (ReviewsDto 사용)
-        hotel.setReviews(hotelPublicMapper.findReviewsByHotelId(hotelId, 0, 10));
+        // 리뷰 조회
+        hotel.setReviews(hotelPublicMapper.findReviewsByHotelId(hotelId, 0L));
 
         // 찜 상태 조회
         if (memberId != null) {
@@ -212,6 +169,7 @@ public class HotelPublicService {
         }
         return stars + " Star Hotel";
     }
+
     public List<HotelSummaryDto> getWishlistHotels(Long memberId) {
         log.info("찜한 호텔 목록 조회 - memberId: {}", memberId);
 
@@ -223,7 +181,7 @@ public class HotelPublicService {
             hotel.setRatingText(getRatingText(hotel.getRating()));
             hotel.setType(getStarTypeText(hotel.getStars()));
             hotel.setCurrency("KRW");
-            hotel.setWishlisted(true); // 찜 목록이므로 모두 true
+            hotel.setWishlisted(true);
 
             if (hotel.getImage() == null || hotel.getImage().isEmpty()) {
                 hotel.setImage("/images/hotel_img/hotel1.jpg");

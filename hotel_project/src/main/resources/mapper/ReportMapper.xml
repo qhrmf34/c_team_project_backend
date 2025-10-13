@@ -13,7 +13,6 @@
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
-    <!-- 특정 리뷰의 신고 목록 조회 -->
     <select id="findByReviewId" resultMap="ReportDtoMap">
         SELECT
             r.id,
@@ -25,12 +24,11 @@
             m.first_name,
             m.last_name
         FROM reports_tbl r
-                 LEFT JOIN members_tbl m ON r.member_id = m.id
+                 LEFT JOIN member_tbl m ON r.member_id = m.id
         WHERE r.reviews_id = #{reviewId}
         ORDER BY r.created_at DESC
     </select>
 
-    <!-- 중복 신고 체크 -->
     <select id="existsByMemberIdAndReviewId" resultType="boolean">
         SELECT
             CASE
@@ -41,5 +39,29 @@
         WHERE member_id = #{memberId}
           AND reviews_id = #{reviewId}
     </select>
+
+    <!-- 리뷰 작성자 ID 조회 -->
+    <select id="getReviewOwnerId" resultType="long">
+        SELECT member_id
+        FROM reviews_tbl
+        WHERE id = #{reviewId}
+    </select>
+
+    <!-- 신고 등록 -->
+    <insert id="insertReport" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reports_tbl (
+            reviews_id,
+            member_id,
+            report_type,
+            report_content,
+            created_at
+        ) VALUES (
+                     #{reviewsId},
+                     #{memberId},
+                     #{reportType},
+                     #{reportContent},
+                     NOW()
+                 )
+    </insert>
 
 </mapper>

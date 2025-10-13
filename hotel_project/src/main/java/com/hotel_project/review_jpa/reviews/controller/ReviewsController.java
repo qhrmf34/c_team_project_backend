@@ -4,6 +4,7 @@ import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.common_jpa.util.JwtUtil;
 import com.hotel_project.review_jpa.reviews.dto.ReviewCard;
+import com.hotel_project.review_jpa.reviews.dto.ReviewEligibilityDto;
 import com.hotel_project.review_jpa.reviews.dto.ReviewsDto;
 import com.hotel_project.review_jpa.reviews.service.ReviewsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -129,5 +130,46 @@ public class ReviewsController {
         log.info("리뷰 삭제 완료 - reviewId: {}, memberId: {}", reviewId, memberId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "리뷰가 삭제되었습니다.", null));
+    }
+
+    @GetMapping("/eligibility")
+    @Operation(summary = "리뷰 작성 가능 여부 체크",
+            description = "결제 완료 + 체크아웃 날짜 지남 + 1개만 작성 가능 조건 체크")
+    public ResponseEntity<ApiResponse<ReviewEligibilityDto>> checkReviewEligibility(
+            @RequestParam Long hotelId,
+            @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
+
+        String token = jwtUtil.extractToken(authorization);
+
+        if (!jwtUtil.validateToken(token)) {
+            throw new CommonExceptionTemplate(401, "유효하지 않은 토큰입니다.");
+        }
+
+        Long memberId = jwtUtil.getMemberIdFromToken(token);
+        ReviewEligibilityDto eligibility = reviewsService.checkReviewEligibility(hotelId, memberId);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "success", eligibility));
+    }
+
+    @GetMapping("/my-review")
+    @Operation(summary = "내가 작성한 리뷰 조회", description = "특정 호텔에 대한 본인의 리뷰를 조회합니다.")
+    public ResponseEntity<ApiResponse<ReviewsDto>> getMyReview(
+            @RequestParam Long hotelId,
+            @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
+
+        String token = jwtUtil.extractToken(authorization);
+
+        if (!jwtUtil.validateToken(token)) {
+            throw new CommonExceptionTemplate(401, "유효하지 않은 토큰입니다.");
+        }
+
+        Long memberId = jwtUtil.getMemberIdFromToken(token);
+        ReviewsDto myReview = reviewsService.getMyReview(hotelId, memberId);
+
+        if (myReview == null) {
+            return ResponseEntity.ok(ApiResponse.success(404, "작성한 리뷰가 없습니다.", null));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(200, "success", myReview));
     }
 }
