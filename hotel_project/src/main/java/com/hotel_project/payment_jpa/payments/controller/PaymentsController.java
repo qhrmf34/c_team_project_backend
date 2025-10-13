@@ -45,7 +45,7 @@ public class PaymentsController {
             HttpServletRequest request,
             BindingResult bindingResult
     ) throws CommonExceptionTemplate {
-
+        PaymentsDto a=paymentsDto;
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessages = new StringBuilder();
             bindingResult.getFieldErrors().forEach(error ->

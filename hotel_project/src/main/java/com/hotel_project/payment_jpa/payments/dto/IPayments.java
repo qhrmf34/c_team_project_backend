@@ -13,21 +13,18 @@ public interface IPayments extends IId {
     IId getReservations();
     void setReservations(IId reservation);
 
-    @JsonIgnore
     Long getReservationsId();
     void setReservationsId(Long reservationsId);
 
     IId getPaymentMethod();
     void setPaymentMethod(IId paymentMethod);
 
-    @JsonIgnore
     Long getPaymentMethodId();
     void setPaymentMethodId(Long paymentMethodId);
 
     IId getCoupon();
     void setCoupon(IId coupon);
 
-    @JsonIgnore
     Long getCouponId();
     void setCouponId(Long couponId);
 

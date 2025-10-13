@@ -199,11 +199,11 @@
     </delete>
 
 
-    <select id="getRoomDetailById" resultType="com.hotel_project.hotel_jpa.room.dto.RoomDto" parameterType="java.lang.Long">
+    <select id="getRoomDetailById" resultType="map" parameterType="java.lang.Long">
         SELECT
             r.id,
             r.hotel_id AS hotelId,
-            r.name AS roomName,
+            r.room_name AS roomName,
             r.room_single_bed AS roomSingleBed,
             r.room_double_bed AS roomDoubleBed,
             r.base_price AS basePrice,
