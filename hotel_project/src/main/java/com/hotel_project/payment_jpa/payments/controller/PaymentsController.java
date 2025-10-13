@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/payments")
 @CrossOrigin("*")
@@ -57,6 +59,37 @@ public class PaymentsController {
         Long memberId = getMemberIdFromToken(request);
 
         PaymentsDto result = paymentsService.processPayment(paymentsDto, memberId);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "결제가 완료되었습니다", result));
+    }
+    // ✅ 새로 추가할 엔드포인트
+    @PostMapping("/confirm")
+    @Operation(summary = "결제 승인", description = "결제위젯으로 결제 후 승인 처리")
+    public ResponseEntity<ApiResponse<PaymentsDto>> confirmPayment(
+            @RequestBody Map<String, Object> confirmData,
+            HttpServletRequest request
+    ) throws CommonExceptionTemplate {
+
+        Long memberId = getMemberIdFromToken(request);
+
+        String paymentKey = (String) confirmData.get("paymentKey");
+        String orderId = (String) confirmData.get("orderId");
+        Long amount = ((Number) confirmData.get("amount")).longValue();
+        Long reservationId = ((Number) confirmData.get("reservationId")).longValue();
+
+        // paymentMethodId는 optional (토스가 결제 처리)
+        Object paymentMethodIdObj = confirmData.get("paymentMethodId");
+        Long paymentMethodId = (paymentMethodIdObj != null && !"".equals(paymentMethodIdObj)) ?
+                ((Number) paymentMethodIdObj).longValue() : null;
+
+        Object couponIdObj = confirmData.get("couponId");
+        Long couponId = (couponIdObj != null && !"".equals(couponIdObj)) ?
+                ((Number) couponIdObj).longValue() : null;
+
+
+        PaymentsDto result = paymentsService.confirmWidgetPayment(
+                paymentKey, orderId, amount, reservationId, paymentMethodId, couponId, memberId
+        );
 
         return ResponseEntity.ok(ApiResponse.success(200, "결제가 완료되었습니다", result));
     }
