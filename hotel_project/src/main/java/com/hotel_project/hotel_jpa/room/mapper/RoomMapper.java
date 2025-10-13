@@ -12,12 +12,12 @@ import java.util.Map;
 public interface RoomMapper {
 
     List<RoomViewDto> findByName(
-            @Param("RoomName") String roomName,
+            @Param("search") String roomName,
             @Param("offset") long offset,
             @Param("size") int size
     );
 
-    long countByName(@Param("RoomName") String roomName);
+    long countByName(@Param("search") String roomName);
 
     // 날짜별 객실 재고 확인 및 총 가격 계산
     List<Map<String, Object>> getRoomAvailabilityWithPricing(
