@@ -3,8 +3,7 @@ package com.hotel_project.hotel_jpa.room.controller;
 import com.hotel_project.common_jpa.dto.PublicSearchDto;
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
-import com.hotel_project.hotel_jpa.room.dto.RoomDto;
-import com.hotel_project.hotel_jpa.room.dto.RoomViewDto;
+import com.hotel_project.hotel_jpa.room.dto.*;
 import com.hotel_project.hotel_jpa.room.service.RoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,9 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/rooms")
@@ -28,7 +32,7 @@ public class RoomController {
     @GetMapping
     @Operation(summary = "객실 검색", description = "객실명으로 검색합니다. 검색어가 없으면 전체 조회")
     public ResponseEntity<ApiResponse<Page<RoomViewDto>>> findByName(
-    PublicSearchDto publicSearchDto) {
+            PublicSearchDto publicSearchDto) {
 
         Pageable pageable = PageRequest.of(publicSearchDto.getPage(), publicSearchDto.getSize());
         Page<RoomViewDto> rooms = roomService.findByName(pageable, publicSearchDto.getSearch());
@@ -68,5 +72,42 @@ public class RoomController {
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) throws CommonExceptionTemplate {
         String result = roomService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(200, "success", result));
+    }
+
+    @GetMapping("/availability")
+    @Operation(summary = "날짜별 객실 재고 조회", description = "특정 호텔의 예약 가능한 객실 목록과 가격을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<RoomAvailabilityDto>>> getRoomAvailability(
+            @RequestParam Long hotelId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut) {
+
+        RoomSearchDto searchDto = RoomSearchDto.builder()
+                .hotelId(hotelId)
+                .checkIn(checkIn)
+                .checkOut(checkOut)
+                .build();
+
+        List<RoomAvailabilityDto> rooms = roomService.getRoomAvailability(searchDto);
+        return ResponseEntity.ok(ApiResponse.success(200, "success", rooms));
+    }
+
+    @GetMapping("/{roomId}/daily-prices")
+    @Operation(summary = "객실 날짜별 가격 조회", description = "특정 객실의 날짜별 상세 가격을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getRoomDailyPrices(
+            @PathVariable Long roomId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut) {
+
+        List<Map<String, Object>> prices = roomService.getRoomDailyPrices(roomId, checkIn, checkOut);
+        return ResponseEntity.ok(ApiResponse.success(200, "success", prices));
+    }
+
+    @GetMapping("/{roomId}/detail")
+    @Operation(summary = "객실 상세 정보 조회", description = "Book Now용 객실 전체 정보를 조회합니다.")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getRoomDetail(
+            @PathVariable Long roomId) {
+
+        Map<String, Object> detail = roomService.getRoomDetailById(roomId);
+        return ResponseEntity.ok(ApiResponse.success(200, "success", detail));
     }
 }

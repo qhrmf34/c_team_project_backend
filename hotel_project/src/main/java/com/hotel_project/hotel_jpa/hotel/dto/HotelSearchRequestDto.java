@@ -14,7 +14,6 @@ public class HotelSearchRequestDto {
     private LocalDate checkIn;
     private LocalDate checkOut;
     private Integer guests;
-    private Integer rooms;
     private Integer minPrice;
     private Integer maxPrice;
     private Integer rating;
@@ -22,4 +21,6 @@ public class HotelSearchRequestDto {
     private List<Long> freebies;
     private List<Long> amenities;
     private String sortBy;
+    private Long offset;
+    private Integer size;
 }

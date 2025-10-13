@@ -14,7 +14,8 @@
         <!-- MemberDto 매핑 -->
         <association property="memberDto" javaType="com.hotel_project.member_jpa.member.dto.MemberDto">
             <id property="id" column="member_id"/>
-            <result property="name" column="member_name"/>
+            <result property="firstName" column="member_first_name"/>
+            <result property="lastName" column="member_last_name"/>
             <result property="email" column="member_email"/>
         </association>
 
@@ -36,32 +37,36 @@
         </association>
     </resultMap>
 
-    <!-- 장바구니 조회 (회원별) - 상세 정보 포함 -->
+    <!-- 장바구니 조회 -->
     <select id="findByMemberId" resultMap="CartDetailResultMap">
         SELECT
-            c.id AS cart_id,
-            c.member_id,
-            c.hotel_id,
-            c.created_at,
-            m.name AS member_name,
-            m.email AS member_email,
-            h.city_id,
-            h.hotel_type,
-            h.hotel_name,
-            h.hotel_latitude,
-            h.hotel_longitude,
-            h.hotel_content,
-            h.hotel_star,
-            h.freebies_number,
-            h.hotel_number,
-            h.checkin_time,
-            h.checkout_time,
-            h.hotel_rating
+        c.id AS cart_id,
+        c.member_id,
+        c.hotel_id,
+        c.created_at,
+        m.first_name AS member_first_name,
+        m.last_name AS member_last_name,
+        m.email AS member_email,
+        h.city_id,
+        h.hotel_type,
+        h.hotel_name,
+        h.hotel_latitude,
+        h.hotel_longitude,
+        h.hotel_content,
+        h.hotel_star,
+        h.freebies_number,
+        h.hotel_number,
+        h.checkin_time,
+        h.checkout_time,
+        h.hotel_rating
         FROM cart_tbl c
-                 LEFT JOIN member_tbl m ON c.member_id = m.id
-                 LEFT JOIN hotel_tbl h ON c.hotel_id = h.id
+        LEFT JOIN member_tbl m ON c.member_id = m.id
+        LEFT JOIN hotel_tbl h ON c.hotel_id = h.id
         WHERE c.member_id = #{memberId}
         ORDER BY c.created_at DESC
+        <if test="offset != null and size != null">
+            LIMIT #{size} OFFSET #{offset}
+        </if>
     </select>
 
     <!-- 장바구니 존재 여부 -->
@@ -80,10 +85,10 @@
 
     <!-- 호텔 ID 목록 조회 (회원별) -->
     <select id="findHotelIdsByMemberId" resultType="long">
-        SELECT hotel_id
-        FROM cart_tbl
-        WHERE member_id = #{memberId}
-        ORDER BY created_at DESC
+        SELECT c.hotel_id
+        FROM cart_tbl c
+        WHERE c.member_id = #{memberId}
+        ORDER BY c.created_at DESC
     </select>
 
 </mapper>

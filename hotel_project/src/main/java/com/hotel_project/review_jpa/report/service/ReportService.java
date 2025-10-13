@@ -20,8 +20,6 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final ReportMapper reportMapper;
 
-    // ========== READ (MyBatis Mapper 사용) ==========
-
     public List<ReportDto> getReportsByReviewId(Long reviewId) {
         log.info("리뷰 ID {}의 신고 목록 조회", reviewId);
         return reportMapper.findByReviewId(reviewId);
@@ -31,14 +29,11 @@ public class ReportService {
         return reportMapper.existsByMemberIdAndReviewId(memberId, reviewId);
     }
 
-    // ========== CREATE (JPA 사용) ==========
-
     @Transactional
     public ReportDto createReport(ReportDto reportDto) throws CommonExceptionTemplate {
         log.info("리뷰 신고 - memberId: {}, reviewId: {}, type: {}",
                 reportDto.getMemberId(), reportDto.getReviewsId(), reportDto.getReportType());
 
-        // 중복 신고 체크
         if (reportRepository.existsByMemberEntity_IdAndReviewsEntity_Id(
                 reportDto.getMemberId(), reportDto.getReviewsId())) {
             throw new CommonExceptionTemplate(400, "이미 해당 리뷰를 신고하셨습니다.");
@@ -56,8 +51,6 @@ public class ReportService {
         return convertToDto(saved);
     }
 
-    // ========== DELETE (JPA 사용) ==========
-
     @Transactional
     public void deleteReport(Long reportId) throws CommonExceptionTemplate {
         log.info("신고 삭제 - reportId: {}", reportId);
@@ -69,8 +62,30 @@ public class ReportService {
         log.info("신고 삭제 완료 - reportId: {}", reportId);
     }
 
-    // ========== Helper Methods ==========
+    //본인 리뷰 신고 방지 체크
+    // 리뷰 작성자 ID를 조회하여 본인 여부 확인
+    @Transactional
+    public ReportDto createReportWithValidation(ReportDto reportDto) throws CommonExceptionTemplate {
+        log.info("리뷰 신고 (본인 체크 포함) - memberId: {}, reviewId: {}",
+                reportDto.getMemberId(), reportDto.getReviewsId());
 
+        // 1. 본인 리뷰 신고 방지
+        Long reviewOwnerId = reportMapper.getReviewOwnerId(reportDto.getReviewsId());
+        if (reviewOwnerId != null && reviewOwnerId.equals(reportDto.getMemberId())) {
+            throw new CommonExceptionTemplate(400, "본인의 리뷰는 신고할 수 없습니다.");
+        }
+
+        // 2. 중복 신고 체크
+        if (reportMapper.existsByMemberIdAndReviewId(
+                reportDto.getMemberId(), reportDto.getReviewsId())) {
+            throw new CommonExceptionTemplate(400, "이미 해당 리뷰를 신고하셨습니다.");
+        }
+
+        // 3. 신고 생성
+        return createReport(reportDto);
+    }
+
+    // Helper Methods
     private ReportDto convertToDto(ReportEntity entity) {
         ReportDto dto = new ReportDto();
         dto.copyMembers(entity);
