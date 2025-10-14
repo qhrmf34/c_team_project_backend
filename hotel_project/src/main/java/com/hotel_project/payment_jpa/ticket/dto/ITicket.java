@@ -17,6 +17,10 @@ public interface ITicket extends IId {
     String getTicketImageName();
     void setTicketImageName(String ticketImageName);
 
+    // ✅ 바코드 추가
+    String getBarcode();
+    void setBarcode(String barcode);
+
     Boolean getIsUsed();
     void setIsUsed(Boolean isUsed);
 
@@ -24,23 +28,21 @@ public interface ITicket extends IId {
     void setCreatedAt(LocalDateTime created);
 
     default void copyMembers(ITicket iTicket) {
-        if (iTicket == null){
-            return;
-        }
+        if (iTicket == null) return;
         setId(iTicket.getId());
         setPayments(iTicket.getPayments());
         setTicketImageName(iTicket.getTicketImageName());
+        setBarcode(iTicket.getBarcode()); // ✅
         setIsUsed(iTicket.getIsUsed());
         setCreatedAt(iTicket.getCreatedAt());
     }
 
     default void copyNotNullMembers(ITicket iTicket) {
-        if (iTicket == null){
-            return;
-        }
-        if (iTicket.getId() != null){ setId(iTicket.getId()); }
-        if (iTicket.getPayments() != null){ setPayments(iTicket.getPayments()); }
-        if (iTicket.getTicketImageName() != null){ setTicketImageName(iTicket.getTicketImageName()); }
-        if (iTicket.getIsUsed() != null){ setIsUsed(iTicket.getIsUsed()); }
+        if (iTicket == null) return;
+        if (iTicket.getId() != null) setId(iTicket.getId());
+        if (iTicket.getPayments() != null) setPayments(iTicket.getPayments());
+        if (iTicket.getTicketImageName() != null) setTicketImageName(iTicket.getTicketImageName());
+        if (iTicket.getBarcode() != null) setBarcode(iTicket.getBarcode()); // ✅
+        if (iTicket.getIsUsed() != null) setIsUsed(iTicket.getIsUsed());
     }
 }

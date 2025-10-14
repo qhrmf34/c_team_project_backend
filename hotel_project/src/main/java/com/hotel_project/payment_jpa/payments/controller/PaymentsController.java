@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -92,5 +93,60 @@ public class PaymentsController {
         );
 
         return ResponseEntity.ok(ApiResponse.success(200, "결제가 완료되었습니다", result));
+    }
+    /**
+     * ✅ 전액 환불
+     */
+    @PostMapping("/{paymentId}/refund")
+    @Operation(summary = "결제 환불", description = "결제를 전액 환불합니다")
+    public ResponseEntity<ApiResponse<PaymentsDto>> refundPayment(
+            @PathVariable Long paymentId,
+            @RequestBody Map<String, String> requestBody,
+            HttpServletRequest request
+    ) throws CommonExceptionTemplate {
+
+        Long memberId = getMemberIdFromToken(request);
+        String cancelReason = requestBody.getOrDefault("cancelReason", "고객 요청");
+
+
+        PaymentsDto result = paymentsService.refundPayment(paymentId, cancelReason, memberId);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "환불이 완료되었습니다", result));
+    }
+
+    /**
+     * ✅ 부분 환불
+     */
+    @PostMapping("/{paymentId}/refund-partial")
+    @Operation(summary = "부분 환불", description = "결제를 부분 환불합니다")
+    public ResponseEntity<ApiResponse<PaymentsDto>> refundPaymentPartial(
+            @PathVariable Long paymentId,
+            @RequestBody Map<String, Object> requestBody,
+            HttpServletRequest request
+    ) throws CommonExceptionTemplate {
+
+        Long memberId = getMemberIdFromToken(request);
+        Long refundAmount = ((Number) requestBody.get("refundAmount")).longValue();
+        String cancelReason = (String) requestBody.getOrDefault("cancelReason", "고객 요청");
+
+        PaymentsDto result = paymentsService.refundPaymentPartial(
+                paymentId, refundAmount, cancelReason, memberId);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "부분 환불이 완료되었습니다", result));
+    }
+
+    /**
+     * ✅ 내 결제 내역 조회
+     */
+    @GetMapping("/my")
+    @Operation(summary = "내 결제 내역", description = "내 결제 내역을 조회합니다")
+    public ResponseEntity<ApiResponse<List<PaymentsDto>>> getMyPayments(
+            HttpServletRequest request
+    ) throws CommonExceptionTemplate {
+
+        Long memberId = getMemberIdFromToken(request);
+        List<PaymentsDto> payments = paymentsService.getMyPayments(memberId);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "조회 성공", payments));
     }
 }

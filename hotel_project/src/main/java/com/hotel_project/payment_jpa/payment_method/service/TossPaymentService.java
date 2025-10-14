@@ -37,6 +37,8 @@ public class TossPaymentService {
 
     private static final String TOSS_BILLING_URL = "https://api.tosspayments.com/v1/billing/authorizations/card";
     private static final String TOSS_PAYMENT_CONFIRM_URL = "https://api.tosspayments.com/v1/payments/confirm";
+    private static final String TOSS_CANCEL_URL = "https://api.tosspayments.com/v1/payments";
+
     /**
      * ===== 카드 등록 (빌링키 발급) =====
      * billingSecretKey 사용
@@ -270,5 +272,123 @@ public class TossPaymentService {
         }
 
         return "회원_" + member.getId();
+    }
+    /**
+     * ✅ 결제 취소(환불)
+     */
+    public TossPaymentResponseDto cancelPayment(
+            String paymentKey,
+            String cancelReason) throws CommonExceptionTemplate {
+
+        try {
+            log.info("✅ 결제 취소 시작 - paymentKey: {}", paymentKey);
+            log.info("취소 사유: {}", cancelReason);
+
+            // 취소 요청 데이터
+            Map<String, Object> requestData = new HashMap<>();
+            requestData.put("cancelReason", cancelReason);
+            // 전액 취소이므로 금액은 지정하지 않음
+
+            String jsonBody = objectMapper.writeValueAsString(requestData);
+            RequestBody body = RequestBody.create(
+                    jsonBody, MediaType.get("application/json; charset=utf-8")
+            );
+
+            String credentials = widgetSecretKey + ":";
+            String basicAuth = Base64.getEncoder().encodeToString(credentials.getBytes());
+
+            String cancelUrl = TOSS_CANCEL_URL + "/" + paymentKey + "/cancel";
+            Request httpRequest = new Request.Builder()
+                    .url(cancelUrl)
+                    .post(body)
+                    .addHeader("Authorization", "Basic " + basicAuth)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            try (Response response = client.newCall(httpRequest).execute()) {
+                String responseBody = response.body().string();
+
+                log.info("✅ 토스 취소 응답 코드: {}", response.code());
+                log.debug("✅ 토스 취소 응답 본문: {}", responseBody);
+
+                if (response.isSuccessful()) {
+                    TossPaymentResponseDto cancelResponse =
+                            objectMapper.readValue(responseBody, TossPaymentResponseDto.class);
+                    log.info("✅✅ 결제 취소 성공!");
+                    return cancelResponse;
+                } else {
+                    log.error("❌ 결제 취소 실패 - 코드: {}, 응답: {}",
+                            response.code(), responseBody);
+                    throw new CommonExceptionTemplate(
+                            response.code(),
+                            "결제 취소 실패: " + responseBody);
+                }
+            }
+
+        } catch (IOException e) {
+            log.error("❌ 결제 취소 API 호출 중 IO 오류", e);
+            throw new CommonExceptionTemplate(500, "결제 취소 API 호출 중 오류 발생");
+        } catch (CommonExceptionTemplate e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("❌ 결제 취소 처리 중 예상치 못한 오류", e);
+            throw new CommonExceptionTemplate(500, "결제 취소 중 오류 발생: " + e.getMessage());
+        }
+    }
+
+    /**
+     * ✅ 부분 환불
+     */
+    public TossPaymentResponseDto cancelPaymentPartial(
+            String paymentKey,
+            Long cancelAmount,
+            String cancelReason) throws CommonExceptionTemplate {
+
+        try {
+            log.info("✅ 부분 환불 시작 - paymentKey: {}, amount: {}", paymentKey, cancelAmount);
+
+            Map<String, Object> requestData = new HashMap<>();
+            requestData.put("cancelAmount", cancelAmount);
+            requestData.put("cancelReason", cancelReason);
+
+            String jsonBody = objectMapper.writeValueAsString(requestData);
+            RequestBody body = RequestBody.create(
+                    jsonBody, MediaType.get("application/json; charset=utf-8")
+            );
+
+            String credentials = widgetSecretKey + ":";
+            String basicAuth = Base64.getEncoder().encodeToString(credentials.getBytes());
+
+            String cancelUrl = TOSS_CANCEL_URL + "/" + paymentKey + "/cancel";
+            Request httpRequest = new Request.Builder()
+                    .url(cancelUrl)
+                    .post(body)
+                    .addHeader("Authorization", "Basic " + basicAuth)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            try (Response response = client.newCall(httpRequest).execute()) {
+                String responseBody = response.body().string();
+
+                log.info("✅ 토스 부분환불 응답 코드: {}", response.code());
+
+                if (response.isSuccessful()) {
+                    TossPaymentResponseDto cancelResponse =
+                            objectMapper.readValue(responseBody, TossPaymentResponseDto.class);
+                    log.info("✅✅ 부분 환불 성공!");
+                    return cancelResponse;
+                } else {
+                    log.error("❌ 부분 환불 실패 - 코드: {}, 응답: {}",
+                            response.code(), responseBody);
+                    throw new CommonExceptionTemplate(
+                            response.code(),
+                            "부분 환불 실패: " + responseBody);
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("❌ 부분 환불 처리 중 오류", e);
+            throw new CommonExceptionTemplate(500, "부분 환불 중 오류 발생");
+        }
     }
 }
