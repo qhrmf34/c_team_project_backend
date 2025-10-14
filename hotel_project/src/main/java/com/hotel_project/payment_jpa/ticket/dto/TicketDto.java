@@ -25,23 +25,27 @@ public class TicketDto implements ITicket {
     @NotNull
     private String ticketImageName;
 
+    // ✅ 바코드 추가
+    private String barcode;
+
     @NotNull
     private Boolean isUsed;
 
     @NotNull
     private LocalDateTime createdAt;
 
+
     @Override
-    public IId getPayments(){
+    public IId getPayments() {
         return this.paymentsDto;
     }
 
     @Override
     public void setPayments(IId iId) {
-        if (iId == null){
+        if (iId == null) {
             return;
         }
-        if (this.paymentsDto == null){
+        if (this.paymentsDto == null) {
             this.paymentsDto = new PaymentsDto();
         }
         this.paymentsDto.copyMembersId(iId);
@@ -49,7 +53,7 @@ public class TicketDto implements ITicket {
 
     @Override
     public Long getPaymentId() {
-        if(this.paymentsDto != null){
+        if (this.paymentsDto != null) {
             return this.paymentsDto.getId();
         }
         return this.paymentId;
@@ -57,14 +61,14 @@ public class TicketDto implements ITicket {
 
     @Override
     public void setPaymentId(Long paymentId) {
-        if (paymentId == null){
+        if (paymentId == null) {
             if (this.paymentsDto != null && this.paymentsDto.getId() != null) {
                 this.paymentsDto.setId(this.paymentsDto.getId());
             }
             return;
         }
         this.paymentId = paymentId;
-        if(this.paymentsDto == null){
+        if (this.paymentsDto == null) {
             this.paymentsDto = new PaymentsDto();
         }
         this.paymentsDto.setId(this.paymentId);

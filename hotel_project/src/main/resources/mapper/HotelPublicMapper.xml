@@ -53,7 +53,8 @@
                 r.hotel_id,
                 r.id as room_id,
                 ds.date,
-                COALESCE(rp.price, r.base_price) as daily_price
+                rp.price as daily_price,  -- ⭐ COALESCE 제거
+                rp.id as pricing_id       -- ⭐ pricing 존재 확인용
                 FROM room_tbl r
                 CROSS JOIN date_series ds
                 LEFT JOIN room_pricing_tbl rp
@@ -64,9 +65,13 @@
                 SELECT
                 hotel_id,
                 room_id,
-                SUM(daily_price) as total_price
+                SUM(daily_price) as total_price,
+                COUNT(pricing_id) as pricing_count,  -- ⭐ pricing이 있는 날짜 수
+                (SELECT nights FROM night_count) as expected_nights  -- ⭐ 기대하는 날짜 수
                 FROM room_daily_prices
                 GROUP BY hotel_id, room_id
+                HAVING pricing_count = expected_nights  -- ⭐ 모든 날짜에 pricing이 있어야 함
+                AND total_price > 0                   -- ⭐ 가격이 0보다 커야 함
                 ),
                 min_hotel_prices AS (
                 SELECT
@@ -118,7 +123,7 @@
         FROM hotel_tbl h
         LEFT JOIN city_tbl c ON h.city_id = c.id
         LEFT JOIN country_tbl co ON c.country_id = co.id
-        LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
+        INNER JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id  -- ⭐ LEFT → INNER JOIN으로 변경
         WHERE 1=1
 
         <if test="destination != null and destination != ''">
@@ -201,7 +206,7 @@
     <select id="countSearchHotels" resultType="java.lang.Long">
         WITH
         <choose>
-            <when test="checkIn != null and checkOut != null and (minPrice != null or maxPrice != null)">
+            <when test="checkIn != null and checkOut != null">
                 date_series AS (
                 SELECT DATE_ADD(#{checkIn}, INTERVAL seq DAY) as date
                 FROM (
@@ -226,7 +231,8 @@
                 r.hotel_id,
                 r.id as room_id,
                 ds.date,
-                COALESCE(rp.price, r.base_price) as daily_price
+                rp.price as daily_price,
+                rp.id as pricing_id            -- pricing 존재 확인용
                 FROM room_tbl r
                 CROSS JOIN date_series ds
                 LEFT JOIN room_pricing_tbl rp
@@ -237,9 +243,13 @@
                 SELECT
                 hotel_id,
                 room_id,
-                SUM(daily_price) as total_price
+                SUM(daily_price) as total_price,
+                COUNT(pricing_id) as pricing_count,
+                (SELECT nights FROM night_count) as expected_nights
                 FROM room_daily_prices
                 GROUP BY hotel_id, room_id
+                HAVING pricing_count = expected_nights  -- 모든 날짜에 pricing 필요
+                AND total_price > 0
                 ),
                 min_hotel_prices AS (
                 SELECT
@@ -268,9 +278,14 @@
         FROM hotel_tbl h
         LEFT JOIN city_tbl c ON h.city_id = c.id
         LEFT JOIN country_tbl co ON c.country_id = co.id
-        <if test="minPrice != null or maxPrice != null">
-            LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
-        </if>
+        <choose>
+            <when test="checkIn != null and checkOut != null">
+                INNER JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
+            </when>
+            <when test="minPrice != null or maxPrice != null">
+                LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
+            </when>
+        </choose>
         WHERE 1=1
 
         <if test="destination != null and destination != ''">
@@ -484,7 +499,7 @@
     <select id="countByTypeWithFilters" resultType="java.lang.Long">
         WITH
         <choose>
-            <when test="checkIn != null and checkOut != null and (minPrice != null or maxPrice != null)">
+            <when test="checkIn != null and checkOut != null">
                 date_series AS (
                 SELECT DATE_ADD(#{checkIn}, INTERVAL seq DAY) as date
                 FROM (
@@ -509,7 +524,8 @@
                 r.hotel_id,
                 r.id as room_id,
                 ds.date,
-                COALESCE(rp.price, r.base_price) as daily_price
+                rp.price as daily_price,
+                rp.id as pricing_id            -- pricing 존재 확인용
                 FROM room_tbl r
                 CROSS JOIN date_series ds
                 LEFT JOIN room_pricing_tbl rp
@@ -520,9 +536,13 @@
                 SELECT
                 hotel_id,
                 room_id,
-                SUM(daily_price) as total_price
+                SUM(daily_price) as total_price,
+                COUNT(pricing_id) as pricing_count,
+                (SELECT nights FROM night_count) as expected_nights
                 FROM room_daily_prices
                 GROUP BY hotel_id, room_id
+                HAVING pricing_count = expected_nights  -- 모든 날짜에 pricing 필요
+                AND total_price > 0
                 ),
                 min_hotel_prices AS (
                 SELECT
@@ -551,9 +571,14 @@
         FROM hotel_tbl h
         LEFT JOIN city_tbl c ON h.city_id = c.id
         LEFT JOIN country_tbl co ON c.country_id = co.id
-        <if test="minPrice != null or maxPrice != null">
-            LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
-        </if>
+        <choose>
+            <when test="checkIn != null and checkOut != null">
+                INNER JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
+            </when>
+            <when test="minPrice != null or maxPrice != null">
+                LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
+            </when>
+        </choose>
         WHERE h.hotel_type = #{hotelType}
 
         <if test="destination != null and destination != ''">

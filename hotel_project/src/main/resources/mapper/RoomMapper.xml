@@ -6,77 +6,78 @@
 
     <select id="getRoomAvailabilityWithPricing" resultType="map">
         WITH RECURSIVE date_series AS (
-            SELECT #{checkIn} as date
+        SELECT #{checkIn} as date
         UNION ALL
         SELECT DATE_ADD(date, INTERVAL 1 DAY)
         FROM date_series
         WHERE DATE_ADD(date, INTERVAL 1 DAY) &lt; #{checkOut}
-            ),
-            room_daily_status AS (
-            SELECT
-                ds.date,
-                r.id as room_id,
-                r.room_name,
-                r.room_single_bed,
-                r.room_double_bed,
-                r.base_price,
-                COALESCE(rp.price, r.base_price) as daily_price,
-                CASE
-                    WHEN EXISTS (
-                        SELECT 1 FROM reservations_tbl res
-                        WHERE res.room_id = r.id
-                          AND ds.date BETWEEN res.check_in_date AND DATE_SUB(res.check_out_date, INTERVAL 1 DAY)
-                          AND res.reservations_status IN (1, 2)
-                    ) THEN FALSE
-                    ELSE TRUE
-                END as is_available
-            FROM room_tbl r
-            CROSS JOIN date_series ds
-            LEFT JOIN room_pricing_tbl rp
-                ON r.id = rp.room_id
-                AND rp.date = ds.date
-            WHERE r.hotel_id = #{hotelId}
-            ),
-            available_rooms AS (
-            SELECT
-            room_id,
-            room_name,
-            room_single_bed,
-            room_double_bed,
-            base_price,
-            SUM(daily_price) as total_price,
-            COUNT(date) as nights,
-            MIN(CASE WHEN is_available = FALSE THEN 1 ELSE 0 END) = 0 as is_available
-            FROM room_daily_status
-            GROUP BY room_id, room_name, room_single_bed, room_double_bed, base_price
-            HAVING is_available = TRUE
-            )
+        ),
+        room_daily_status AS (
         SELECT
-            MIN(room_id) as roomId,
-            room_name as roomName,
-            TRIM(room_name) as roomNameTrimmed,
-            CONCAT(
-                    CASE WHEN room_single_bed > 0
-                             THEN CONCAT(room_single_bed, ' Single')
-                         ELSE ''
-                        END,
-                    CASE WHEN room_single_bed > 0 AND room_double_bed > 0
-                             THEN ' + '
-                         ELSE ''
-                        END,
-                    CASE WHEN room_double_bed > 0
-                             THEN CONCAT(room_double_bed, ' Double')
-                         ELSE ''
-                        END
-            ) as bedType,
-            MIN(base_price) as basePrice,
-            MIN(total_price) as totalPrice,
-            MAX(nights) as nights,
-            COUNT(DISTINCT room_id) as availableCount
+        ds.date,
+        r.id as room_id,
+        r.room_name,
+        r.room_single_bed,
+        r.room_double_bed,
+        r.base_price,
+        rp.price as daily_price,
+        rp.id as pricing_id,
+        CASE
+        WHEN EXISTS (
+        SELECT 1 FROM reservations_tbl res
+        WHERE res.room_id = r.id
+        AND ds.date BETWEEN res.check_in_date AND DATE_SUB(res.check_out_date, INTERVAL 1 DAY)
+        AND res.reservations_status IN (1, 2)
+        ) THEN FALSE
+        ELSE TRUE
+        END as is_available
+        FROM room_tbl r
+        CROSS JOIN date_series ds
+        LEFT JOIN room_pricing_tbl rp
+        ON r.id = rp.room_id
+        AND rp.date = ds.date
+        WHERE r.hotel_id = #{hotelId}
+        ),
+        available_rooms AS (
+        SELECT
+        room_id,
+        room_name,
+        room_single_bed,
+        room_double_bed,
+        base_price,
+        SUM(daily_price) as total_price,
+        COUNT(date) as nights,
+        COUNT(pricing_id) as pricing_count,
+        MIN(CASE WHEN is_available = FALSE THEN 1 ELSE 0 END) = 0 as is_available
+        FROM room_daily_status
+        GROUP BY room_id, room_name, room_single_bed, room_double_bed, base_price
+        HAVING is_available = TRUE
+        AND pricing_count = nights
+        AND total_price > 0
+        )
+        SELECT
+        room_id as roomId,  <!-- ⭐ 변경: MIN 제거 -->
+        room_name as roomName,
+        CONCAT(
+        CASE WHEN room_single_bed > 0
+        THEN CONCAT(room_single_bed, ' Single')
+        ELSE ''
+        END,
+        CASE WHEN room_single_bed > 0 AND room_double_bed > 0
+        THEN ' + '
+        ELSE ''
+        END,
+        CASE WHEN room_double_bed > 0
+        THEN CONCAT(room_double_bed, ' Double')
+        ELSE ''
+        END
+        ) as bedType,
+        base_price as basePrice,
+        total_price as totalPrice,
+        nights,
+        1 as availableCount
         FROM available_rooms
-        GROUP BY TRIM(room_name), room_single_bed, room_double_bed
-        HAVING availableCount > 0
-        ORDER BY totalPrice ASC
+        ORDER BY totalPrice ASC, roomId ASC
     </select>
 
     <select id="getRoomDailyPrices" resultType="map">
@@ -129,7 +130,18 @@
             </if>
         </where>
         ORDER BY r.id DESC
-        LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByName" resultType="long">
+        SELECT COUNT(*)
+        FROM room_tbl r
+        LEFT JOIN hotel_tbl h ON r.hotel_id = h.id
+        <where>
+            <if test="search != null and search != ''">
+                r.room_name LIKE CONCAT('%', #{search}, '%')
+            </if>
+        </where>
     </select>
 
     <select id="findById" resultType="com.hotel_project.hotel_jpa.room.dto.RoomDto">
@@ -186,4 +198,20 @@
         DELETE FROM room_tbl WHERE id = #{id}
     </delete>
 
+
+    <select id="getRoomDetailById" resultType="map" parameterType="java.lang.Long">
+        SELECT
+            r.id,
+            r.hotel_id AS hotelId,
+            r.room_name AS roomName,
+            r.room_single_bed AS roomSingleBed,
+            r.room_double_bed AS roomDoubleBed,
+            r.base_price AS basePrice,
+            r.room_number AS roomNumber,
+            r.room_view AS roomView,
+            r.created_at AS createdAt,
+            r.updated_at AS updatedAt
+        FROM room_tbl r
+        WHERE r.id = #{roomId}
+    </select>
 </mapper>

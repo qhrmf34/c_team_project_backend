@@ -44,4 +44,29 @@
         </where>
     </select>
 
+    <select id="getHotelBasicInfo" resultType="map">
+        SELECT
+            h.id as hotelId,
+            h.hotel_name as hotelName,
+            h.hotel_content as description,
+            CONCAT(c.city_name, ', ', co.country_name) as address,
+            c.city_name as cityName,
+            co.country_name as countryName,
+            h.hotel_latitude as latitude,
+            h.hotel_longitude as longitude,
+            h.hotel_number as phoneNumber
+        FROM hotel_tbl h
+                 LEFT JOIN city_tbl c ON h.city_id = c.id
+                 LEFT JOIN country_tbl co ON c.country_id = co.id
+        WHERE h.id = #{hotelId}
+    </select>
+
+    <select id="getFirstHotelImage" resultType="string">
+        SELECT hotel_image_path
+            FROM hotel_image_tbl
+            WHERE hotel_id = #{hotelId}
+            ORDER BY created_at ASC
+        LIMIT 1
+    </select>
+
 </mapper>

@@ -4,6 +4,9 @@ import com.hotel_project.payment_jpa.coupon.dto.CouponEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Repository
 public interface CouponRepository extends JpaRepository<CouponEntity, Long> {
 
@@ -15,4 +18,7 @@ public interface CouponRepository extends JpaRepository<CouponEntity, Long> {
 
     // ID 존재 여부 체크
     boolean existsById(Long id);
+
+    // 활성 쿠폰 조회 (만료일이 오늘 이후인 것만)
+    List<CouponEntity> findByIsActiveTrueAndLastDateGreaterThanEqual(LocalDate date);
 }

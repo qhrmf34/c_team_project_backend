@@ -31,8 +31,9 @@ public class PaymentsEntity implements IPayments{
     @Transient
     private Long reservationsId;
 
+    // (토스가 직접 결제 처리할 수 있으므로)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_method_id", nullable = false)
+    @JoinColumn(name = "payment_method_id", nullable = true)
     private PaymentMethodEntity paymentMethodEntity;
 
     @Transient
@@ -108,14 +109,16 @@ public class PaymentsEntity implements IPayments{
 
     @Override
     public void setPaymentMethod(IId iId){
-        if(iId == null){
-            return;
+
+        if (paymentMethodId != null) {
+            if(this.paymentMethodEntity == null){
+                this.paymentMethodEntity = new PaymentMethodEntity();
+            }
+            this.paymentMethodEntity.setId(paymentMethodId);
         }
-        if(this.paymentMethodEntity == null){
-            this.paymentMethodEntity = new PaymentMethodEntity();
-        }
-        this.paymentMethodEntity.copyMembersId(iId);
+        this.paymentMethodId = paymentMethodId;
     }
+
 
     @Override
     public Long getPaymentMethodId(){
