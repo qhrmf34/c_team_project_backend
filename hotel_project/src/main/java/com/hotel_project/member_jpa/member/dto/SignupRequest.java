@@ -38,4 +38,7 @@ public class SignupRequest {
 
     @AssertTrue(message = "이용약관에 동의해주세요.")
     private boolean agreement;
+
+    @NotBlank(message = "Turnstile 토큰이 필요합니다.")
+    private String turnstileToken;
 }

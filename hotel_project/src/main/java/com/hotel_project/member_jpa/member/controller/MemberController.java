@@ -2,6 +2,7 @@ package com.hotel_project.member_jpa.member.controller;
 
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.service.TokenBlacklistService;
+import com.hotel_project.common_jpa.service.TurnstileService;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.common_jpa.util.JwtUtil;
 import com.hotel_project.member_jpa.mail_authentication.dto.ForgotPasswordRequest;
@@ -28,6 +29,7 @@ public class MemberController {
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
     private final TokenBlacklistService tokenBlacklistService;
+    private final TurnstileService turnstileService;
 
     // ================= 회원가입 / 로그인 =================
     @PostMapping("/signup")
@@ -42,6 +44,9 @@ public class MemberController {
                     .forEach(error -> errorMessages.append(error.getDefaultMessage()).append(" "));
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
+
+        // Turnstile 검증
+        turnstileService.verifyToken(signupRequest.getTurnstileToken());
 
         LoginResponse response = memberService.signup(signupRequest);
         return ResponseEntity.ok(ApiResponse.success(200, "회원가입이 완료되었습니다.", response));
@@ -60,6 +65,9 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
+        // Turnstile 검증
+        turnstileService.verifyToken(loginRequest.getTurnstileToken());
+
         LoginResponse response = memberService.login(loginRequest);
         return ResponseEntity.ok(ApiResponse.success(200, "로그인이 완료되었습니다.", response));
     }
@@ -69,9 +77,7 @@ public class MemberController {
     public ResponseEntity<ApiResponse<String>> logout(@RequestHeader("Authorization") String authorization)
             throws CommonExceptionTemplate {
         String token = jwtUtil.extractToken(authorization);
-        // 토큰에서 JWT ID 추출
         String jwtId = jwtUtil.getJwtIdFromToken(token);
-        // 블랙리스트에 추가
         tokenBlacklistService.addToBlacklist(jwtId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "로그아웃이 완료되었습니다.", null));
@@ -129,12 +135,10 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
-        // 비밀번호 확인
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new CommonExceptionTemplate(400, "비밀번호가 일치하지 않습니다.");
         }
 
-        // 인증 코드 재확인 제거 - 이미 verify-reset-code에서 검증 완료
         String result = memberService.resetPasswordDirect(request.getEmail(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success(200, result, null));
     }
@@ -194,7 +198,6 @@ public class MemberController {
         String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
-        // 소셜 계정은 비밀번호가 없음
         if (currentMember.getProvider() != Provider.local) {
             throw new CommonExceptionTemplate(403, "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.");
         }
@@ -221,7 +224,6 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
-        // 비밀번호 확인
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new CommonExceptionTemplate(400, "새 비밀번호가 일치하지 않습니다.");
         }
@@ -229,7 +231,6 @@ public class MemberController {
         String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
-        // 소셜 계정은 비밀번호 변경 불가
         if (currentMember.getProvider() != Provider.local) {
             throw new CommonExceptionTemplate(403, "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.");
         }
