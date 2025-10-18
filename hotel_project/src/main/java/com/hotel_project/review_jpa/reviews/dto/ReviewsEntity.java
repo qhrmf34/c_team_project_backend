@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -40,6 +42,7 @@ public class ReviewsEntity implements IReviews {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservations_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private ReservationsEntity reservationsEntity;
 
     @Transient

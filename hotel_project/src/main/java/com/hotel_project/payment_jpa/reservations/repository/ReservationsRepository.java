@@ -5,13 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Repository
 public interface ReservationsRepository extends JpaRepository<ReservationsEntity, Long> {
 
-    /**
-     * 중복 예약 체크
-     */
     boolean existsByMemberEntity_IdAndRoomEntity_IdAndCheckInDateAndCheckOutDate(
             Long memberId,
             Long roomId,
@@ -19,6 +17,10 @@ public interface ReservationsRepository extends JpaRepository<ReservationsEntity
             LocalDate checkOutDate
     );
 
-
-
+    Optional<ReservationsEntity> findByMemberEntity_IdAndRoomEntity_IdAndCheckInDateAndCheckOutDateAndReservationsStatusFalse(
+            Long memberId,
+            Long roomId,
+            LocalDate checkInDate,
+            LocalDate checkOutDate
+    );
 }

@@ -30,4 +30,5 @@ public class HotelSummaryDto implements IHotelSummary {
     private String cityName;
     private List<FreebiesDto> freebies;
     private List<AmenitiesDto> amenities;
+    private Boolean available;
 }

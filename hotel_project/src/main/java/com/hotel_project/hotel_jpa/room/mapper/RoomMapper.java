@@ -1,5 +1,6 @@
 package com.hotel_project.hotel_jpa.room.mapper;
 
+import com.hotel_project.hotel_jpa.room.dto.RoomAvailabilityDto;
 import com.hotel_project.hotel_jpa.room.dto.RoomViewDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -20,7 +21,7 @@ public interface RoomMapper {
     long countByName(@Param("search") String roomName);
 
     // 날짜별 객실 재고 확인 및 총 가격 계산
-    List<Map<String, Object>> getRoomAvailabilityWithPricing(
+    List<RoomAvailabilityDto> getRoomAvailabilityWithPricing(
             @Param("hotelId") Long hotelId,
             @Param("checkIn") LocalDate checkIn,
             @Param("checkOut") LocalDate checkOut
