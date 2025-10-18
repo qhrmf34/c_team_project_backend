@@ -27,20 +27,20 @@ public class PaymentsDto implements IPayments {
     private ReservationsDto reservationsDto;
 
     @NotNull(message = "예약 ID는 필수입니다.")
-    @JsonProperty("reservationsId")  // ⭐ JSON에서 받기
+    @JsonProperty("reservationsId")
     private Long reservationsId;
 
     @JsonIgnore
     private PaymentMethodDto paymentMethodDto;
 
     @NotNull(message = "결제수단 ID는 필수입니다.")
-    @JsonProperty("paymentMethodId")  // ⭐ JSON에서 받기
+    @JsonProperty("paymentMethodId")
     private Long paymentMethodId;
 
     @JsonIgnore
     private CouponDto couponDto;
 
-    @JsonProperty("couponId")  // ⭐ JSON에서 받기 (선택사항)
+    @JsonProperty("couponId")
     private Long couponId;
 
     @NotNull(message = "최종 결제 금액은 필수입니다.")
@@ -78,7 +78,7 @@ public class PaymentsDto implements IPayments {
     }
 
     @Override
-    @JsonIgnore  // ⭐ getter만 무시
+    @JsonIgnore
     public Long getReservationsId() {
         if (this.reservationsDto != null && this.reservationsDto.getId() != null) {
             return this.reservationsDto.getId();
@@ -112,7 +112,7 @@ public class PaymentsDto implements IPayments {
     }
 
     @Override
-    @JsonIgnore  // ⭐ getter만 무시
+    @JsonIgnore
     public Long getPaymentMethodId() {
         if (this.paymentMethodDto != null && this.paymentMethodDto.getId() != null) {
             return this.paymentMethodDto.getId();
@@ -146,7 +146,7 @@ public class PaymentsDto implements IPayments {
     }
 
     @Override
-    @JsonIgnore  // ⭐ getter만 무시
+    @JsonIgnore
     public Long getCouponId() {
         if (this.couponDto != null && this.couponDto.getId() != null) {
             return this.couponDto.getId();

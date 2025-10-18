@@ -1,7 +1,7 @@
 package com.hotel_project.member_jpa.member.dto;
 
 public enum Provider {
-    local, google, kakao, naver;
+    local, google, kakao, naver, leave;
 
     public boolean isKakao() {
         return this == kakao;

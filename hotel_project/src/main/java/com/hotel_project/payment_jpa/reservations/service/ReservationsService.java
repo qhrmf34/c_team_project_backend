@@ -4,6 +4,7 @@ import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.exception.MemberException;
 import com.hotel_project.payment_jpa.reservations.dto.ReservationsDto;
 import com.hotel_project.payment_jpa.reservations.dto.ReservationsEntity;
+import com.hotel_project.common_jpa.exception.DuplicateReservationException;
 import com.hotel_project.payment_jpa.reservations.repository.ReservationsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -30,19 +32,28 @@ public class ReservationsService {
                 throw MemberException.INVALID_ID.getException();
             }
 
-            // 중복 예약 체크
-            boolean hasExistingReservation = reservationsRepository.existsByMemberEntity_IdAndRoomEntity_IdAndCheckInDateAndCheckOutDate(
-                    memberId,
-                    reservationsDto.getRoomId(),
-                    reservationsDto.getCheckInDate(),
-                    reservationsDto.getCheckOutDate()
-            );
+            // 중복 예약 체크 (미결제 예약만)
+            Optional<ReservationsEntity> existingReservation = reservationsRepository
+                    .findByMemberEntity_IdAndRoomEntity_IdAndCheckInDateAndCheckOutDateAndReservationsStatusFalse(
+                            memberId,
+                            reservationsDto.getRoomId(),
+                            reservationsDto.getCheckInDate(),
+                            reservationsDto.getCheckOutDate()
+                    );
 
-            if (hasExistingReservation) {
+            if (existingReservation.isPresent()) {
                 log.warn("중복 예약 시도 - 회원 ID: {}, 객실 ID: {}, 체크인: {}, 체크아웃: {}",
                         memberId, reservationsDto.getRoomId(),
                         reservationsDto.getCheckInDate(), reservationsDto.getCheckOutDate());
-                throw new CommonExceptionTemplate(409, "이미 해당 날짜에 예약이 존재합니다.");
+
+                ReservationsEntity existing = existingReservation.get();
+                ReservationsDto existingDto = new ReservationsDto();
+                existingDto.copyMembers(existing);
+
+                throw new DuplicateReservationException(
+                        "이미 해당 날짜에 미결제 예약이 존재합니다.",
+                        existingDto
+                );
             }
 
             ReservationsEntity entity = new ReservationsEntity();
@@ -52,7 +63,7 @@ public class ReservationsService {
             entity.setCheckOutDate(reservationsDto.getCheckOutDate());
             entity.setGuestsCount(reservationsDto.getGuestsCount() != null ? reservationsDto.getGuestsCount() : 1);
             entity.setBasePayment(reservationsDto.getBasePayment());
-            entity.setReservationsStatus(false); // 결제 전이므로 false
+            entity.setReservationsStatus(false);
             entity.setReservationsAt(LocalDateTime.now());
             entity.setUpdatedAt(LocalDateTime.now());
 
@@ -66,6 +77,8 @@ public class ReservationsService {
 
             return resultDto;
 
+        } catch (DuplicateReservationException e) {
+            throw e;
         } catch (CommonExceptionTemplate e) {
             throw e;
         } catch (Exception e) {
@@ -99,7 +112,6 @@ public class ReservationsService {
         }
     }
 
-    // ⭐ 미결제 예약 삭제 (결제 취소 시 사용)
     public void deleteUnpaidReservation(Long reservationId) throws CommonExceptionTemplate {
         try {
             ReservationsEntity entity = reservationsRepository.findById(reservationId)

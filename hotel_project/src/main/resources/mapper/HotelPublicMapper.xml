@@ -22,6 +22,7 @@
         <result property="reviewCount" column="reviewCount"/>
         <result property="wishlisted" column="wishlisted"/>
         <result property="cityName" column="cityName"/>
+        <result property="available" column="available"/>
     </resultMap>
 
     <!-- 호텔 검색 -->
@@ -53,8 +54,8 @@
                 r.hotel_id,
                 r.id as room_id,
                 ds.date,
-                rp.price as daily_price,  -- ⭐ COALESCE 제거
-                rp.id as pricing_id       -- ⭐ pricing 존재 확인용
+                rp.price as daily_price,
+                rp.id as pricing_id
                 FROM room_tbl r
                 CROSS JOIN date_series ds
                 LEFT JOIN room_pricing_tbl rp
@@ -66,12 +67,12 @@
                 hotel_id,
                 room_id,
                 SUM(daily_price) as total_price,
-                COUNT(pricing_id) as pricing_count,  -- ⭐ pricing이 있는 날짜 수
-                (SELECT nights FROM night_count) as expected_nights  -- ⭐ 기대하는 날짜 수
+                COUNT(pricing_id) as pricing_count,
+                (SELECT nights FROM night_count) as expected_nights
                 FROM room_daily_prices
                 GROUP BY hotel_id, room_id
-                HAVING pricing_count = expected_nights  -- ⭐ 모든 날짜에 pricing이 있어야 함
-                AND total_price > 0                   -- ⭐ 가격이 0보다 커야 함
+                HAVING pricing_count = expected_nights
+                AND total_price > 0
                 ),
                 min_hotel_prices AS (
                 SELECT
@@ -81,10 +82,18 @@
                 FROM room_prices rp
                 CROSS JOIN night_count nc
                 GROUP BY rp.hotel_id, nc.nights
+                ),
+                base_prices AS (
+                SELECT
+                hotel_id,
+                MIN(base_price) as min_total_price,
+                MIN(base_price) as avg_nightly_price
+                FROM room_tbl
+                GROUP BY hotel_id
                 )
             </when>
             <otherwise>
-                min_hotel_prices AS (
+                base_prices AS (
                 SELECT
                 hotel_id,
                 MIN(base_price) as min_total_price,
@@ -106,7 +115,17 @@
         (SELECT COUNT(*)
         FROM hotel_image_tbl hi2
         WHERE hi2.hotel_id = h.id) as imageCount,
-        mhp.min_total_price as price,
+
+
+        <choose>
+            <when test="checkIn != null and checkOut != null">
+                COALESCE(mhp.min_total_price, bp.min_total_price) as price,
+            </when>
+            <otherwise>
+                bp.min_total_price as price,
+            </otherwise>
+        </choose>
+
         'KRW' as currency,
         CONCAT(c.city_name, ', ', co.country_name) as location,
         h.hotel_star as stars,
@@ -119,11 +138,31 @@
         NULL as ratingText,
         0 as reviewCount,
         FALSE as wishlisted,
-        c.city_name as cityName
+        c.city_name as cityName,
+
+        <choose>
+            <when test="checkIn != null and checkOut != null">
+                CASE WHEN mhp.hotel_id IS NOT NULL THEN TRUE ELSE FALSE END as available
+            </when>
+            <otherwise>
+                TRUE as available
+            </otherwise>
+        </choose>
+
         FROM hotel_tbl h
         LEFT JOIN city_tbl c ON h.city_id = c.id
         LEFT JOIN country_tbl co ON c.country_id = co.id
-        INNER JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id  -- ⭐ LEFT → INNER JOIN으로 변경
+
+        <choose>
+            <when test="checkIn != null and checkOut != null">
+                LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
+                LEFT JOIN base_prices bp ON h.id = bp.hotel_id
+            </when>
+            <otherwise>
+                LEFT JOIN base_prices bp ON h.id = bp.hotel_id
+            </otherwise>
+        </choose>
+
         WHERE 1=1
 
         <if test="destination != null and destination != ''">
@@ -150,7 +189,14 @@
         </if>
 
         <if test="minPrice != null or maxPrice != null">
-            AND mhp.avg_nightly_price BETWEEN
+            AND COALESCE(
+            <choose>
+                <when test="checkIn != null and checkOut != null">
+                    mhp.avg_nightly_price,
+                </when>
+            </choose>
+            bp.avg_nightly_price
+            ) BETWEEN
             <choose>
                 <when test="minPrice != null">#{minPrice}</when>
                 <otherwise>0</otherwise>
@@ -184,24 +230,30 @@
             </foreach>
         </if>
 
+        ORDER BY
+        <choose>
+            <when test="checkIn != null and checkOut != null">
+                --  예약 가능한 호텔 먼저
+                CASE WHEN mhp.hotel_id IS NOT NULL THEN 0 ELSE 1 END,
+            </when>
+        </choose>
         <choose>
             <when test="sortBy == 'price_asc'">
-                ORDER BY mhp.avg_nightly_price ASC
+                COALESCE(mhp.avg_nightly_price, bp.avg_nightly_price) ASC
             </when>
             <when test="sortBy == 'price_desc'">
-                ORDER BY mhp.avg_nightly_price DESC
+                COALESCE(mhp.avg_nightly_price, bp.avg_nightly_price) DESC
             </when>
             <when test="sortBy == 'rating'">
-                ORDER BY h.hotel_rating DESC
+                h.hotel_rating DESC
             </when>
             <otherwise>
-                ORDER BY h.hotel_rating DESC, h.hotel_star DESC
+                h.hotel_rating DESC, h.hotel_star DESC
             </otherwise>
         </choose>
 
         LIMIT #{size} OFFSET #{offset}
     </select>
-
     <!-- 검색 결과 총 개수 -->
     <select id="countSearchHotels" resultType="java.lang.Long">
         WITH
@@ -232,7 +284,7 @@
                 r.id as room_id,
                 ds.date,
                 rp.price as daily_price,
-                rp.id as pricing_id            -- pricing 존재 확인용
+                rp.id as pricing_id
                 FROM room_tbl r
                 CROSS JOIN date_series ds
                 LEFT JOIN room_pricing_tbl rp
@@ -248,7 +300,7 @@
                 (SELECT nights FROM night_count) as expected_nights
                 FROM room_daily_prices
                 GROUP BY hotel_id, room_id
-                HAVING pricing_count = expected_nights  -- 모든 날짜에 pricing 필요
+                HAVING pricing_count = expected_nights
                 AND total_price > 0
                 ),
                 min_hotel_prices AS (
@@ -280,7 +332,7 @@
         LEFT JOIN country_tbl co ON c.country_id = co.id
         <choose>
             <when test="checkIn != null and checkOut != null">
-                INNER JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
+                LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
             </when>
             <when test="minPrice != null or maxPrice != null">
                 LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
@@ -525,7 +577,7 @@
                 r.id as room_id,
                 ds.date,
                 rp.price as daily_price,
-                rp.id as pricing_id            -- pricing 존재 확인용
+                rp.id as pricing_id
                 FROM room_tbl r
                 CROSS JOIN date_series ds
                 LEFT JOIN room_pricing_tbl rp
@@ -541,7 +593,7 @@
                 (SELECT nights FROM night_count) as expected_nights
                 FROM room_daily_prices
                 GROUP BY hotel_id, room_id
-                HAVING pricing_count = expected_nights  -- 모든 날짜에 pricing 필요
+                HAVING pricing_count = expected_nights
                 AND total_price > 0
                 ),
                 min_hotel_prices AS (
@@ -573,7 +625,7 @@
         LEFT JOIN country_tbl co ON c.country_id = co.id
         <choose>
             <when test="checkIn != null and checkOut != null">
-                INNER JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
+                LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
             </when>
             <when test="minPrice != null or maxPrice != null">
                 LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
@@ -664,7 +716,8 @@
             NULL as ratingText,
             0 as reviewCount,
             TRUE as wishlisted,
-            ci.city_name as cityName
+            ci.city_name as cityName,
+            TRUE as available
         FROM hotel_tbl h
             INNER JOIN cart_tbl ca ON h.id = ca.hotel_id
             LEFT JOIN city_tbl ci ON h.city_id = ci.id

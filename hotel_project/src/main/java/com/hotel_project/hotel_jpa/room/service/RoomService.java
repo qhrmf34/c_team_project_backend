@@ -13,13 +13,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -102,14 +100,13 @@ public class RoomService {
 
     // 날짜별 객실 재고 및 가격 조회
     // HotelThree.vue의 "잔여 객실" 섹션에서 사용
-    // room_name으로 그룹핑하여 재고 개수 표시
     public List<RoomAvailabilityDto> getRoomAvailability(RoomSearchDto searchDto) {
         log.info("객실 재고 조회 - hotelId: {}, checkIn: {}, checkOut: {}",
                 searchDto.getHotelId(), searchDto.getCheckIn(), searchDto.getCheckOut());
 
         try {
-            // resultType이 map이므로 Map으로 받기
-            List<Map<String, Object>> results = roomMapper.getRoomAvailabilityWithPricing(
+            // MyBatis가 DTO로 직접 매핑
+            List<RoomAvailabilityDto> results = roomMapper.getRoomAvailabilityWithPricing(
                     searchDto.getHotelId(),
                     searchDto.getCheckIn(),
                     searchDto.getCheckOut()
@@ -120,10 +117,15 @@ public class RoomService {
                 return new ArrayList<>();
             }
 
-            // Map → DTO 변환
-            return results.stream()
-                    .map(map -> this.mapToRoomAvailabilityDto(map, searchDto))
-                    .collect(Collectors.toList());
+            // hotelId, checkIn, checkOut 설정
+            results.forEach(room -> {
+                room.setHotelId(searchDto.getHotelId());
+                room.setCheckIn(searchDto.getCheckIn());
+                room.setCheckOut(searchDto.getCheckOut());
+            });
+
+            log.info("조회된 객실 수: {}", results.size());
+            return results;
 
         } catch (Exception e) {
             log.error("Error getting room availability", e);
@@ -131,8 +133,8 @@ public class RoomService {
         }
     }
 
-    //특정 객실의 날짜별 상세 가격 조회
-    //Book Now 클릭 시 결제 화면에서 사용
+    // 특정 객실의 날짜별 상세 가격 조회
+    // Book Now 클릭 시 결제 화면에서 사용
     public List<Map<String, Object>> getRoomDailyPrices(Long roomId, LocalDate checkIn, LocalDate checkOut) {
         log.info("객실 날짜별 가격 조회 - roomId: {}, checkIn: {}, checkOut: {}",
                 roomId, checkIn, checkOut);
@@ -147,8 +149,8 @@ public class RoomService {
         }
     }
 
-    //객실 상세 정보 조회 (Book Now용)
-    //결제 화면으로 전달할 전체 정보
+    // 객실 상세 정보 조회 (Book Now용)
+    // 결제 화면으로 전달할 전체 정보
     public Map<String, Object> getRoomDetailById(Long roomId) {
         log.info("객실 상세 정보 조회 - roomId: {}", roomId);
 
@@ -159,50 +161,5 @@ public class RoomService {
             log.error("Error getting room detail for roomId: {}", roomId, e);
             throw new RuntimeException("Failed to fetch room detail", e);
         }
-    }
-
-    // Map → RoomAvailabilityDto 변환
-    // MyBatis의 resultType=map에서 받은 Map 객체를 DTO로 변환
-    private RoomAvailabilityDto mapToRoomAvailabilityDto(Map<String, Object> map, RoomSearchDto searchDto) {
-        return RoomAvailabilityDto.builder()
-                .roomId(convertToLong(map.get("roomId")))
-                .roomName((String) map.get("roomName"))
-                .bedType((String) map.get("bedType"))
-                .basePrice((BigDecimal) map.get("basePrice"))
-                .totalPrice((BigDecimal) map.get("totalPrice"))
-                .nights(convertToInteger(map.get("nights")))
-                .availableCount(convertToInteger(map.get("availableCount")))
-                .hotelId(searchDto.getHotelId())
-                .checkIn(searchDto.getCheckIn())
-                .checkOut(searchDto.getCheckOut())
-                .build();
-    }
-
-    // Object를 Long으로 안전하게 변환
-    private Long convertToLong(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Long) {
-            return (Long) value;
-        }
-        if (value instanceof Number) {
-            return ((Number) value).longValue();
-        }
-        return Long.parseLong(value.toString());
-    }
-
-    // Object를 Integer로 안전하게 변환
-    private Integer convertToInteger(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Integer) {
-            return (Integer) value;
-        }
-        if (value instanceof Number) {
-            return ((Number) value).intValue();
-        }
-        return Integer.parseInt(value.toString());
     }
 }

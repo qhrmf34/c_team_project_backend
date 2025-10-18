@@ -12,4 +12,5 @@ public interface ReviewsRepository extends JpaRepository<ReviewsEntity, Long> {
 
     // 회원 ID와 호텔 ID로 리뷰 존재 여부 확인
     boolean existsByMemberEntity_IdAndHotelEntity_Id(Long memberId, Long hotelId);
+
 }

@@ -14,10 +14,15 @@
         <result property="reviewCard" column="review_card"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
-        <result property="memberName" column="memberName"/>
         <result property="profileImage" column="profileImage"/>
+        <!-- 회원 정보 (Service에서 displayName 처리) -->
+        <result property="provider" column="provider"/>
+        <result property="firstName" column="first_name"/>
+        <result property="lastName" column="last_name"/>
+        <result property="email" column="email"/>
     </resultMap>
 
+    <!-- 모든 CASE문 제거하고 단순하게 -->
     <select id="findByHotelId" resultMap="ReviewsDtoMap">
         SELECT
             r.id,
@@ -29,7 +34,10 @@
             r.review_card,
             r.created_at,
             r.updated_at,
-            CONCAT(m.first_name, ' ', m.last_name) as memberName,
+            m.provider,
+            m.first_name,
+            m.last_name,
+            m.email,
             mi.member_image_path as profileImage
         FROM reviews_tbl r
                  LEFT JOIN member_tbl m ON r.member_id = m.id
@@ -49,7 +57,10 @@
         r.review_card,
         r.created_at,
         r.updated_at,
-        CONCAT(m.first_name, ' ', m.last_name) as memberName,
+        m.provider,
+        m.first_name,
+        m.last_name,
+        m.email,
         mi.member_image_path as profileImage
         FROM reviews_tbl r
         LEFT JOIN member_tbl m ON r.member_id = m.id
@@ -99,7 +110,6 @@
           AND hotel_id = #{hotelId}
     </select>
 
-    <!-- 특정 회원이 특정 호텔에 작성한 리뷰 조회 -->
     <select id="findMyReview" resultMap="ReviewsDtoMap">
         SELECT
             r.id,
@@ -111,7 +121,10 @@
             r.review_card,
             r.created_at,
             r.updated_at,
-            CONCAT(m.first_name, ' ', m.last_name) as memberName,
+            m.provider,
+            m.first_name,
+            m.last_name,
+            m.email,
             mi.member_image_path as profileImage
         FROM reviews_tbl r
                  LEFT JOIN member_tbl m ON r.member_id = m.id
@@ -121,31 +134,31 @@
             LIMIT 1
     </select>
 
-
-    <!-- checkReviewEligibility 쿼리-->
     <select id="checkReviewEligibility" resultType="map">
         SELECT
             CASE
-                WHEN COUNT(rv.id) > 0 THEN 'ALREADY_WRITTEN'
+                WHEN EXISTS (
+                    SELECT 1 FROM reviews_tbl
+                    WHERE member_id = #{memberId}
+                      AND hotel_id = #{hotelId}
+                ) THEN 'ALREADY_WRITTEN'
                 WHEN COUNT(res.id) = 0 THEN 'NO_BOOKING'
-                WHEN MAX(res.check_out_date) >= CURDATE() THEN 'DATE_NOT_PASSED'
-                WHEN MAX(p.payment_status) != 1 THEN 'NOT_PAID'
+                WHEN MAX(res.check_out_date) > CURDATE() THEN 'DATE_NOT_PASSED'
+                WHEN MAX(res.reservations_status) != 1 OR COALESCE(MAX(p.payment_status), 0) != 1 THEN 'NOT_PAID'
                 ELSE 'ELIGIBLE'
-                END as status,
+        END as status,
             MAX(res.check_in_date) as checkIn,
             MAX(res.check_out_date) as checkOut,
+            MAX(res.reservations_status) as reservationStatus,
             MAX(p.payment_status) as paymentStatus,
             MAX(res.id) as reservationId
         FROM reservations_tbl res
-                 INNER JOIN room_tbl r ON res.room_id = r.id
-                 LEFT JOIN payments_tbl p ON res.id = p.reservations_id
-                 LEFT JOIN reviews_tbl rv ON r.hotel_id = rv.hotel_id
-            AND res.member_id = rv.member_id
+        INNER JOIN room_tbl r ON res.room_id = r.id
+        LEFT JOIN payments_tbl p ON res.id = p.reservations_id
         WHERE r.hotel_id = #{hotelId}
-          AND res.member_id = #{memberId}
+        AND res.member_id = #{memberId}
     </select>
 
-    <!-- 리뷰 등록 -->
     <insert id="insertReview" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reviews_tbl (
             member_id,
@@ -168,7 +181,6 @@
                  )
     </insert>
 
-    <!-- 리뷰 수정 -->
     <update id="updateReview">
         UPDATE reviews_tbl
         SET rating = #{rating},
@@ -179,14 +191,12 @@
           AND member_id = #{memberId}
     </update>
 
-    <!-- 리뷰 삭제 -->
     <delete id="deleteReview">
         DELETE FROM reviews_tbl
         WHERE id = #{id}
           AND member_id = #{memberId}
     </delete>
 
-    <!-- 리뷰 작성자 확인 -->
     <select id="isReviewOwner" resultType="boolean">
         SELECT
             CASE

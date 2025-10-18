@@ -1,6 +1,8 @@
 package com.hotel_project.review_jpa.reviews.service;
 
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
+import com.hotel_project.member_jpa.member.service.MemberNameFormatter;
+import com.hotel_project.review_jpa.report.repository.ReportRepository;
 import com.hotel_project.review_jpa.reviews.dto.*;
 import com.hotel_project.review_jpa.reviews.mapper.ReviewsMapper;
 import com.hotel_project.review_jpa.reviews.repository.ReviewsRepository;
@@ -21,33 +23,58 @@ public class ReviewsService {
 
     private final ReviewsRepository reviewsRepository;
     private final ReviewsMapper reviewsMapper;
+    private final MemberNameFormatter memberNameFormatter;
+    private final ReportRepository reportRepository;
 
     public List<ReviewsDto> getReviewsByHotelId(Long hotelId) {
         log.info("호텔 ID {}의 리뷰 조회", hotelId);
-        return reviewsMapper.findByHotelId(hotelId);
+        List<ReviewsDto> reviews = reviewsMapper.findByHotelId(hotelId);
+
+        // 각 리뷰의 memberName을 Service에서 포맷팅
+        reviews.forEach(review -> {
+            String displayName = memberNameFormatter.formatDisplayName(
+                    review.getProvider(),
+                    review.getFirstName(),
+                    review.getLastName(),
+                    review.getEmail()
+            );
+            review.setMemberName(displayName);
+        });
+
+        return reviews;
     }
 
     public List<ReviewsDto> getFilteredReviews(Long hotelId, String sortBy, ReviewCard reviewCard) {
         log.info("필터링된 리뷰 조회 - hotelId: {}, sortBy: {}, reviewCard: {}",
                 hotelId, sortBy, reviewCard);
-        return reviewsMapper.findFilteredReviews(hotelId, sortBy, reviewCard);
+        List<ReviewsDto> reviews = reviewsMapper.findFilteredReviews(hotelId, sortBy, reviewCard);
+
+        // 각 리뷰의 memberName을 Service에서 포맷팅
+        reviews.forEach(review -> {
+            String displayName = memberNameFormatter.formatDisplayName(
+                    review.getProvider(),
+                    review.getFirstName(),
+                    review.getLastName(),
+                    review.getEmail()
+            );
+            review.setMemberName(displayName);
+        });
+
+        return reviews;
     }
 
     public Map<String, Long> getReviewCardStats(Long hotelId) {
         log.info("호텔 ID {}의 리뷰 카드 통계 조회", hotelId);
 
-        // MyBatis에서 반환하는 List<Map>을 Map<String, Long>으로 변환
         List<Map<String, Object>> rawList = reviewsMapper.getReviewCardStatsRaw(hotelId);
 
         Map<String, Long> result = new HashMap<>();
 
-        // 모든 카드 타입을 0으로 초기화
         result.put("NearPark", 0L);
         result.put("NearNightLife", 0L);
         result.put("NearTheater", 0L);
         result.put("CleanHotel", 0L);
 
-        // 실제 데이터로 업데이트
         for (Map<String, Object> row : rawList) {
             String reviewCard = (String) row.get("reviewCard");
             Long count = ((Number) row.get("count")).longValue();
@@ -122,6 +149,9 @@ public class ReviewsService {
             throw new CommonExceptionTemplate(403, "본인의 리뷰만 삭제할 수 있습니다.");
         }
 
+        reportRepository.deleteByReviewsEntity_Id(reviewId);
+        log.info("리뷰 관련 신고 삭제 완료 - reviewId: {}", reviewId);
+
         reviewsRepository.delete(entity);
         log.info("리뷰 삭제 완료 - reviewId: {}", reviewId);
     }
@@ -187,7 +217,20 @@ public class ReviewsService {
 
     public ReviewsDto getMyReview(Long hotelId, Long memberId) {
         log.info("내 리뷰 조회 - hotelId: {}, memberId: {}", hotelId, memberId);
-        return reviewsMapper.findMyReview(hotelId, memberId);
+        ReviewsDto review = reviewsMapper.findMyReview(hotelId, memberId);
+
+        if (review != null) {
+            // memberName 포맷팅
+            String displayName = memberNameFormatter.formatDisplayName(
+                    review.getProvider(),
+                    review.getFirstName(),
+                    review.getLastName(),
+                    review.getEmail()
+            );
+            review.setMemberName(displayName);
+        }
+
+        return review;
     }
 
     private ReviewsDto convertToDto(ReviewsEntity entity) {

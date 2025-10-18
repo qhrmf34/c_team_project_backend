@@ -17,6 +17,7 @@ import java.time.LocalDate;
 public class RoomAvailabilityDto {
     private Long roomId;
     private String roomName;
+    private Integer roomNumber;
     private String bedType;
     private BigDecimal basePrice;
     private BigDecimal totalPrice;
@@ -29,4 +30,11 @@ public class RoomAvailabilityDto {
     private String hotelName;
     private LocalDate checkIn;
     private LocalDate checkOut;
+
+    public Integer getFloor() {
+        if (roomNumber != null) {
+            return roomNumber / 100;
+        }
+        return null;
+    }
 }
