@@ -73,10 +73,5 @@ public class RoomImageController {
         return ResponseEntity.ok(ApiResponse.success(200, "success", result));
     }
 
-    @PostMapping("/upload")
-    @Operation(summary = "파일 업로드", description = "이미지 파일을 업로드합니다.")
-    public ResponseEntity<ApiResponse<String>> uploadFile(@RequestParam("file") MultipartFile file) throws CommonExceptionTemplate {
-        String filePath = roomImageService.uploadFile(file);
-        return ResponseEntity.ok(ApiResponse.success(200, "Upload successful", filePath));
-    }
+
 }

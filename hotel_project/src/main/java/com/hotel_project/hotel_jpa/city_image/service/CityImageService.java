@@ -83,7 +83,9 @@ public class CityImageService {
         if (!entityOptional.isPresent()) {
             throw MemberException.NOT_EXIST_DATA.getException();
         }
-
+        if (entityOptional.isPresent() && entityOptional.get().getCityImagePath() != null) {
+            deleteFile(entityOptional.get().getCityImagePath());
+        }
         CityImageEntity entity = entityOptional.get();
         entity.copyNotNullMembers(cityImageDto);
         cityImageRepository.save(entity);
@@ -108,33 +110,6 @@ public class CityImageService {
         return "delete ok";
     }
 
-    // 파일 업로드
-    public String uploadFile(MultipartFile file) throws CommonExceptionTemplate {
-        if (file == null || file.isEmpty()) {
-            throw MemberException.INVALID_DATA.getException();
-        }
-
-        try {
-            String uploadBasePath = getUploadPath();
-            String cityUploadPath = uploadBasePath + File.separator + "city";
-
-            File uploadDir = new File(cityUploadPath);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-            }
-
-            String originalFileName = file.getOriginalFilename();
-            String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            String fileName = UUID.randomUUID().toString() + extension;
-            File destinationFile = new File(cityUploadPath + File.separator + fileName);
-
-            file.transferTo(destinationFile);
-            return "/city/" + fileName;
-
-        } catch (IOException e) {
-            throw new CommonExceptionTemplate(500, "파일 업로드에 실패했습니다.");
-        }
-    }
 
     // 파일 삭제
     private void deleteFile(String filePath) {

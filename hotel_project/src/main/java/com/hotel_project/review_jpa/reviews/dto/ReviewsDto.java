@@ -36,7 +36,6 @@ public class ReviewsDto implements IReviews {
     @JsonIgnore
     private ReservationsDto reservationsDto;
 
-    @NotNull
     private Long reservationsId;
 
     @DecimalMax(value = "5.0", inclusive = true, message = "평점은 5.0 이하 이어야 합니다.")

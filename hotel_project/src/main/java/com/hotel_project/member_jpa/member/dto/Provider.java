@@ -19,4 +19,8 @@ public enum Provider {
         return this == local;
     }
 
+    public boolean isLeave() {
+        return this == leave;
+    }
+
 }

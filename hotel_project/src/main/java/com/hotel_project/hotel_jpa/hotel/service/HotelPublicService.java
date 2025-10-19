@@ -31,19 +31,30 @@ public class HotelPublicService {
         log.info("호텔 검색 시작 - destination: {}, hotelType: {}, offset: {}, size: {}, memberId: {}",
                 request.getDestination(), request.getHotelType(), request.getOffset(), request.getSize(), memberId);
 
+        // ✅ 모든 호텔 조회 (예약 가능 + 예약 마감)
         List<HotelSummaryDto> hotels = hotelPublicMapper.searchHotels(request);
+
+        // ✅ 전체 호텔 개수 (페이지네이션용)
         Long totalCount = hotelPublicMapper.countSearchHotels(request);
 
-        // 현재 검색 조건으로 호텔 타입별 카운트 조회
+        // ✅ 예약 가능한 호텔만 카운트 (showing-count용)
+        Long availableCount = hotelPublicMapper.countAvailableHotels(request);
+
+        log.info("검색 결과 - hotels.size(): {}, totalCount: {}, availableCount: {}",
+                hotels.size(), totalCount, availableCount);
+
+        // 현재 검색 조건으로 호텔 타입별 카운트 조회 (예약 가능만)
         Map<String, Long> hotelTypeCounts = new HashMap<>();
 
         // 원본 hotelType 백업
         String originalHotelType = request.getHotelType();
 
-        // 각 타입별로 현재 검색 조건을 적용하여 카운트
+        // 각 타입별로 현재 검색 조건을 적용하여 카운트 (예약 가능만)
         for (String type : Arrays.asList("hotel", "motel", "resort")) {
             request.setHotelType(type);
-            hotelTypeCounts.put(type, hotelPublicMapper.countSearchHotels(request));
+            Long count = hotelPublicMapper.countAvailableHotels(request);
+            hotelTypeCounts.put(type, count);
+            log.info("호텔 타입 카운트 - {}: {}", type, count);
         }
 
         // 원본 hotelType 복원
@@ -72,11 +83,12 @@ public class HotelPublicService {
 
         return HotelSearchResponseDto.builder()
                 .hotels(hotels)
-                .totalCount(totalCount)
+                .totalCount(totalCount)              // ✅ 전체 호텔 (페이지네이션용)
+                .availableCount(availableCount)      // ✅ 예약 가능한 호텔만 (showing-count용)
                 .currentPage(0)
                 .totalPages(1)
                 .pageSize(hotels.size())
-                .hotelTypeCounts(hotelTypeCounts)
+                .hotelTypeCounts(hotelTypeCounts)    // ✅ 예약 가능한 호텔만
                 .build();
     }
 

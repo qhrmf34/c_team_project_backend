@@ -16,6 +16,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/admin")
 public class FileUploadController {
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     // 프로젝트 루트의 uploads 폴더를 절대 경로로 계산
     private String getUploadPath() {
@@ -30,6 +31,11 @@ public class FileUploadController {
 
         if (file == null || file.isEmpty()) {
             throw new CommonExceptionTemplate(400, "파일이 비어있습니다.");
+        }
+
+        // 파일 크기 검증
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new CommonExceptionTemplate(400, "파일 크기가 5MB를 초과할 수 없습니다.");
         }
 
         String originalFileName = file.getOriginalFilename();

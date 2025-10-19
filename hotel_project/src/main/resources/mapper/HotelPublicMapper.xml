@@ -26,6 +26,7 @@
     </resultMap>
 
     <!-- 호텔 검색 -->
+    <!-- 모든 호텔 표시 + 예약 가능만 카운트 -->
     <select id="searchHotels" resultMap="HotelSummaryResultMap">
         WITH
         <choose>
@@ -90,6 +91,30 @@
                 MIN(base_price) as avg_nightly_price
                 FROM room_tbl
                 GROUP BY hotel_id
+                ),
+                -- ✅ 호텔별 예약 가능 여부 체크 (room_pricing 있고 + 결제 예약 없어야 가능)
+                hotel_availability AS (
+                SELECT
+                rp.hotel_id,
+                -- room_prices에 있고 + 예약되지 않은 방이 있으면 1
+                MAX(CASE
+                WHEN NOT EXISTS (
+                SELECT 1
+                FROM reservations_tbl res
+                INNER JOIN payments_tbl p ON res.id = p.reservations_id
+                WHERE res.room_id = rp.room_id
+                AND res.reservations_status = TRUE
+                AND p.payment_status = 'paid'
+                AND (
+                (res.check_in_date &lt;= #{checkIn} AND res.check_out_date > #{checkIn})
+                OR (res.check_in_date &lt; #{checkOut} AND res.check_out_date >= #{checkOut})
+                OR (res.check_in_date >= #{checkIn} AND res.check_out_date &lt;= #{checkOut})
+                )
+                ) THEN 1
+                ELSE 0
+                END) as has_available_room
+                FROM room_prices rp  -- ✅ room_prices (room_pricing 있는 것만)
+                GROUP BY rp.hotel_id
                 )
             </when>
             <otherwise>
@@ -116,9 +141,9 @@
         FROM hotel_image_tbl hi2
         WHERE hi2.hotel_id = h.id) as imageCount,
 
-
         <choose>
             <when test="checkIn != null and checkOut != null">
+                -- room_pricing 있으면 우선, 없으면 base_price
                 COALESCE(mhp.min_total_price, bp.min_total_price) as price,
             </when>
             <otherwise>
@@ -142,9 +167,11 @@
 
         <choose>
             <when test="checkIn != null and checkOut != null">
-                CASE WHEN mhp.hotel_id IS NOT NULL THEN TRUE ELSE FALSE END as available
+                -- ✅ 예약 가능한 방이 있으면 TRUE, 없으면 FALSE
+                CASE WHEN ha.has_available_room = 1 THEN TRUE ELSE FALSE END as available
             </when>
             <otherwise>
+                -- 날짜 선택 안 함: 항상 TRUE
                 TRUE as available
             </otherwise>
         </choose>
@@ -157,6 +184,7 @@
             <when test="checkIn != null and checkOut != null">
                 LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
                 LEFT JOIN base_prices bp ON h.id = bp.hotel_id
+                LEFT JOIN hotel_availability ha ON h.id = ha.hotel_id
             </when>
             <otherwise>
                 LEFT JOIN base_prices bp ON h.id = bp.hotel_id
@@ -233,8 +261,8 @@
         ORDER BY
         <choose>
             <when test="checkIn != null and checkOut != null">
-                --  예약 가능한 호텔 먼저
-                CASE WHEN mhp.hotel_id IS NOT NULL THEN 0 ELSE 1 END,
+                -- ✅ 예약 가능한 호텔 먼저 표시 (available = TRUE 먼저)
+                CASE WHEN ha.has_available_room = 1 THEN 0 ELSE 1 END,
             </when>
         </choose>
         <choose>
@@ -254,69 +282,22 @@
 
         LIMIT #{size} OFFSET #{offset}
     </select>
-    <!-- 검색 결과 총 개수 -->
+
+    <!-- ✅ 예약 가능한 호텔만 카운트 (showing-count, tab-count용) -->
     <select id="countSearchHotels" resultType="java.lang.Long">
         WITH
         <choose>
             <when test="checkIn != null and checkOut != null">
-                date_series AS (
-                SELECT DATE_ADD(#{checkIn}, INTERVAL seq DAY) as date
-                FROM (
-                SELECT 0 as seq UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL
-                SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL
-                SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
-                SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL
-                SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL
-                SELECT 15 UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL
-                SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20 UNION ALL
-                SELECT 21 UNION ALL SELECT 22 UNION ALL SELECT 23 UNION ALL
-                SELECT 24 UNION ALL SELECT 25 UNION ALL SELECT 26 UNION ALL
-                SELECT 27 UNION ALL SELECT 28 UNION ALL SELECT 29 UNION ALL SELECT 30
-                ) seq_table
-                WHERE DATE_ADD(#{checkIn}, INTERVAL seq DAY) &lt; #{checkOut}
-                ),
-                night_count AS (
-                SELECT COUNT(*) as nights FROM date_series
-                ),
-                room_daily_prices AS (
-                SELECT
-                r.hotel_id,
-                r.id as room_id,
-                ds.date,
-                rp.price as daily_price,
-                rp.id as pricing_id
-                FROM room_tbl r
-                CROSS JOIN date_series ds
-                LEFT JOIN room_pricing_tbl rp
-                ON r.id = rp.room_id
-                AND rp.date = ds.date
-                ),
-                room_prices AS (
-                SELECT
-                hotel_id,
-                room_id,
-                SUM(daily_price) as total_price,
-                COUNT(pricing_id) as pricing_count,
-                (SELECT nights FROM night_count) as expected_nights
-                FROM room_daily_prices
-                GROUP BY hotel_id, room_id
-                HAVING pricing_count = expected_nights
-                AND total_price > 0
-                ),
+                <!-- ... CTE 생략 ... -->
                 min_hotel_prices AS (
-                SELECT
-                rp.hotel_id,
-                MIN(rp.total_price) / nc.nights as avg_nightly_price
-                FROM room_prices rp
-                CROSS JOIN night_count nc
-                GROUP BY rp.hotel_id, nc.nights
+                SELECT hotel_id, MIN(base_price) as avg_nightly_price
+                FROM room_tbl
+                GROUP BY hotel_id
                 )
             </when>
             <when test="minPrice != null or maxPrice != null">
                 min_hotel_prices AS (
-                SELECT
-                hotel_id,
-                MIN(base_price) as avg_nightly_price
+                SELECT hotel_id, MIN(base_price) as avg_nightly_price
                 FROM room_tbl
                 GROUP BY hotel_id
                 )
@@ -332,6 +313,7 @@
         LEFT JOIN country_tbl co ON c.country_id = co.id
         <choose>
             <when test="checkIn != null and checkOut != null">
+                <!-- ✅ LEFT JOIN으로 변경 (예약 마감 호텔도 포함) -->
                 LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
             </when>
             <when test="minPrice != null or maxPrice != null">
@@ -398,6 +380,171 @@
             </foreach>
         </if>
     </select>
+
+    <!-- ✅ 예약 가능한 호텔만 카운트 (showing-count, tab-count용) -->
+    <select id="countAvailableHotels" resultType="java.lang.Long">
+        WITH
+        <choose>
+            <when test="checkIn != null and checkOut != null">
+                date_series AS (
+                SELECT DATE_ADD(#{checkIn}, INTERVAL seq DAY) as date
+                FROM (
+                SELECT 0 as seq UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL
+                SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL
+                SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+                SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL
+                SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL
+                SELECT 15 UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL
+                SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20 UNION ALL
+                SELECT 21 UNION ALL SELECT 22 UNION ALL SELECT 23 UNION ALL
+                SELECT 24 UNION ALL SELECT 25 UNION ALL SELECT 26 UNION ALL
+                SELECT 27 UNION ALL SELECT 28 UNION ALL SELECT 29 UNION ALL SELECT 30
+                ) seq_table
+                WHERE DATE_ADD(#{checkIn}, INTERVAL seq DAY) &lt; #{checkOut}
+                ),
+                night_count AS (
+                SELECT COUNT(*) as nights FROM date_series
+                ),
+                room_prices AS (
+                SELECT
+                hotel_id,
+                room_id,
+                SUM(daily_price) as total_price,
+                COUNT(pricing_id) as pricing_count,
+                (SELECT nights FROM night_count) as expected_nights
+                FROM (
+                SELECT
+                r.hotel_id,
+                r.id as room_id,
+                ds.date,
+                rp.price as daily_price,
+                rp.id as pricing_id
+                FROM room_tbl r
+                CROSS JOIN date_series ds
+                LEFT JOIN room_pricing_tbl rp
+                ON r.id = rp.room_id
+                AND rp.date = ds.date
+                ) room_daily_prices
+                GROUP BY hotel_id, room_id
+                HAVING pricing_count = expected_nights
+                AND total_price > 0
+                ),
+                hotel_availability AS (
+                SELECT
+                rp.hotel_id,
+                MAX(CASE
+                WHEN NOT EXISTS (
+                SELECT 1
+                FROM reservations_tbl res
+                INNER JOIN payments_tbl p ON res.id = p.reservations_id
+                WHERE res.room_id = rp.room_id
+                AND res.reservations_status = TRUE
+                AND p.payment_status = 'paid'
+                AND (
+                (res.check_in_date &lt;= #{checkIn} AND res.check_out_date > #{checkIn})
+                OR (res.check_in_date &lt; #{checkOut} AND res.check_out_date >= #{checkOut})
+                OR (res.check_in_date >= #{checkIn} AND res.check_out_date &lt;= #{checkOut})
+                )
+                ) THEN 1
+                ELSE 0
+                END) as has_available_room
+                FROM room_prices rp
+                GROUP BY rp.hotel_id
+                ),
+                min_hotel_prices AS (
+                SELECT hotel_id, MIN(base_price) as avg_nightly_price
+                FROM room_tbl
+                GROUP BY hotel_id
+                )
+            </when>
+            <when test="minPrice != null or maxPrice != null">
+                min_hotel_prices AS (
+                SELECT hotel_id, MIN(base_price) as avg_nightly_price
+                FROM room_tbl
+                GROUP BY hotel_id
+                )
+            </when>
+            <otherwise>
+                dummy_cte AS (SELECT 1 as dummy)
+            </otherwise>
+        </choose>
+
+        SELECT COUNT(DISTINCT h.id)
+        FROM hotel_tbl h
+        LEFT JOIN city_tbl c ON h.city_id = c.id
+        LEFT JOIN country_tbl co ON c.country_id = co.id
+        <choose>
+            <when test="checkIn != null and checkOut != null">
+                <!-- ✅ INNER JOIN: 예약 가능한 호텔만 카운트 -->
+                INNER JOIN hotel_availability ha ON h.id = ha.hotel_id AND ha.has_available_room = 1
+                LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
+            </when>
+            <when test="minPrice != null or maxPrice != null">
+                LEFT JOIN min_hotel_prices mhp ON h.id = mhp.hotel_id
+            </when>
+        </choose>
+        WHERE 1=1
+
+        <if test="destination != null and destination != ''">
+            AND (h.hotel_name LIKE CONCAT('%', #{destination}, '%')
+            OR c.city_name LIKE CONCAT('%', #{destination}, '%')
+            OR co.country_name LIKE CONCAT('%', #{destination}, '%'))
+        </if>
+
+        <if test="hotelType != null and hotelType != ''">
+            AND h.hotel_type = #{hotelType}
+        </if>
+
+        <if test="rating != null and rating > 0">
+            AND h.hotel_rating &gt;= #{rating}
+        </if>
+
+        <if test="guests != null and guests > 0">
+            AND EXISTS (
+            SELECT 1
+            FROM room_tbl r
+            WHERE r.hotel_id = h.id
+            AND (r.room_single_bed + (r.room_double_bed * 2)) &gt;= #{guests}
+            )
+        </if>
+
+        <if test="minPrice != null or maxPrice != null">
+            AND mhp.avg_nightly_price BETWEEN
+            <choose>
+                <when test="minPrice != null">#{minPrice}</when>
+                <otherwise>0</otherwise>
+            </choose>
+            AND
+            <choose>
+                <when test="maxPrice != null">#{maxPrice}</when>
+                <otherwise>999999999</otherwise>
+            </choose>
+        </if>
+
+        <if test="freebies != null and freebies.size() > 0">
+            <foreach collection="freebies" item="freebieId">
+                AND EXISTS (
+                SELECT 1
+                FROM hotel_freebies_tbl hf
+                WHERE hf.hotel_id = h.id
+                AND hf.freebies_id = #{freebieId}
+                )
+            </foreach>
+        </if>
+
+        <if test="amenities != null and amenities.size() > 0">
+            <foreach collection="amenities" item="amenityId">
+                AND EXISTS (
+                SELECT 1
+                FROM hotel_amenities_tbl ha
+                WHERE ha.hotel_id = h.id
+                AND ha.amenities_id = #{amenityId}
+                )
+            </foreach>
+        </if>
+    </select>
+
+
 
     <!-- 호텔 상세 조회 -->
     <select id="findHotelDetailById" resultType="com.hotel_project.hotel_jpa.hotel.dto.HotelDetailDto">

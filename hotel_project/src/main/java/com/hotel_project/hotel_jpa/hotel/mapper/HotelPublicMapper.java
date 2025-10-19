@@ -50,4 +50,6 @@ public interface HotelPublicMapper {
     List<HotelSummaryDto> findWishlistHotelsByMemberId(@Param("memberId") Long memberId);
 
     void updateHotelRating(@Param("hotelId") Long hotelId);
+
+    Long countAvailableHotels(HotelSearchRequestDto request);
 }
