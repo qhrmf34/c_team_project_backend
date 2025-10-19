@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -31,6 +32,9 @@ public class ReservationsService {
             if (memberId == null) {
                 throw MemberException.INVALID_ID.getException();
             }
+
+            // ✅ 날짜 유효성 검증 추가
+            validateReservationDates(reservationsDto.getCheckInDate(), reservationsDto.getCheckOutDate());
 
             // 중복 예약 체크 (미결제 예약만)
             Optional<ReservationsEntity> existingReservation = reservationsRepository
@@ -84,6 +88,29 @@ public class ReservationsService {
         } catch (Exception e) {
             log.error("예약 생성 중 오류 발생", e);
             throw new CommonExceptionTemplate(500, "예약 생성 중 오류가 발생했습니다");
+        }
+    }
+
+    // ✅ 날짜 검증 메서드 추가
+    private void validateReservationDates(LocalDate checkInDate, LocalDate checkOutDate) throws CommonExceptionTemplate {
+        LocalDate today = LocalDate.now();
+
+        // 1. 체크인 날짜가 과거인지 확인
+        if (checkInDate.isBefore(today)) {
+            log.warn("과거 날짜 예약 시도 - 체크인: {}, 오늘: {}", checkInDate, today);
+            throw new CommonExceptionTemplate(400, "체크인 날짜는 오늘 이후여야 합니다.");
+        }
+
+        // 2. 체크아웃이 체크인보다 이전이거나 같은지 확인
+        if (checkOutDate.isBefore(checkInDate) || checkOutDate.isEqual(checkInDate)) {
+            log.warn("잘못된 날짜 예약 시도 - 체크인: {}, 체크아웃: {}", checkInDate, checkOutDate);
+            throw new CommonExceptionTemplate(400, "체크아웃 날짜는 체크인 날짜보다 이후여야 합니다.");
+        }
+
+        // 3. 체크아웃이 과거인지 확인 (추가 안전장치)
+        if (checkOutDate.isBefore(today)) {
+            log.warn("과거 날짜 예약 시도 - 체크아웃: {}, 오늘: {}", checkOutDate, today);
+            throw new CommonExceptionTemplate(400, "체크아웃 날짜가 이미 지났습니다.");
         }
     }
 
