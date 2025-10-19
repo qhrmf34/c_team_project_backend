@@ -39,22 +39,30 @@ public class ReviewsDto implements IReviews {
     @NotNull
     private Long reservationsId;
 
-    @DecimalMax(value = "5.0", inclusive = true, message = "평점은 5.0 이하 이여야 합니다.")
-    @DecimalMin(value = "0.0", inclusive = true, message = "평점은 0.0 이상 이여야 합니다.")
+    @DecimalMax(value = "5.0", inclusive = true, message = "평점은 5.0 이하 이어야 합니다.")
+    @DecimalMin(value = "0.0", inclusive = true, message = "평점은 0.0 이상 이어야 합니다.")
     @Digits(integer = 1, fraction = 1, message = "평점은 최대 1자리 정수, 1자리 소수까지 가능합니다.")
     private BigDecimal rating;
 
     private String reviewContent;
 
-    @NotNull(message = "리뷰 카드를 선택 해주세요.")
+    @NotNull(message = "리뷰 카드를 선택해주세요.")
     private ReviewCard reviewCard;
 
+    // 백엔드에서 포맷팅된 회원 이름
     private String memberName;
 
     private String profileImage;
 
+    private String provider;
+    private String firstName;
+    private String lastName;
+    private String email;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // ========== IReviews 인터페이스 구현 메서드들 (그대로 유지) ==========
 
     @Override
     public IId getMember() {

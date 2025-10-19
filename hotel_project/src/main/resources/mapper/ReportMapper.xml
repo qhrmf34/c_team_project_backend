@@ -23,7 +23,7 @@
             r.created_at,
             m.first_name,
             m.last_name
-        FROM reports_tbl r
+        FROM report_tbl r
                  LEFT JOIN member_tbl m ON r.member_id = m.id
         WHERE r.reviews_id = #{reviewId}
         ORDER BY r.created_at DESC
@@ -35,7 +35,7 @@
                 WHEN COUNT(*) > 0 THEN TRUE
                 ELSE FALSE
                 END
-        FROM reports_tbl
+        FROM report_tbl
         WHERE member_id = #{memberId}
           AND reviews_id = #{reviewId}
     </select>
@@ -49,7 +49,7 @@
 
     <!-- 신고 등록 -->
     <insert id="insertReport" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO reports_tbl (
+        INSERT INTO report_tbl (
             reviews_id,
             member_id,
             report_type,
