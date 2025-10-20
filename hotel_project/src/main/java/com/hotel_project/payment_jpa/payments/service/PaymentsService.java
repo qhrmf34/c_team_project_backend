@@ -4,6 +4,8 @@ import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.exception.MemberException;
 import com.hotel_project.payment_jpa.coupon.dto.CouponEntity;
 import com.hotel_project.payment_jpa.coupon.repository.CouponRepository;
+import com.hotel_project.payment_jpa.member_coupon.dto.MemberCouponEntity;
+import com.hotel_project.payment_jpa.member_coupon.repository.MemberCouponRepository;
 import com.hotel_project.payment_jpa.payments.dto.PaymentsDto;
 import com.hotel_project.payment_jpa.payments.dto.PaymentsEntity;
 import com.hotel_project.payment_jpa.payments.dto.PaymentStatus;
@@ -41,6 +43,7 @@ public class PaymentsService {
     private final ReservationsService reservationsService;
     private final ReservationsRepository reservationsRepository;
     private final CouponRepository couponRepository;
+    private final MemberCouponRepository memberCouponRepository;
 
     public PaymentsDto processPayment(PaymentsDto paymentsDto, Long memberId) throws CommonExceptionTemplate {
         try {
@@ -180,10 +183,23 @@ public class PaymentsService {
 
             PaymentsEntity savedEntity = paymentsRepository.save(entity);
 
-            // 8. 예약 상태 확정
+            // ✅ 8. 쿠폰 사용 처리 추가
+            if (couponId != null && couponId > 0) {
+                MemberCouponEntity memberCoupon = memberCouponRepository
+                        .findByMemberEntity_IdAndCouponEntity_IdAndIsUsedFalse(memberId, couponId)
+                        .orElseThrow(() -> new CommonExceptionTemplate(404, "사용 가능한 쿠폰을 찾을 수 없습니다"));
+
+                memberCoupon.setIsUsed(true);
+                memberCoupon.setUsedAt(LocalDateTime.now());
+                memberCouponRepository.save(memberCoupon);
+
+                log.info("✅ 쿠폰 사용 처리 완료 - couponId: {}", couponId);
+            }
+
+            // 9. 예약 상태 확정
             reservationsService.updateReservationStatus(reservationId, true);
 
-            // 9. 티켓 생성
+            // 10. 티켓 생성
             TicketEntity ticket = new TicketEntity();
             ticket.setPaymentId(savedEntity.getId());
             ticket.setTicketImageName("TICKET_" + UUID.randomUUID().toString());
@@ -192,7 +208,7 @@ public class PaymentsService {
 
             ticketRepository.save(ticket);
 
-            // 10. DTO 변환
+            // 11. DTO 변환
             PaymentsDto resultDto = new PaymentsDto();
             resultDto.copyMembers(savedEntity);
 
