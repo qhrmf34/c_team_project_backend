@@ -4,6 +4,7 @@ import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.common_jpa.util.JwtUtil;
 import com.hotel_project.payment_jpa.reservations.dto.ReservationsDto;
+import com.hotel_project.payment_jpa.reservations.dto.ReservationSummaryDto;
 import com.hotel_project.payment_jpa.reservations.service.ReservationsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -55,9 +58,19 @@ public class ReservationsController {
         }
 
         Long memberId = getMemberIdFromToken(request);
-
         ReservationsDto result = reservationsService.createReservation(reservationsDto, memberId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "예약이 생성되었습니다", result));
+    }
+
+    @GetMapping("/my")
+    @Operation(summary = "내 예약 목록 조회", description = "현재 로그인한 사용자의 모든 예약 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<ReservationSummaryDto>>> getMyReservations(
+            HttpServletRequest request
+    ) throws CommonExceptionTemplate {
+        Long memberId = getMemberIdFromToken(request);
+        List<ReservationSummaryDto> reservations = reservationsService.getMyReservations(memberId);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "예약 목록 조회 성공", reservations));
     }
 }
