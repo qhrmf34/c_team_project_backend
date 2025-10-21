@@ -567,8 +567,14 @@
             h.hotel_number as phoneNumber,
             h.hotel_type as hotelType,
             h.hotel_star as starRating,
-            h.hotel_rating as averageRating,
-            0 as reviewCount,
+            -- 실제 리뷰 평균 평점 계산
+            ROUND(COALESCE((SELECT AVG(r.rating)
+                            FROM reviews_tbl r
+                            WHERE r.hotel_id = h.id), 0.0), 1) as averageRating,
+            -- 실제 리뷰 개수 계산
+            COALESCE((SELECT COUNT(*)
+                      FROM reviews_tbl r
+                      WHERE r.hotel_id = h.id), 0) as reviewCount,
             h.checkin_time as checkInTime,
             h.checkout_time as checkOutTime,
             (SELECT MIN(r.base_price)
