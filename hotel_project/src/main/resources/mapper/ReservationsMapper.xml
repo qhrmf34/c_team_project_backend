@@ -26,44 +26,53 @@
         <result column="review_count" property="reviewCount"/>
     </resultMap>
 
+    <!-- ✅ 페이지네이션 추가 -->
     <select id="findReservationsByMemberId" resultMap="ReservationSummaryResultMap">
         SELECT
-            r.id AS reservation_id,
-            rm.id AS room_id,
-            h.id AS hotel_id,
-            h.hotel_name,
-            rm.room_name,
-            c.city_name,
-            co.country_name,
-            CONCAT(c.city_name, ', ', co.country_name) AS hotel_address,
-            (SELECT hi.hotel_image_path
-             FROM hotel_image_tbl hi
-             WHERE hi.hotel_id = h.id
-                LIMIT 1) AS hotel_image,
-            r.check_in_date,
-            r.check_out_date,
-            r.guests_count,
-            r.base_payment,
-            r.reservations_status,
-            p.payment_status,
-            h.hotel_star,
-            h.hotel_type,
-            -- 리뷰 테이블에서 실제 평균 평점 계산
-            COALESCE((SELECT AVG(rev.rating)
-                      FROM reviews_tbl rev
-                      WHERE rev.hotel_id = h.id), 0.0) AS hotel_rating,
-            -- 리뷰 개수
-            (SELECT COUNT(*)
-             FROM reviews_tbl rev
-             WHERE rev.hotel_id = h.id) AS review_count
+        r.id AS reservation_id,
+        rm.id AS room_id,
+        h.id AS hotel_id,
+        h.hotel_name,
+        rm.room_name,
+        c.city_name,
+        co.country_name,
+        CONCAT(c.city_name, ', ', co.country_name) AS hotel_address,
+        (SELECT hi.hotel_image_path
+        FROM hotel_image_tbl hi
+        WHERE hi.hotel_id = h.id
+        LIMIT 1) AS hotel_image,
+        r.check_in_date,
+        r.check_out_date,
+        r.guests_count,
+        r.base_payment,
+        r.reservations_status,
+        p.payment_status,
+        h.hotel_star,
+        h.hotel_type,
+        COALESCE((SELECT AVG(rev.rating)
+        FROM reviews_tbl rev
+        WHERE rev.hotel_id = h.id), 0.0) AS hotel_rating,
+        (SELECT COUNT(*)
+        FROM reviews_tbl rev
+        WHERE rev.hotel_id = h.id) AS review_count
         FROM reservations_tbl r
-            INNER JOIN room_tbl rm ON r.room_id = rm.id
-            INNER JOIN hotel_tbl h ON rm.hotel_id = h.id
-            INNER JOIN city_tbl c ON h.city_id = c.id
-            INNER JOIN country_tbl co ON c.country_id = co.id
-            LEFT JOIN payments_tbl p ON r.id = p.reservations_id
+        INNER JOIN room_tbl rm ON r.room_id = rm.id
+        INNER JOIN hotel_tbl h ON rm.hotel_id = h.id
+        INNER JOIN city_tbl c ON h.city_id = c.id
+        INNER JOIN country_tbl co ON c.country_id = co.id
+        LEFT JOIN payments_tbl p ON r.id = p.reservations_id
         WHERE r.member_id = #{memberId}
         ORDER BY r.reservations_at DESC
+        <if test="offset != null and size != null">
+            LIMIT #{size} OFFSET #{offset}
+        </if>
+    </select>
+
+    <!-- ✅ 예약 개수 조회 추가 -->
+    <select id="countReservationsByMemberId" resultType="int">
+        SELECT COUNT(*)
+        FROM reservations_tbl
+        WHERE member_id = #{memberId}
     </select>
 
 </mapper>

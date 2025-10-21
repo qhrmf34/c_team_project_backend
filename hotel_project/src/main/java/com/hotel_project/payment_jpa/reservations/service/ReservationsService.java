@@ -15,7 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -170,22 +172,39 @@ public class ReservationsService {
     }
 
     /**
-     * 내 예약 목록 조회 (MyBatis Mapper 사용)
+     * 내 예약 목록 조회 (페이지네이션 지원)
      */
     @Transactional(readOnly = true)
-    public List<ReservationSummaryDto> getMyReservations(Long memberId) throws CommonExceptionTemplate {
+    public Map<String, Object> getMyReservations(Long memberId, Integer offset, Integer size) throws CommonExceptionTemplate {
         try {
-            log.info("예약 목록 조회 시작 - 회원 ID: {}", memberId);
+            log.info("예약 목록 조회 시작 - 회원 ID: {}, offset: {}, size: {}", memberId, offset, size);
 
-            List<ReservationSummaryDto> reservations = reservationsMapper.findReservationsByMemberId(memberId);
+            // 전체 개수 조회
+            int totalCount = reservationsMapper.countReservationsByMemberId(memberId);
 
-            log.info("예약 목록 조회 완료 - 회원 ID: {}, 예약 개수: {}", memberId, reservations.size());
+            // 예약 목록 조회
+            List<ReservationSummaryDto> reservations = reservationsMapper.findReservationsByMemberId(
+                    memberId, offset, size);
 
-            return reservations;
+            log.info("예약 목록 조회 완료 - 회원 ID: {}, 예약 개수: {}, 전체: {}",
+                    memberId, reservations.size(), totalCount);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("reservations", reservations);
+            result.put("totalCount", totalCount);
+
+            return result;
 
         } catch (Exception e) {
             log.error("예약 목록 조회 중 오류 발생 - 회원 ID: {}", memberId, e);
             throw new CommonExceptionTemplate(500, "예약 목록 조회 중 오류가 발생했습니다");
         }
+    }
+
+    // ✅ 전체 조회 메서드도 유지 (기존 호환성)
+    @Transactional(readOnly = true)
+    public List<ReservationSummaryDto> getMyReservations(Long memberId) throws CommonExceptionTemplate {
+        Map<String, Object> result = getMyReservations(memberId, null, null);
+        return (List<ReservationSummaryDto>) result.get("reservations");
     }
 }

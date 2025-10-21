@@ -16,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -65,12 +66,14 @@ public class ReservationsController {
 
     @GetMapping("/my")
     @Operation(summary = "내 예약 목록 조회", description = "현재 로그인한 사용자의 모든 예약 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<ReservationSummaryDto>>> getMyReservations(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getMyReservations(
+            @RequestParam(defaultValue = "0") Integer offset,
+            @RequestParam(defaultValue = "3") Integer size,
             HttpServletRequest request
     ) throws CommonExceptionTemplate {
         Long memberId = getMemberIdFromToken(request);
-        List<ReservationSummaryDto> reservations = reservationsService.getMyReservations(memberId);
+        Map<String, Object> result = reservationsService.getMyReservations(memberId, offset, size);
 
-        return ResponseEntity.ok(ApiResponse.success(200, "예약 목록 조회 성공", reservations));
+        return ResponseEntity.ok(ApiResponse.success(200, "예약 목록 조회 성공", result));
     }
 }

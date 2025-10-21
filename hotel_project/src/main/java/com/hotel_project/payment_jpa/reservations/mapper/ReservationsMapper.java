@@ -9,8 +9,13 @@ import java.util.List;
 @Mapper
 public interface ReservationsMapper {
 
-    /**
-     * 회원의 예약 목록 조회 (호텔, 객실, 도시, 국가 정보 포함)
-     */
-    List<ReservationSummaryDto> findReservationsByMemberId(@Param("memberId") Long memberId);
+    // ✅ 페이지네이션 파라미터 추가
+    List<ReservationSummaryDto> findReservationsByMemberId(
+            @Param("memberId") Long memberId,
+            @Param("offset") Integer offset,
+            @Param("size") Integer size
+    );
+
+    // ✅ 개수 조회 추가
+    int countReservationsByMemberId(@Param("memberId") Long memberId);
 }
