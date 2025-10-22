@@ -113,6 +113,7 @@ public class TicketService {
             result.put("roomName", room.get("roomName"));
             result.put("roomNumber", room.get("roomNumber"));
             result.put("bedInfo", bedInfo);
+            result.put("ticketImagePath", ticket.getTicketImageName());
 
             result.put("checkInDate", reservation.getCheckInDate());
             result.put("checkOutDate", reservation.getCheckOutDate());
