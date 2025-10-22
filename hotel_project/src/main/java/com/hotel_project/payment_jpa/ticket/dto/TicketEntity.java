@@ -29,7 +29,7 @@ public class TicketEntity implements ITicket{
     @Transient
     private Long paymentId;
 
-    @Column(nullable = false)
+    @Column(nullable = true, length = 255)
     private String ticketImageName;
 
     @Column(unique = true, length = 50)

@@ -2,6 +2,7 @@ package com.hotel_project.payment_jpa.reservations.service;
 
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.exception.MemberException;
+import com.hotel_project.payment_jpa.reservations.dto.ReservationHistoryDto;
 import com.hotel_project.payment_jpa.reservations.dto.ReservationsDto;
 import com.hotel_project.payment_jpa.reservations.dto.ReservationsEntity;
 import com.hotel_project.payment_jpa.reservations.dto.ReservationSummaryDto;
@@ -206,5 +207,32 @@ public class ReservationsService {
     public List<ReservationSummaryDto> getMyReservations(Long memberId) throws CommonExceptionTemplate {
         Map<String, Object> result = getMyReservations(memberId, null, null);
         return (List<ReservationSummaryDto>) result.get("reservations");
+    }
+    /**
+     * ✅ 내 결제 내역 조회 (새로운 메서드 - HotelAccount용)
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getMyReservationHistory(Long memberId, Integer offset, Integer size)
+            throws CommonExceptionTemplate {
+        try {
+            log.info("결제 내역 조회 시작 - 회원 ID: {}, offset: {}, size: {}", memberId, offset, size);
+
+            int totalCount = reservationsMapper.countReservationHistoryByMemberId(memberId);
+            List<ReservationHistoryDto> history = reservationsMapper.findReservationHistoryByMemberId(
+                    memberId, offset, size);
+
+            log.info("결제 내역 조회 완료 - 회원 ID: {}, 내역 개수: {}, 전체: {}",
+                    memberId, history.size(), totalCount);
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("reservations", history);
+            result.put("totalCount", totalCount);
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("결제 내역 조회 중 오류 발생 - 회원 ID: {}", memberId, e);
+            throw new CommonExceptionTemplate(500, "결제 내역 조회 중 오류가 발생했습니다");
+        }
     }
 }

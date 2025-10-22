@@ -179,4 +179,34 @@ public class TicketService {
 
         return "Guest";
     }
+
+    @Transactional
+    public void updateTicketImage(Long ticketId, String imagePath, Long memberId)
+            throws CommonExceptionTemplate {
+        try {
+            TicketEntity ticket = ticketRepository.findById(ticketId)
+                    .orElseThrow(() -> new CommonExceptionTemplate(404, "티켓을 찾을 수 없습니다"));
+
+            // 권한 확인
+            PaymentsEntity payment = paymentsRepository.findById(ticket.getPaymentId())
+                    .orElseThrow(() -> new CommonExceptionTemplate(404, "결제 정보를 찾을 수 없습니다"));
+
+            ReservationsEntity reservation = reservationsRepository.findById(payment.getReservationsId())
+                    .orElseThrow(() -> new CommonExceptionTemplate(404, "예약 정보를 찾을 수 없습니다"));
+
+            if (!reservation.getMemberId().equals(memberId)) {
+                throw new CommonExceptionTemplate(403, "접근 권한이 없습니다");
+            }
+
+            // 이미지 경로 업데이트
+            ticket.setTicketImageName(imagePath);
+            ticketRepository.save(ticket);
+
+            log.info("✅ 티켓 이미지 경로 업데이트 완료 - ticketId: {}", ticketId);
+
+        } catch (Exception e) {
+            log.error("❌ 티켓 이미지 업데이트 실패", e);
+            throw new CommonExceptionTemplate(500, "티켓 이미지 업데이트 실패");
+        }
+    }
 }

@@ -74,5 +74,80 @@
         FROM reservations_tbl
         WHERE member_id = #{memberId}
     </select>
+    <!-- (결제 내역용) -->
+    <resultMap id="ReservationHistoryResultMap" type="com.hotel_project.payment_jpa.reservations.dto.ReservationHistoryDto">
+        <result column="reservation_id" property="reservationId"/>
+        <result column="room_id" property="roomId"/>
+        <result column="hotel_id" property="hotelId"/>
+        <result column="hotel_name" property="hotelName"/>
+        <result column="room_name" property="roomName"/>
+        <result column="city_name" property="cityName"/>
+        <result column="country_name" property="countryName"/>
+        <result column="hotel_address" property="hotelAddress"/>
+        <result column="hotel_image" property="hotelImage"/>
+        <result column="check_in_date" property="checkInDate"/>
+        <result column="check_out_date" property="checkOutDate"/>
+        <result column="guests_count" property="guestsCount"/>
+        <result column="base_payment" property="basePayment"/>
+        <result column="reservations_status" property="reservationsStatus"/>
+        <result column="payment_status" property="paymentStatus"/>
+        <result column="payment_id" property="paymentId"/>
+        <result column="hotel_star" property="hotelStar"/>
+        <result column="hotel_type" property="hotelType"/>
+        <result column="hotel_rating" property="hotelRating"/>
+        <result column="review_count" property="reviewCount"/>
+        <result column="room_number" property="roomNumber"/>
+        <result column="refund" property="refund"/>
+    </resultMap>
 
+    <!-- (결제 내역용) -->
+    <select id="findReservationHistoryByMemberId" resultMap="ReservationHistoryResultMap">
+        SELECT
+        r.id AS reservation_id,
+        rm.id AS room_id,
+        h.id AS hotel_id,
+        h.hotel_name,
+        rm.room_name,
+        rm.room_number,
+        c.city_name,
+        co.country_name,
+        CONCAT(c.city_name, ', ', co.country_name) AS hotel_address,
+        (SELECT hi.hotel_image_path
+        FROM hotel_image_tbl hi
+        WHERE hi.hotel_id = h.id
+        LIMIT 1) AS hotel_image,
+        r.check_in_date,
+        r.check_out_date,
+        r.guests_count,
+        r.base_payment,
+        r.reservations_status,
+        CAST(p.payment_status AS CHAR) AS payment_status,
+        p.id AS payment_id,
+        p.refund,  -- ✅ 추가
+        h.hotel_star,
+        h.hotel_type,
+        COALESCE((SELECT AVG(rev.rating)
+        FROM reviews_tbl rev
+        WHERE rev.hotel_id = h.id), 0.0) AS hotel_rating,
+        (SELECT COUNT(*)
+        FROM reviews_tbl rev
+        WHERE rev.hotel_id = h.id) AS review_count
+        FROM reservations_tbl r
+        INNER JOIN room_tbl rm ON r.room_id = rm.id
+        INNER JOIN hotel_tbl h ON rm.hotel_id = h.id
+        INNER JOIN city_tbl c ON h.city_id = c.id
+        INNER JOIN country_tbl co ON c.country_id = co.id
+        LEFT JOIN payments_tbl p ON r.id = p.reservations_id
+        WHERE r.member_id = #{memberId}
+        ORDER BY r.reservations_at DESC
+        <if test="offset != null and size != null">
+            LIMIT #{size} OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="countReservationHistoryByMemberId" resultType="int">
+        SELECT COUNT(*)
+        FROM reservations_tbl
+        WHERE member_id = #{memberId}
+    </select>
 </mapper>

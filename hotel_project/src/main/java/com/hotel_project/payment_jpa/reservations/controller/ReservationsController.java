@@ -76,4 +76,19 @@ public class ReservationsController {
 
         return ResponseEntity.ok(ApiResponse.success(200, "예약 목록 조회 성공", result));
     }
+    /**
+     * (HotelAccount용)
+     */
+    @GetMapping("/history")
+    @Operation(summary = "내 결제 내역 조회", description = "결제 완료된 예약 내역을 조회합니다 (HotelAccount용)")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getMyReservationHistory(
+            @RequestParam(defaultValue = "0") Integer offset,
+            @RequestParam(defaultValue = "3") Integer size,
+            HttpServletRequest request
+    ) throws CommonExceptionTemplate {
+        Long memberId = getMemberIdFromToken(request);
+        Map<String, Object> result = reservationsService.getMyReservationHistory(memberId, offset, size);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "결제 내역 조회 성공", result));
+    }
 }

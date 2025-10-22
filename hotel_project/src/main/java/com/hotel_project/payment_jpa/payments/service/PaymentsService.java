@@ -19,6 +19,7 @@ import com.hotel_project.payment_jpa.payment_method.dto.TossPaymentResponseDto;
 import com.hotel_project.payment_jpa.reservations.service.ReservationsService;
 import com.hotel_project.payment_jpa.ticket.dto.TicketEntity;
 import com.hotel_project.payment_jpa.ticket.repository.TicketRepository;
+import com.hotel_project.payment_jpa.ticket.service.TicketImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class PaymentsService {
     private final ReservationsRepository reservationsRepository;
     private final CouponRepository couponRepository;
     private final MemberCouponRepository memberCouponRepository;
-
+    private final TicketImageService ticketImageService;
     public PaymentsDto processPayment(PaymentsDto paymentsDto, Long memberId) throws CommonExceptionTemplate {
         try {
             log.info("=== 결제 처리 시작 ===");
@@ -140,22 +141,22 @@ public class PaymentsService {
             log.info("paymentKey: {}, orderId: {}, amount: {}", paymentKey, orderId, amount);
             log.info("reservationId: {}, couponId: {}", reservationId, couponId);
 
-            // ✅ 1. 예약 정보 조회
+            // 1. 예약 정보 조회
             ReservationsEntity reservation = reservationsRepository.findById(reservationId)
                     .orElseThrow(() -> new CommonExceptionTemplate(404, "예약 정보를 찾을 수 없습니다"));
 
-            // ✅ 2. 날짜 검증
+            // 2. 날짜 검증 추가
             validatePaymentDates(reservation.getCheckInDate(), reservation.getCheckOutDate());
 
-            // ✅ 3. 이미 결제된 예약인지 확인
+            // 3. 이미 결제된 예약인지 확인
             if (reservation.getReservationsStatus()) {
                 throw new CommonExceptionTemplate(400, "이미 결제가 완료된 예약입니다.");
             }
 
-            // ✅ 4. 백엔드에서 최종 금액 계산
+            // 4. 백엔드에서 최종 금액 계산
             Long calculatedAmount = calculateFinalAmount(reservation, couponId);
 
-            // ✅ 5. 프론트에서 보낸 금액과 백엔드 계산 금액 일치 확인
+            // 5. 프론트에서 보낸 금액과 백엔드 계산 금액 일치 확인
             if (!calculatedAmount.equals(amount)) {
                 log.error("금액 불일치 - 프론트: {}, 백엔드 계산: {}", amount, calculatedAmount);
                 throw new CommonExceptionTemplate(400, "결제 금액이 일치하지 않습니다.");
@@ -183,7 +184,7 @@ public class PaymentsService {
 
             PaymentsEntity savedEntity = paymentsRepository.save(entity);
 
-            // ✅ 8. 쿠폰 사용 처리 추가
+            // 8. 쿠폰 사용 처리
             if (couponId != null && couponId > 0) {
                 MemberCouponEntity memberCoupon = memberCouponRepository
                         .findByMemberEntity_IdAndCouponEntity_IdAndIsUsedFalse(memberId, couponId)
@@ -199,14 +200,15 @@ public class PaymentsService {
             // 9. 예약 상태 확정
             reservationsService.updateReservationStatus(reservationId, true);
 
-            // 10. 티켓 생성
+            // 10. ✅ 티켓 생성 (이미지는 프론트에서 업로드)
             TicketEntity ticket = new TicketEntity();
             ticket.setPaymentId(savedEntity.getId());
-            ticket.setTicketImageName("TICKET_" + UUID.randomUUID().toString());
+            ticket.setTicketImageName(null); // 나중에 프론트에서 업로드
             ticket.setIsUsed(false);
             ticket.setCreatedAt(LocalDateTime.now());
 
             ticketRepository.save(ticket);
+            log.info("✅ 티켓 생성 완료 - ticketId: {}", ticket.getId());
 
             // 11. DTO 변환
             PaymentsDto resultDto = new PaymentsDto();
@@ -251,33 +253,31 @@ public class PaymentsService {
     /**
      * ✅ 전액 환불 (티켓 상태 업데이트 포함)
      */
+// PaymentsService.java의 refundPayment 메서드 수정
     public PaymentsDto refundPayment(Long paymentId, String cancelReason, Long memberId)
             throws CommonExceptionTemplate {
 
         try {
             log.info("=== 환불 처리 시작 - paymentId: {} ===", paymentId);
 
-            // 1. 결제 정보 조회
             PaymentsEntity payment = paymentsRepository.findById(paymentId)
                     .orElseThrow(() -> new CommonExceptionTemplate(404, "결제 정보를 찾을 수 없습니다"));
 
-            // 2. 이미 환불된 건인지 확인
             if (payment.getRefund()) {
                 throw new CommonExceptionTemplate(400, "이미 환불된 결제입니다");
             }
 
-            // 3. 결제 상태 확인
             if (payment.getPaymentStatus() != PaymentStatus.paid) {
                 throw new CommonExceptionTemplate(400, "환불 가능한 상태가 아닙니다");
             }
 
-            // 4. 토스에 환불 요청
+            // 토스에 환불 요청
             TossPaymentResponseDto tossResponse =
                     tossPaymentService.cancelPayment(payment.getTossPaymentKey(), cancelReason);
 
             log.info("✅ 토스 환불 완료");
 
-            // 5. DB 업데이트
+            // DB 업데이트
             payment.setRefund(true);
             payment.setRefundDate(LocalDateTime.now());
             payment.setPaymentStatus(PaymentStatus.refunded);
@@ -285,17 +285,21 @@ public class PaymentsService {
 
             PaymentsEntity updatedPayment = paymentsRepository.save(payment);
 
-            // 6. 예약 상태 업데이트 (환불되면 예약도 취소)
+            // 예약 상태 업데이트
             reservationsService.updateReservationStatus(payment.getReservationsId(), false);
 
-            // 7. ✅ 티켓 사용 불가 처리
+            // ✅ 티켓 삭제
             ticketRepository.findByPaymentsEntity_Id(paymentId).ifPresent(ticket -> {
-                ticket.setIsUsed(true); // 환불된 티켓은 사용 불가
-                ticketRepository.save(ticket);
-                log.info("티켓 사용 불가 처리 완료 - ticketId: {}", ticket.getId());
+                // 티켓 이미지 파일 삭제
+                if (ticket.getTicketImageName() != null) {
+                    ticketImageService.deleteTicketImage(ticket.getTicketImageName());
+                }
+
+                // 티켓 DB 삭제
+                ticketRepository.delete(ticket);
+                log.info("✅ 티켓 삭제 완료 - ticketId: {}", ticket.getId());
             });
 
-            // 8. DTO 변환
             PaymentsDto resultDto = new PaymentsDto();
             resultDto.copyMembers(updatedPayment);
 
