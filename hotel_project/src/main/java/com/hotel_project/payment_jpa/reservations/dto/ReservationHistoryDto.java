@@ -1,9 +1,11 @@
 package com.hotel_project.payment_jpa.reservations.dto;
 
+import com.hotel_project.payment_jpa.payments.dto.PaymentStatus;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 // ReservationHistoryDto.java
 @Getter
@@ -23,11 +25,13 @@ public class ReservationHistoryDto {
     private String hotelImage;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
+    private LocalTime checkinTime;
+    private LocalTime checkoutTime;
     private Integer guestsCount;
     private BigDecimal basePayment;
     private Boolean reservationsStatus;
 
-    private String paymentStatus;
+    private PaymentStatus paymentStatus;
     private Long paymentId;
     private Boolean refund;
     private Integer hotelStar;

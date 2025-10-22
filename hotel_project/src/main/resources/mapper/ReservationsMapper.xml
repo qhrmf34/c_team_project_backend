@@ -107,6 +107,8 @@
         rm.id AS room_id,
         h.id AS hotel_id,
         h.hotel_name,
+        h.checkin_time,
+        h.checkout_time,
         rm.room_name,
         rm.room_number,
         c.city_name,

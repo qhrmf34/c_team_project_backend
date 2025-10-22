@@ -108,7 +108,8 @@ public class TicketService {
             result.put("countryName", hotel.get("countryName"));
             result.put("cityName", hotel.get("cityName"));
             result.put("address", hotel.get("address"));
-
+            result.put("checkInTime",hotel.get("checkinTime"));
+            result.put("checkOutTime",hotel.get("checkoutTime"));
             result.put("roomName", room.get("roomName"));
             result.put("roomNumber", room.get("roomNumber"));
             result.put("bedInfo", bedInfo);
