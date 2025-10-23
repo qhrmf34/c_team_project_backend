@@ -137,28 +137,69 @@
     <select id="checkReviewEligibility" resultType="map">
         SELECT
             CASE
+                -- 1. 이미 이 호텔에 리뷰를 작성했는지 체크
                 WHEN EXISTS (
                     SELECT 1 FROM reviews_tbl
                     WHERE member_id = #{memberId}
                       AND hotel_id = #{hotelId}
                 ) THEN 'ALREADY_WRITTEN'
-                WHEN COUNT(res.id) = 0 THEN 'NO_BOOKING'
-                WHEN MAX(res.check_out_date) > CURDATE() THEN 'DATE_NOT_PASSED'
-                WHEN MAX(res.reservations_status) != 1 OR COALESCE(MAX(p.payment_status), 0) != 1 THEN 'NOT_PAID'
-                ELSE 'ELIGIBLE'
-        END as status,
-            MAX(res.check_in_date) as checkIn,
-            MAX(res.check_out_date) as checkOut,
-            MAX(res.reservations_status) as reservationStatus,
-            MAX(p.payment_status) as paymentStatus,
-            MAX(res.id) as reservationId
-        FROM reservations_tbl res
-        INNER JOIN room_tbl r ON res.room_id = r.id
-        LEFT JOIN payments_tbl p ON res.id = p.reservations_id
-        WHERE r.hotel_id = #{hotelId}
-        AND res.member_id = #{memberId}
-    </select>
 
+                -- 2. 이 호텔에 예약한 적이 있는지 체크
+                WHEN NOT EXISTS (
+                    SELECT 1 FROM reservations_tbl res
+                                      INNER JOIN room_tbl r ON res.room_id = r.id
+                    WHERE r.hotel_id = #{hotelId}
+                      AND res.member_id = #{memberId}
+                ) THEN 'NO_BOOKING'
+
+                -- 3. 결제 완료 &amp; 체크아웃 날짜가 지난 예약이 있는지 체크
+                WHEN EXISTS (
+                    SELECT 1 FROM reservations_tbl res
+                                      INNER JOIN room_tbl r ON res.room_id = r.id
+                                      LEFT JOIN payments_tbl p ON res.id = p.reservations_id
+                    WHERE r.hotel_id = #{hotelId}
+                      AND res.member_id = #{memberId}
+                      AND res.reservations_status = TRUE
+                      AND p.payment_status = 'paid'
+                      AND res.check_out_date <![CDATA[<]]> CURDATE()
+                ) THEN 'ELIGIBLE'
+
+                -- 4. 예약은 있지만 아직 체크아웃 날짜가 안 지났거나 결제가 안됨
+                ELSE 'NOT_ELIGIBLE'
+                END as status,
+            (
+                SELECT MAX(res.check_in_date)
+                FROM reservations_tbl res
+                         INNER JOIN room_tbl r ON res.room_id = r.id
+                         LEFT JOIN payments_tbl p ON res.id = p.reservations_id
+                WHERE r.hotel_id = #{hotelId}
+                  AND res.member_id = #{memberId}
+                  AND res.reservations_status = TRUE
+                  AND p.payment_status = 'paid'
+            ) as checkIn,
+            (
+                SELECT MAX(res.check_out_date)
+                FROM reservations_tbl res
+                         INNER JOIN room_tbl r ON res.room_id = r.id
+                         LEFT JOIN payments_tbl p ON res.id = p.reservations_id
+                WHERE r.hotel_id = #{hotelId}
+                  AND res.member_id = #{memberId}
+                  AND res.reservations_status = TRUE
+                  AND p.payment_status = 'paid'
+            ) as checkOut,
+            (
+                SELECT res.id
+                FROM reservations_tbl res
+                         INNER JOIN room_tbl r ON res.room_id = r.id
+                         LEFT JOIN payments_tbl p ON res.id = p.reservations_id
+                WHERE r.hotel_id = #{hotelId}
+                  AND res.member_id = #{memberId}
+                  AND res.reservations_status = TRUE
+                  AND p.payment_status = 'paid'
+                ORDER BY res.check_out_date DESC
+                       LIMIT 1
+            ) as reservationId
+    </select>
     <insert id="insertReview" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO reviews_tbl (
             member_id,

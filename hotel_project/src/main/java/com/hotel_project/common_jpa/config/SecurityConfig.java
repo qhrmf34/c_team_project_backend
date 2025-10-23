@@ -88,13 +88,38 @@ public class SecurityConfig {
                                     // URL 인코딩
                                     String encodedUserInfo = URLEncoder.encode(userInfoJson, StandardCharsets.UTF_8);
 
-                                    // 토큰과 사용자 정보를 URL 파라미터로 전달 (동적 URL 사용)
-                                    String redirectUrl = String.format(
-                                            "%s/auth/callback?token=%s&userInfo=%s",
-                                            frontendUrl,
-                                            loginResponse.getToken(),
-                                            encodedUserInfo
-                                    );
+                                    // ★★★ 쿠키에서 returnToPayment 확인 ★★★
+                                    String returnToPayment = null;
+                                    if (request.getCookies() != null) {
+                                        for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                                            if ("returnToPayment".equals(cookie.getName())) {
+                                                returnToPayment = cookie.getValue();
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    String redirectUrl;
+
+                                    // ★★★ 결제 페이지에서 온 경우 /hotelfour로 리다이렉트 ★★★
+                                    if ("true".equals(returnToPayment)) {
+                                        System.out.println("결제 페이지에서 온 소셜 로그인 - /hotelfour로 리다이렉트");
+                                        redirectUrl = String.format(
+                                                "%s/hotelfour?login=success&token=%s&userInfo=%s",
+                                                frontendUrl,
+                                                loginResponse.getToken(),
+                                                encodedUserInfo
+                                        );
+                                    } else {
+                                        // ★★★ 일반 로그인은 기존대로 /auth/callback ★★★
+                                        System.out.println("일반 소셜 로그인 - /auth/callback으로 리다이렉트");
+                                        redirectUrl = String.format(
+                                                "%s/auth/callback?token=%s&userInfo=%s",
+                                                frontendUrl,
+                                                loginResponse.getToken(),
+                                                encodedUserInfo
+                                        );
+                                    }
 
                                     System.out.println("리다이렉트 URL: " + redirectUrl);
 

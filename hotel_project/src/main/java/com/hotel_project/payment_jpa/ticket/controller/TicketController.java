@@ -1,11 +1,11 @@
-// TicketController.java (새로 생성)
+// TicketController.java
 package com.hotel_project.payment_jpa.ticket.controller;
 
 import com.hotel_project.common_jpa.exception.CommonExceptionTemplate;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.common_jpa.util.JwtUtil;
-import com.hotel_project.payment_jpa.ticket.dto.TicketDto;
 import com.hotel_project.payment_jpa.ticket.service.TicketService;
+import com.hotel_project.payment_jpa.ticket.service.TicketImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -25,6 +27,7 @@ import java.util.Map;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final TicketImageService ticketImageService;
     private final JwtUtil jwtUtil;
 
     private Long getMemberIdFromToken(HttpServletRequest request) throws CommonExceptionTemplate {
@@ -55,5 +58,29 @@ public class TicketController {
         Map<String, Object> ticketInfo = ticketService.getTicketDetailByPaymentId(paymentId, memberId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "조회 성공", ticketInfo));
+    }
+
+    /**
+     * ✅ 티켓 이미지 업로드
+     */
+    @PostMapping("/{ticketId}/upload-image")
+    @Operation(summary = "티켓 이미지 업로드", description = "프론트에서 캡처한 티켓 이미지를 업로드합니다")
+    public ResponseEntity<ApiResponse<Map<String, String>>> uploadTicketImage(
+            @PathVariable Long ticketId,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("barcode") String barcode,
+            HttpServletRequest request
+    ) throws CommonExceptionTemplate {
+
+        Long memberId = getMemberIdFromToken(request);
+        String imagePath = ticketImageService.uploadTicketImage(file, barcode);
+
+        // DB에 이미지 경로 저장
+        ticketService.updateTicketImage(ticketId, imagePath, memberId);
+
+        Map<String, String> result = new HashMap<>();
+        result.put("imagePath", imagePath);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "티켓 이미지 업로드 완료", result));
     }
 }

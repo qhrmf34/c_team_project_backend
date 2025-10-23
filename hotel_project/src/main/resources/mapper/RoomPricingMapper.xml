@@ -22,7 +22,7 @@
                 OR h.hotel_name LIKE CONCAT('%', #{RoomName}, '%')
             </if>
         </where>
-        ORDER BY rp.date DESC
+        ORDER BY rp.id DESC
         LIMIT #{size} OFFSET #{offset}
     </select>
 

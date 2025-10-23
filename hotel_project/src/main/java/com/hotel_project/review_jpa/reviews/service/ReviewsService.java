@@ -99,14 +99,32 @@ public class ReviewsService {
         log.info("리뷰 작성 - memberId: {}, hotelId: {}",
                 reviewsDto.getMemberId(), reviewsDto.getHotelId());
 
-        if (reviewsRepository.existsByReservationsEntity_Id(reviewsDto.getReservationsId())) {
-            throw new CommonExceptionTemplate(400, "이미 해당 예약에 대한 리뷰를 작성하셨습니다.");
+        // 1. 이미 이 호텔에 리뷰를 작성했는지 체크
+        if (hasReviewed(reviewsDto.getMemberId(), reviewsDto.getHotelId())) {
+            throw new CommonExceptionTemplate(400, "이미 해당 호텔에 대한 리뷰를 작성하셨습니다.");
         }
 
+        // 2. 리뷰 작성 가능 여부 체크
+        ReviewEligibilityDto eligibility = checkReviewEligibility(
+                reviewsDto.getHotelId(),
+                reviewsDto.getMemberId()
+        );
+
+        if (!"ELIGIBLE".equals(eligibility.getStatus())) {
+            String message = switch (eligibility.getStatus()) {
+                case "NO_BOOKING" -> "해당 호텔에 예약 내역이 없습니다.";
+                case "NOT_ELIGIBLE" -> "체크아웃 날짜가 지나고 결제가 완료된 후에 리뷰를 작성할 수 있습니다.";
+                case "ALREADY_WRITTEN" -> "이미 해당 호텔에 대한 리뷰를 작성하셨습니다.";
+                default -> "리뷰를 작성할 수 없습니다.";
+            };
+            throw new CommonExceptionTemplate(400, message);
+        }
+
+        // 3. 리뷰 작성 (reservationId는 eligibility에서 가져온 것 사용)
         ReviewsEntity entity = new ReviewsEntity();
         entity.setMemberId(reviewsDto.getMemberId());
         entity.setHotelId(reviewsDto.getHotelId());
-        entity.setReservationsId(reviewsDto.getReservationsId());
+        entity.setReservationsId(eligibility.getReservationId()); // 자동으로 설정
         entity.setRating(reviewsDto.getRating());
         entity.setReviewContent(reviewsDto.getReviewContent());
         entity.setReviewCard(reviewsDto.getReviewCard());

@@ -5,6 +5,7 @@ import com.hotel_project.hotel_jpa.hotel.dto.HotelEntity;
 import com.hotel_project.hotel_jpa.hotel.repository.HotelRepository;
 import com.hotel_project.member_jpa.cart.dto.CartDto;
 import com.hotel_project.member_jpa.cart.dto.CartEntity;
+import com.hotel_project.member_jpa.cart.dto.WishlistHotelDto;
 import com.hotel_project.member_jpa.cart.mapper.CartMapper;
 import com.hotel_project.member_jpa.cart.repository.CartRepository;
 import com.hotel_project.member_jpa.member.dto.MemberEntity;
@@ -66,7 +67,38 @@ public class CartService {
     }
 
     /**
-     * 회원의 장바구니 목록 조회 (페이지네이션 지원)
+     * ✅ 찜 목록 조회 (WishlistHotelDto 사용)
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getWishlistHotels(
+            Long memberId,
+            Integer offset,
+            Integer size
+    ) throws CommonExceptionTemplate {
+        log.info("찜 목록 조회 - memberId: {}, offset: {}, size: {}", memberId, offset, size);
+
+        // 회원 존재 확인
+        memberRepository.findById(memberId)
+                .orElseThrow(() -> new CommonExceptionTemplate(404, "회원을 찾을 수 없습니다."));
+
+        // 전체 개수 조회
+        int totalCount = cartMapper.countByMemberId(memberId);
+
+        // 찜 목록 조회
+        List<WishlistHotelDto> hotels = cartMapper.findWishlistByMemberId(memberId, offset, size);
+
+        log.info("찜 목록 조회 완료 - memberId: {}, count: {}, totalCount: {}",
+                memberId, hotels.size(), totalCount);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("hotels", hotels);
+        result.put("totalCount", totalCount);
+
+        return result;
+    }
+
+    /**
+     * 회원의 장바구니 목록 조회 (페이지네이션 지원) - CartDto 사용
      */
     @Transactional(readOnly = true)
     public Map<String, Object> findByMemberIdWithPagination(
@@ -97,15 +129,18 @@ public class CartService {
         return result;
     }
 
+    /**
+     * 회원의 장바구니 전체 목록 조회 (페이지네이션 없음)
+     */
     @Transactional(readOnly = true)
     public List<CartDto> findByMemberId(Long memberId) throws CommonExceptionTemplate {
-        log.info("장바구니 조회 - memberId: {}", memberId);
+        log.info("장바구니 전체 조회 - memberId: {}", memberId);
 
         memberRepository.findById(memberId)
                 .orElseThrow(() -> new CommonExceptionTemplate(404, "회원을 찾을 수 없습니다."));
 
         List<CartDto> carts = cartMapper.findByMemberId(memberId, null, null);
-        log.info("장바구니 조회 완료 - memberId: {}, count: {}", memberId, carts.size());
+        log.info("장바구니 전체 조회 완료 - memberId: {}, count: {}", memberId, carts.size());
 
         return carts;
     }

@@ -29,6 +29,9 @@ public class CartController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    /**
+     * 장바구니 토글 (추가/제거)
+     */
     @PostMapping("/toggle")
     @Operation(summary = "장바구니 토글", description = "호텔 장바구니 추가/제거")
     public ResponseEntity<ApiResponse<Boolean>> toggleCart(
@@ -52,6 +55,35 @@ public class CartController {
         return ResponseEntity.ok(ApiResponse.success(200, message, isAdded));
     }
 
+    /**
+     * ✅ 찜 목록 조회 (WishlistHotelDto 사용) - 페이지네이션 지원
+     */
+    @GetMapping("/wishlist")
+    @Operation(summary = "찜 목록 조회 (페이지네이션)", description = "찜한 호텔 목록 조회 (평균 평점, 이미지, 가격 등 모든 정보 포함)")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getWishlist(
+            @RequestParam(defaultValue = "0") Integer offset,
+            @RequestParam(defaultValue = "3") Integer size,
+            @RequestHeader("Authorization") String authorization) throws CommonExceptionTemplate {
+
+        String token = jwtUtil.extractToken(authorization);
+
+        if (!jwtUtil.validateToken(token)) {
+            throw new CommonExceptionTemplate(401, "유효하지 않은 토큰입니다.");
+        }
+
+        Long memberId = jwtUtil.getMemberIdFromToken(token);
+
+        Map<String, Object> result = cartService.getWishlistHotels(memberId, offset, size);
+
+        log.info("찜 목록 조회 완료 - memberId: {}, count: {}",
+                memberId, ((List<?>) result.get("hotels")).size());
+
+        return ResponseEntity.ok(ApiResponse.success(200, "찜 목록 조회 성공", result));
+    }
+
+    /**
+     * 내 장바구니 조회 (CartDto 사용) - 페이지네이션 지원
+     */
     @GetMapping
     @Operation(summary = "내 장바구니 조회 (페이지네이션)")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getMyCarts(
@@ -73,6 +105,9 @@ public class CartController {
         return ResponseEntity.ok(ApiResponse.success(200, "success", result));
     }
 
+    /**
+     * 내 장바구니 전체 조회 (페이지네이션 없음)
+     */
     @GetMapping("/all")
     @Operation(summary = "내 장바구니 전체 조회")
     public ResponseEntity<ApiResponse<List<CartDto>>> getAllMyCarts(
@@ -90,6 +125,9 @@ public class CartController {
         return ResponseEntity.ok(ApiResponse.success(200, "success", carts));
     }
 
+    /**
+     * 장바구니에서 삭제 (호텔ID로)
+     */
     @DeleteMapping("/{hotelId}")
     @Operation(summary = "장바구니에서 삭제")
     public ResponseEntity<ApiResponse<String>> deleteCart(
@@ -108,6 +146,9 @@ public class CartController {
         return ResponseEntity.ok(ApiResponse.success(200, "장바구니에서 삭제되었습니다.", null));
     }
 
+    /**
+     * 장바구니 항목 삭제 (장바구니ID로)
+     */
     @DeleteMapping("/item/{cartId}")
     @Operation(summary = "장바구니 항목 삭제")
     public ResponseEntity<ApiResponse<String>> deleteCartById(
@@ -126,6 +167,9 @@ public class CartController {
         return ResponseEntity.ok(ApiResponse.success(200, "장바구니에서 삭제되었습니다.", null));
     }
 
+    /**
+     * 장바구니 전체 비우기
+     */
     @DeleteMapping("/clear")
     @Operation(summary = "장바구니 전체 비우기")
     public ResponseEntity<ApiResponse<String>> clearCart(
@@ -143,6 +187,9 @@ public class CartController {
         return ResponseEntity.ok(ApiResponse.success(200, "장바구니가 비워졌습니다.", null));
     }
 
+    /**
+     * 장바구니 포함 여부 확인
+     */
     @GetMapping("/check/{hotelId}")
     @Operation(summary = "장바구니 포함 여부 확인")
     public ResponseEntity<ApiResponse<Boolean>> checkCart(
@@ -170,6 +217,9 @@ public class CartController {
         }
     }
 
+    /**
+     * 장바구니 항목 개수
+     */
     @GetMapping("/count")
     @Operation(summary = "장바구니 항목 개수")
     public ResponseEntity<ApiResponse<Long>> getCartCount(

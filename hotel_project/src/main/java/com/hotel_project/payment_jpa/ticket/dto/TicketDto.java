@@ -22,7 +22,6 @@ public class TicketDto implements ITicket {
     @NotNull
     private Long paymentId;
 
-    @NotNull
     private String ticketImageName;
 
     // ✅ 바코드 추가

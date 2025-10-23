@@ -53,6 +53,7 @@ public class PaymentsEntity implements IPayments{
     private LocalDateTime paymentDate;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
     @Column(length = 100)

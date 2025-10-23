@@ -14,6 +14,7 @@ public class HotelSearchResponseDto {
     private Long totalCount;
     private Integer currentPage;
     private Integer totalPages;
+    private Long availableCount;      // ✅ 예약 가능한 호텔만 (showing-count용)
     private Integer pageSize;
     private Map<String, Long> hotelTypeCounts;
 }

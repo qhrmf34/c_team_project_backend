@@ -1,6 +1,7 @@
 package com.hotel_project.member_jpa.cart.mapper;
 
 import com.hotel_project.member_jpa.cart.dto.CartDto;
+import com.hotel_project.member_jpa.cart.dto.WishlistHotelDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -13,7 +14,12 @@ public interface CartMapper {
             @Param("offset") Integer offset,
             @Param("size") Integer size
     );
-
+    //  찜 목록 조회용 (WishlistHotelDto)
+    List<WishlistHotelDto> findWishlistByMemberId(
+            @Param("memberId") Long memberId,
+            @Param("offset") Integer offset,
+            @Param("size") Integer size
+    );
     // 장바구니 존재 여부 확인
     int existsByMemberIdAndHotelId(
             @Param("memberId") Long memberId,
