@@ -141,7 +141,7 @@
         INNER JOIN country_tbl co ON c.country_id = co.id
         LEFT JOIN payments_tbl p ON r.id = p.reservations_id
         WHERE r.member_id = #{memberId}
-        AND p.payment_status = 'COMPLETED'  -- 결제 완료만
+        AND p.payment_status = 'paid'  -- 결제 완료만
         AND (p.refund IS NULL OR p.refund = false)  -- 환불 안된 것만
         ORDER BY r.reservations_at DESC
         <if test="offset != null and size != null">
