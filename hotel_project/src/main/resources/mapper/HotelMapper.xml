@@ -54,7 +54,9 @@
             co.country_name as countryName,
             h.hotel_latitude as latitude,
             h.hotel_longitude as longitude,
-            h.hotel_number as phoneNumber
+            h.hotel_number as phoneNumber,
+            h.checkin_time as checkinTime,
+            h.checkout_time as checkoutTime
         FROM hotel_tbl h
                  LEFT JOIN city_tbl c ON h.city_id = c.id
                  LEFT JOIN country_tbl co ON c.country_id = co.id
