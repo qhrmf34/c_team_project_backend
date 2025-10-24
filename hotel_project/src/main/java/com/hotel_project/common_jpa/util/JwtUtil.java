@@ -18,7 +18,7 @@ public class JwtUtil {
     @Value("${jwt.secret:hotel_project_secret_key_for_jwt_token_generation}")
     private String secretKey;
 
-    @Value("${jwt.expiration:86400}") // 1일 (초 단위)
+    @Value("${jwt.expiration:3600}") // 1시간 (초 단위)
     private Long expiration;
 
     private SecretKey getSigningKey() {

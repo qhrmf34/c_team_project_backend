@@ -98,6 +98,9 @@
         <result column="review_count" property="reviewCount"/>
         <result column="room_number" property="roomNumber"/>
         <result column="refund" property="refund"/>
+        <result column="has_ticket" property="hasTicket"/>
+        <result column="checkin_time" property="checkinTime"/>
+        <result column="checkout_time" property="checkoutTime"/>
     </resultMap>
 
     <!-- (결제 내역용) -->
@@ -125,7 +128,7 @@
         r.reservations_status,
         CAST(p.payment_status AS CHAR) AS payment_status,
         p.id AS payment_id,
-        p.refund,  -- ✅ 추가
+        p.refund,
         h.hotel_star,
         h.hotel_type,
         COALESCE((SELECT AVG(rev.rating)
@@ -133,7 +136,16 @@
         WHERE rev.hotel_id = h.id), 0.0) AS hotel_rating,
         (SELECT COUNT(*)
         FROM reviews_tbl rev
-        WHERE rev.hotel_id = h.id) AS review_count
+        WHERE rev.hotel_id = h.id) AS review_count,
+        CASE
+        WHEN EXISTS (
+        SELECT 1
+        FROM ticket_tbl t
+        WHERE t.payments_id = p.id
+        AND t.ticket_image_name IS NOT NULL
+        ) THEN true
+        ELSE false
+        END AS has_ticket
         FROM reservations_tbl r
         INNER JOIN room_tbl rm ON r.room_id = rm.id
         INNER JOIN hotel_tbl h ON rm.hotel_id = h.id
@@ -141,8 +153,8 @@
         INNER JOIN country_tbl co ON c.country_id = co.id
         LEFT JOIN payments_tbl p ON r.id = p.reservations_id
         WHERE r.member_id = #{memberId}
-        AND p.payment_status = 'paid'  -- 결제 완료만
-        AND (p.refund IS NULL OR p.refund = false)  -- 환불 안된 것만
+        AND p.payment_status = 'paid'
+        AND (p.refund IS NULL OR p.refund = false)
         ORDER BY r.reservations_at DESC
         <if test="offset != null and size != null">
             LIMIT #{size} OFFSET #{offset}
@@ -151,7 +163,10 @@
 
     <select id="countReservationHistoryByMemberId" resultType="int">
         SELECT COUNT(*)
-        FROM reservations_tbl
-        WHERE member_id = #{memberId}
+        FROM reservations_tbl r
+                 LEFT JOIN payments_tbl p ON r.id = p.reservations_id
+        WHERE r.member_id = #{memberId}
+          AND p.payment_status = 'paid'
+          AND (p.refund IS NULL OR p.refund = false)
     </select>
 </mapper>

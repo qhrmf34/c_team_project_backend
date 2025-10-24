@@ -31,6 +31,8 @@ public class ReservationHistoryDto {
     private BigDecimal basePayment;
     private Boolean reservationsStatus;
 
+    private Boolean hasTicket;
+
     private PaymentStatus paymentStatus;
     private Long paymentId;
     private Boolean refund;
