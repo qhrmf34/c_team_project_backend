@@ -54,6 +54,13 @@ public class MemberService {
         newMember.setPhoneNumber(signupRequest.getPhoneNumber());
         newMember.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         newMember.setProvider(Provider.local);
+
+        newMember.setRoadAddress(signupRequest.getRoadAddress());
+        newMember.setDetailAddress(signupRequest.getDetailAddress());
+
+        newMember.setCreatedAt(LocalDateTime.now());
+        newMember.setUpdatedAt(LocalDateTime.now());
+
         newMember.setProviderId(null);
         newMember.setCreatedAt(LocalDateTime.now());
         newMember.setUpdatedAt(LocalDateTime.now());
@@ -333,5 +340,69 @@ public class MemberService {
         } catch (Exception e) {
             throw new CommonExceptionTemplate(500, "비밀번호 변경 중 오류가 발생했습니다: " + e.getMessage());
         }
+    }
+
+    // 소셜 로그인 후 추가 정보 입력 완료
+    @Transactional
+    public MemberDto completeSocialSignup(Long memberId, CompleteSignupRequest request) throws CommonExceptionTemplate {
+        // 회원 조회
+        MemberDto memberDto = memberMapper.findById(memberId);
+
+        if (memberDto == null) {
+            throw new CommonExceptionTemplate(404, "회원을 찾을 수 없습니다.");
+        }
+
+        // 소셜 로그인 회원인지 확인
+        if (memberDto.getProvider() == Provider.local) {
+            throw new CommonExceptionTemplate(400, "일반 회원은 이 기능을 사용할 수 없습니다.");
+        }
+
+        // 구글이 아닌 경우만 이메일 관련 체크
+        if (memberDto.getProvider() != Provider.google) {
+            // 이미 정보가 모두 입력된 경우
+            if (memberDto.getEmail() != null && !memberDto.getEmail().isEmpty() &&
+                    memberDto.getPhoneNumber() != null && !memberDto.getPhoneNumber().isEmpty()) {
+                throw new CommonExceptionTemplate(400, "이미 추가 정보가 입력된 회원입니다.");
+            }
+
+            // 이메일 중복 체크
+            if (request.getEmail() != null) {
+                if (memberDto.getEmail() == null || !request.getEmail().equals(memberDto.getEmail())) {
+                    if (memberRepository.existsByEmail(request.getEmail())) {
+                        throw new CommonExceptionTemplate(409, "이미 사용 중인 이메일입니다.");
+                    }
+                }
+            }
+        } else {
+            // 구글 사용자는 전화번호만 체크
+            if (memberDto.getPhoneNumber() != null && !memberDto.getPhoneNumber().isEmpty()) {
+                throw new CommonExceptionTemplate(400, "이미 추가 정보가 입력된 회원입니다.");
+            }
+        }
+
+        // 전화번호 중복 체크
+        if (memberRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new CommonExceptionTemplate(409, "이미 사용 중인 전화번호입니다.");
+        }
+
+        // Entity로 변환
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.copyMembers(memberDto);
+
+        // 이메일과 전화번호 설정
+        if (memberDto.getProvider() != Provider.google && request.getEmail() != null) {
+            memberEntity.setEmail(request.getEmail());
+        }
+        memberEntity.setPhoneNumber(request.getPhoneNumber());
+        memberEntity.setUpdatedAt(LocalDateTime.now());
+
+        // 저장
+        memberRepository.save(memberEntity);
+
+        // 업데이트된 정보 조회 및 반환
+        MemberDto updatedMember = memberMapper.findById(memberId);
+        updatedMember.setPassword(null);
+
+        return updatedMember;
     }
 }

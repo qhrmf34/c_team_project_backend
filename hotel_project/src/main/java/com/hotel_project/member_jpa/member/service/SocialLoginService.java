@@ -33,7 +33,8 @@ public class SocialLoginService {
         // JWT 토큰 생성
         String token = jwtUtil.generateToken(member.getId(), member.getProvider().toString());
 
-        return new LoginResponse(
+        // LoginResponse 생성
+        LoginResponse response = new LoginResponse(
                 token,
                 member.getId(),
                 member.getFirstName(),
@@ -41,16 +42,29 @@ public class SocialLoginService {
                 member.getEmail(),
                 member.getProvider().toString()
         );
+
+        // needAdditionalInfo 설정 (구글은 이메일이 있으므로 전화번호만 체크)
+        boolean needAdditionalInfo;
+        if (provider == Provider.google) {
+            // 구글은 전화번호만 체크
+            needAdditionalInfo = (member.getPhoneNumber() == null || member.getPhoneNumber().isEmpty());
+        } else {
+            // 카카오, 네이버는 이메일과 전화번호 모두 체크
+            needAdditionalInfo =
+                    (member.getEmail() == null || member.getEmail().isEmpty()) ||
+                            (member.getPhoneNumber() == null || member.getPhoneNumber().isEmpty());
+        }
+
+        response.setNeedAdditionalInfo(needAdditionalInfo);
+
+        return response;
     }
 
     /**
-     * 기존 소셜 로그인 처리 메서드 (하위 호환성 유지)
+     * 기존 소셜 로그인 처리 메서드
      */
     public MemberEntity processSocialLogin(OAuth2User oauth2User, Provider provider) {
-        // 각 프로바이더별 사용자 정보 추출
         SocialUserInfo userInfo = extractUserInfo(oauth2User, provider);
-
-        // 공통 로그인 처리 로직
         return processSocialLoginCommon(userInfo, provider);
     }
 
@@ -74,29 +88,28 @@ public class SocialLoginService {
         Map<String, Object> kakaoAccount = (Map<String, Object>) oauth2User.getAttribute("kakao_account");
         Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
         String nickname = (String) profile.get("nickname");
-        String email = (String) kakaoAccount.get("email");
 
         return new SocialUserInfo(
                 providerId,
-                nickname,
-                "",  // 카카오는 성 정보 없음
-                email != null ? email : "kakao_" + providerId + "@temp.com"
+                nickname != null ? nickname : "카카오사용자",
+                "",
+                null // 카카오는 이메일 제공 안함
         );
     }
 
     // 구글 사용자 정보 추출
     private SocialUserInfo extractGoogleUserInfo(OAuth2User oauth2User) {
-        String providerId = oauth2User.getAttribute("sub").toString(); // 구글은 sub가 고유 ID
-        String email = oauth2User.getAttribute("email");
+        String providerId = oauth2User.getAttribute("sub").toString();
         String name = oauth2User.getAttribute("name");
-        String givenName = oauth2User.getAttribute("given_name"); // 이름
-        String familyName = oauth2User.getAttribute("family_name"); // 성
+        String givenName = oauth2User.getAttribute("given_name");
+        String familyName = oauth2User.getAttribute("family_name");
+        String email = oauth2User.getAttribute("email"); // 구글은 이메일 제공
 
         return new SocialUserInfo(
                 providerId,
-                givenName != null ? givenName : name,
+                givenName != null ? givenName : (name != null ? name : "구글사용자"),
                 familyName != null ? familyName : "",
-                email != null ? email : "google_" + providerId + "@temp.com"
+                email // 구글은 이메일 포함
         );
     }
 
@@ -104,24 +117,22 @@ public class SocialLoginService {
     private SocialUserInfo extractNaverUserInfo(OAuth2User oauth2User) {
         Map<String, Object> response = (Map<String, Object>) oauth2User.getAttribute("response");
         String providerId = (String) response.get("id");
-        String email = (String) response.get("email");
         String name = (String) response.get("name");
         String nickname = (String) response.get("nickname");
 
         return new SocialUserInfo(
                 providerId,
-                nickname != null ? nickname : name,
-                "",  // 네이버는 성 정보를 별도로 제공하지 않음
-                email != null ? email : "naver_" + providerId + "@temp.com"
+                nickname != null ? nickname : (name != null ? name : "네이버사용자"),
+                "",
+                null // 네이버는 이메일 제공 안함 (또는 필요시 추출 가능)
         );
     }
 
-    // 공통 소셜 로그인 처리 로직 - MyBatis + JPA 하이브리드
+    // 공통 소셜 로그인 처리 로직
     private MemberEntity processSocialLoginCommon(SocialUserInfo userInfo, Provider provider) {
         System.out.println("=== " + provider + " 로그인 처리 시작 ===");
         System.out.println("Provider ID: " + userInfo.getProviderId());
         System.out.println("이름: " + userInfo.getFirstName());
-        System.out.println("이메일: " + userInfo.getEmail());
 
         // MyBatis로 기존 회원 확인
         MemberDto existingMember = memberMapper.findByProviderAndProviderId(provider, userInfo.getProviderId());
@@ -135,45 +146,53 @@ public class SocialLoginService {
         }
     }
 
-    // 기존 회원 업데이트 - MyBatis 조회 + JPA 저장
+    // 기존 회원 업데이트 - firstName, lastName만 업데이트
     private MemberEntity updateExistingMember(MemberDto existingMemberDto, SocialUserInfo userInfo) {
         System.out.println("=== 기존 회원 업데이트 ===");
         System.out.println("기존 회원 ID: " + existingMemberDto.getId());
 
-        // DTO를 Entity로 변환
         MemberEntity existingMember = new MemberEntity();
         existingMember.copyMembers(existingMemberDto);
 
-        // 업데이트할 정보 설정
-        MemberEntity updateInfo = new MemberEntity();
-        updateInfo.setFirstName(userInfo.getFirstName());
-        updateInfo.setLastName(userInfo.getLastName());
-        updateInfo.setUpdatedAt(LocalDateTime.now());
-
-        // null이 아닌 값만 복사 (기존 데이터 보존)
-        existingMember.copyNotNullMembers(updateInfo);
+        // firstName, lastName만 업데이트 (이메일, 전화번호는 기존 값 유지)
+        existingMember.setFirstName(userInfo.getFirstName());
+        existingMember.setLastName(userInfo.getLastName());
+        existingMember.setUpdatedAt(LocalDateTime.now());
 
         MemberEntity savedMember = memberRepository.save(existingMember);
         System.out.println("기존 회원 업데이트 완료 - ID: " + savedMember.getId());
         return savedMember;
     }
 
-    // 신규 회원 생성 - JPA 사용
+    // 신규 회원 생성
     private MemberEntity createNewMember(SocialUserInfo userInfo, Provider provider) {
         System.out.println("=== 신규 회원 생성 ===");
+
+        // 이메일이 있으면 중복 체크 (구글 포함, 모든 provider)
+        if (userInfo.getEmail() != null) {
+            if (memberRepository.existsByEmail(userInfo.getEmail())) {
+                throw new IllegalStateException("이미 사용 중인 이메일입니다: " + userInfo.getEmail());
+            }
+        }
 
         MemberEntity newMember = new MemberEntity();
         newMember.setFirstName(userInfo.getFirstName());
         newMember.setLastName(userInfo.getLastName());
-        newMember.setEmail(userInfo.getEmail());
+
+        // 구글인 경우에만 이메일 설정
+        if (provider == Provider.google && userInfo.getEmail() != null) {
+            newMember.setEmail(userInfo.getEmail());
+        } else {
+            newMember.setEmail(null);
+        }
+
         newMember.setProvider(provider);
         newMember.setProviderId(userInfo.getProviderId());
-        newMember.setPassword(null); // 소셜 로그인은 비밀번호 없음
-        newMember.setPhoneNumber(null); // 소셜 로그인에서는 전화번호 없음
+        newMember.setPassword(null);
+        newMember.setPhoneNumber(null);
         newMember.setCreatedAt(LocalDateTime.now());
         newMember.setUpdatedAt(LocalDateTime.now());
 
-        System.out.println("신규 회원 이메일: " + newMember.getEmail());
         System.out.println("신규 회원 Provider ID: " + newMember.getProviderId());
 
         MemberEntity savedMember = memberRepository.save(newMember);
@@ -181,12 +200,12 @@ public class SocialLoginService {
         return savedMember;
     }
 
-    // 소셜 사용자 정보를 담는 내부 클래스
+    // 소셜 사용자 정보를 담는 내부 클래스 (이메일 추가)
     private static class SocialUserInfo {
         private final String providerId;
         private final String firstName;
         private final String lastName;
-        private final String email;
+        private final String email; // 이메일 추가
 
         public SocialUserInfo(String providerId, String firstName, String lastName, String email) {
             this.providerId = providerId;

@@ -238,4 +238,27 @@ public class MemberController {
         String result = memberService.changePassword(currentMember.getId(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success(200, result, null));
     }
+
+    // 소셜 로그인 추가 정보 입력
+    @PostMapping("/complete-social-signup")
+    @Operation(summary = "소셜 로그인 추가 정보 입력", description = "소셜 로그인 후 이메일, 전화번호를 입력합니다.")
+    public ResponseEntity<ApiResponse<MemberDto>> completeSocialSignup(
+            @RequestHeader("Authorization") String authorization,
+            @Valid @RequestBody CompleteSignupRequest request,
+            BindingResult bindingResult
+    ) throws CommonExceptionTemplate {
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            bindingResult.getFieldErrors()
+                    .forEach(error -> errorMessages.append(error.getDefaultMessage()).append(" "));
+            throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
+        }
+
+        String token = jwtUtil.extractToken(authorization);
+        MemberDto currentMember = memberService.getMemberDtoByToken(token);
+
+        MemberDto updatedMember = memberService.completeSocialSignup(currentMember.getId(), request);
+
+        return ResponseEntity.ok(ApiResponse.success(200, "추가 정보 입력이 완료되었습니다.", updatedMember));
+    }
 }

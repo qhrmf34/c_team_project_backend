@@ -1,6 +1,7 @@
 package com.hotel_project.member_jpa.member.dto;
 
 import com.hotel_project.common_jpa.dto.IId;
+import jakarta.persistence.Column;
 
 import java.time.LocalDateTime;
 
@@ -30,6 +31,15 @@ public interface IMember extends IId {
     String getProviderId();
     void setProviderId(String providerId);
 
+    String getRoadAddress();
+    void setRoadAddress(String roadAddress);
+
+    String getDetailAddress();
+    void setDetailAddress(String detailAddress);
+
+    LocalDateTime getDeletedAt();
+    void setDeletedAt(LocalDateTime deletedAt);
+
     LocalDateTime getCreatedAt();
     void setCreatedAt(LocalDateTime createdAt);
 
@@ -47,6 +57,9 @@ public interface IMember extends IId {
         setPassword(iMember.getPassword());
         setProvider(iMember.getProvider());
         setProviderId(iMember.getProviderId());
+        setRoadAddress(iMember.getRoadAddress());
+        setDetailAddress(iMember.getDetailAddress());
+        setDeletedAt(iMember.getDeletedAt());
         setCreatedAt(iMember.getCreatedAt());
         setUpdatedAt(iMember.getUpdatedAt());
     }
@@ -62,6 +75,9 @@ public interface IMember extends IId {
         if (iMember.getPassword() != null) setPassword(iMember.getPassword());
         if (iMember.getProvider() != null) setProvider(iMember.getProvider());
         if (iMember.getProviderId() != null) setProviderId(iMember.getProviderId());
+        if (iMember.getRoadAddress() != null) setRoadAddress(iMember.getRoadAddress());
+        if (iMember.getDetailAddress() != null) setDetailAddress(iMember.getDetailAddress());
+        if (iMember.getDeletedAt() != null) setDeletedAt(iMember.getDeletedAt());
         if (iMember.getUpdatedAt() != null) setUpdatedAt(iMember.getUpdatedAt());
     }
 }

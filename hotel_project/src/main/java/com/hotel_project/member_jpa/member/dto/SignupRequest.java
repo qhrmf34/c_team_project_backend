@@ -39,6 +39,13 @@ public class SignupRequest {
     @AssertTrue(message = "이용약관에 동의해주세요.")
     private boolean agreement;
 
+    @NotBlank(message = "도로명 주소는 필수 입력입니다.")
+    @Size(max = 50, message = "도로명 주소는 50자 이하로 입력해야 합니다.")
+    private String roadAddress;
+
+    @Size(max = 50, message = "상세 주소는 50자 이하로 입력해야 합니다.")
+    private String detailAddress;
+
     @NotBlank(message = "Turnstile 토큰이 필요합니다.")
     private String turnstileToken;
 }

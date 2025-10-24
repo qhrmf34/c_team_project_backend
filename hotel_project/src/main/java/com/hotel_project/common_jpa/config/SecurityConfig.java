@@ -88,6 +88,8 @@ public class SecurityConfig {
                                     // URL 인코딩
                                     String encodedUserInfo = URLEncoder.encode(userInfoJson, StandardCharsets.UTF_8);
 
+                                    Boolean needAdditionalInfo = loginResponse.getNeedAdditionalInfo();
+
                                     // ★★★ 쿠키에서 returnToPayment 확인 ★★★
                                     String returnToPayment = null;
                                     if (request.getCookies() != null) {
@@ -105,19 +107,21 @@ public class SecurityConfig {
                                     if ("true".equals(returnToPayment)) {
                                         System.out.println("결제 페이지에서 온 소셜 로그인 - /hotelfour로 리다이렉트");
                                         redirectUrl = String.format(
-                                                "%s/hotelfour?login=success&token=%s&userInfo=%s",
+                                                "%s/hotelfour?login=success&token=%s&userInfo=%s&needAdditionalInfo=%s",
                                                 frontendUrl,
                                                 loginResponse.getToken(),
-                                                encodedUserInfo
+                                                encodedUserInfo,
+                                                needAdditionalInfo != null ? needAdditionalInfo : false
                                         );
                                     } else {
                                         // ★★★ 일반 로그인은 기존대로 /auth/callback ★★★
                                         System.out.println("일반 소셜 로그인 - /auth/callback으로 리다이렉트");
                                         redirectUrl = String.format(
-                                                "%s/auth/callback?token=%s&userInfo=%s",
+                                                "%s/auth/callback?token=%s&userInfo=%s&needAdditionalInfo=%s",
                                                 frontendUrl,
                                                 loginResponse.getToken(),
-                                                encodedUserInfo
+                                                encodedUserInfo,
+                                                needAdditionalInfo != null ? needAdditionalInfo : false
                                         );
                                     }
 

@@ -44,6 +44,15 @@ public class MemberEntity implements IMember {
     @Column(nullable = true, length = 255)
     private String providerId;
 
+    @Column(length = 50)
+    private String roadAddress;
+
+    @Column(length = 50)
+    private String detailAddress;
+
+    @Column
+    private LocalDateTime deletedAt;
+
     @Column(nullable = false, updatable = false,
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
