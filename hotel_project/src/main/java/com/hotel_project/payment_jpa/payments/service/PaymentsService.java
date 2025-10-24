@@ -253,7 +253,6 @@ public class PaymentsService {
     /**
      * ✅ 전액 환불 (티켓 상태 업데이트 포함)
      */
-// PaymentsService.java의 refundPayment 메서드 수정
     public PaymentsDto refundPayment(Long paymentId, String cancelReason, Long memberId)
             throws CommonExceptionTemplate {
 
@@ -270,6 +269,14 @@ public class PaymentsService {
             if (payment.getPaymentStatus() != PaymentStatus.paid) {
                 throw new CommonExceptionTemplate(400, "환불 가능한 상태가 아닙니다");
             }
+            ReservationsEntity reservation = reservationsRepository.findById(payment.getReservationsId())
+                    .orElseThrow(() -> new CommonExceptionTemplate(404, "예약 정보를 찾을 수 없습니다"));
+
+            LocalDate today = LocalDate.now();
+            if (reservation.getCheckInDate().isBefore(today)) {
+                throw new CommonExceptionTemplate(400, "체크인 날짜가 지난 예약은 환불할 수 없습니다");
+            }
+
 
             // 토스에 환불 요청
             TossPaymentResponseDto tossResponse =

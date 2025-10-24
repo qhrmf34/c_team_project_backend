@@ -70,10 +70,8 @@ public class TicketService {
             }
 
             if (!hasValidImage) {
-                log.error("❌ 유효한 티켓 이미지가 없음 - paymentId: {}", paymentId);
-                throw new CommonExceptionTemplate(404, "티켓 이미지가 아직 생성되지 않았습니다");
+                log.warn("⚠️ 티켓 이미지가 아직 생성되지 않았습니다 - paymentId: {}", paymentId);
             }
-
             // 4. 예약 정보 조회
             ReservationsEntity reservation = reservationsRepository.findById(payment.getReservationsId())
                     .orElseThrow(() -> new CommonExceptionTemplate(404, "예약 정보를 찾을 수 없습니다"));
