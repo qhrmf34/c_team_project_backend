@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,16 +50,38 @@ public class TicketService {
             TicketEntity ticket = ticketRepository.findByPaymentsEntity_Id(paymentId)
                     .orElseThrow(() -> new CommonExceptionTemplate(404, "티켓을 찾을 수 없습니다"));
 
-            // 3. ✅ Repository로 예약 정보 조회
+            // ✅ 3. 티켓 이미지 존재 여부 확인
+            String ticketImagePath = ticket.getTicketImageName();
+            boolean hasValidImage = false;
+
+            if (ticketImagePath != null && !ticketImagePath.isEmpty()) {
+                // 실제 파일이 존재하는지 확인
+                String projectRoot = System.getProperty("user.dir");
+                String fullPath = projectRoot + File.separator + "uploads" + ticketImagePath;
+                File imageFile = new File(fullPath);
+
+                if (imageFile.exists() && imageFile.isFile()) {
+                    hasValidImage = true;
+                    log.info("✅ 티켓 이미지 존재: {}", fullPath);
+                } else {
+                    log.warn("⚠️ 티켓 이미지 파일 없음: {}", fullPath);
+                    ticketImagePath = null; // 파일이 없으면 null로 설정
+                }
+            }
+
+            if (!hasValidImage) {
+                log.warn("⚠️ 티켓 이미지가 아직 생성되지 않았습니다 - paymentId: {}", paymentId);
+            }
+            // 4. 예약 정보 조회
             ReservationsEntity reservation = reservationsRepository.findById(payment.getReservationsId())
                     .orElseThrow(() -> new CommonExceptionTemplate(404, "예약 정보를 찾을 수 없습니다"));
 
-            // 4. 권한 확인
+            // 5. 권한 확인
             if (!reservation.getMemberId().equals(memberId)) {
                 throw new CommonExceptionTemplate(403, "접근 권한이 없습니다");
             }
 
-            // 5. 회원 정보 조회
+            // 6. 회원 정보 조회
             MemberDto member = memberMapper.findById(memberId);
             if (member == null) {
                 throw new CommonExceptionTemplate(404, "회원 정보를 찾을 수 없습니다");
@@ -113,7 +136,8 @@ public class TicketService {
             result.put("roomName", room.get("roomName"));
             result.put("roomNumber", room.get("roomNumber"));
             result.put("bedInfo", bedInfo);
-            result.put("ticketImagePath", ticket.getTicketImageName());
+            result.put("ticketImagePath", ticketImagePath); // ✅ 검증된 이미지 경로만 반환
+            result.put("hasValidImage", hasValidImage); // ✅ 이미지 존재 여부 추가
 
             result.put("checkInDate", reservation.getCheckInDate());
             result.put("checkOutDate", reservation.getCheckOutDate());

@@ -20,6 +20,10 @@ import com.hotel_project.payment_jpa.reservations.service.ReservationsService;
 import com.hotel_project.payment_jpa.ticket.dto.TicketEntity;
 import com.hotel_project.payment_jpa.ticket.repository.TicketRepository;
 import com.hotel_project.payment_jpa.ticket.service.TicketImageService;
+// ✅ 환불 사유 관련 추가
+import com.hotel_project.payment_jpa.refund_reason.dto.RefundReasonEntity;
+import com.hotel_project.payment_jpa.refund_reason.dto.RefundReasonType;
+import com.hotel_project.payment_jpa.refund_reason.repository.RefundReasonRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,6 +50,9 @@ public class PaymentsService {
     private final CouponRepository couponRepository;
     private final MemberCouponRepository memberCouponRepository;
     private final TicketImageService ticketImageService;
+    // ✅ 환불 사유 Repository 추가
+    private final RefundReasonRepository refundReasonRepository;
+
     public PaymentsDto processPayment(PaymentsDto paymentsDto, Long memberId) throws CommonExceptionTemplate {
         try {
             log.info("=== 결제 처리 시작 ===");
@@ -124,6 +131,7 @@ public class PaymentsService {
             throw new CommonExceptionTemplate(500, "결제 처리 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
+
     /**
      * ✅ 신규: 결제위젯 승인 및 저장
      */
@@ -193,46 +201,43 @@ public class PaymentsService {
                 memberCoupon.setIsUsed(true);
                 memberCoupon.setUsedAt(LocalDateTime.now());
                 memberCouponRepository.save(memberCoupon);
-
                 log.info("✅ 쿠폰 사용 처리 완료 - couponId: {}", couponId);
             }
 
             // 9. 예약 상태 확정
             reservationsService.updateReservationStatus(reservationId, true);
 
-            // 10. ✅ 티켓 생성 (이미지는 프론트에서 업로드)
+            // 10. 티켓 생성
             TicketEntity ticket = new TicketEntity();
             ticket.setPaymentId(savedEntity.getId());
-            ticket.setTicketImageName(null); // 나중에 프론트에서 업로드
+            ticket.setTicketImageName("TICKET_" + UUID.randomUUID().toString());
             ticket.setIsUsed(false);
             ticket.setCreatedAt(LocalDateTime.now());
-
             ticketRepository.save(ticket);
-            log.info("✅ 티켓 생성 완료 - ticketId: {}", ticket.getId());
 
-            // 11. DTO 변환
+            // 11. DTO 변환 및 반환
             PaymentsDto resultDto = new PaymentsDto();
             resultDto.copyMembers(savedEntity);
 
-            log.info("✅✅ 결제 완료! - 결제 ID: {}", savedEntity.getId());
+            log.info("✅✅ 결제위젯 결제 완료! - 결제 ID: {}", savedEntity.getId());
 
             return resultDto;
 
         } catch (CommonExceptionTemplate e) {
-            log.error("❌ 결제 승인 처리 실패: {}", e.getMessage());
+            log.error("❌ 결제위젯 승인 실패: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("❌ 결제 승인 처리 중 예상치 못한 오류", e);
-            throw new CommonExceptionTemplate(500, "결제 승인 중 오류: " + e.getMessage());
+            log.error("❌ 결제위젯 승인 중 예상치 못한 오류", e);
+            throw new CommonExceptionTemplate(500, "결제 승인 처리 중 오류: " + e.getMessage());
         }
     }
 
+    private void validatePaymentDates(LocalDate checkInDate, LocalDate checkOutDate)
+            throws CommonExceptionTemplate {
 
-    // ✅ 결제 시 날짜 검증 메서드 추가
-    private void validatePaymentDates(LocalDate checkInDate, LocalDate checkOutDate) throws CommonExceptionTemplate {
         LocalDate today = LocalDate.now();
 
-        // 1. 체크인 날짜가 과거인지 확인
+        // 1. 체크인이 과거인지 확인
         if (checkInDate.isBefore(today)) {
             log.warn("과거 날짜 결제 시도 - 체크인: {}, 오늘: {}", checkInDate, today);
             throw new CommonExceptionTemplate(400, "체크인 날짜가 이미 지났습니다. 결제를 진행할 수 없습니다.");
@@ -250,11 +255,11 @@ public class PaymentsService {
             throw new CommonExceptionTemplate(400, "체크아웃 날짜가 이미 지났습니다. 결제를 진행할 수 없습니다.");
         }
     }
+
     /**
-     * ✅ 전액 환불 (티켓 상태 업데이트 포함)
+     * ✅ 전액 환불 (티켓 상태 업데이트 포함) + 환불 사유 저장
      */
-// PaymentsService.java의 refundPayment 메서드 수정
-    public PaymentsDto refundPayment(Long paymentId, String cancelReason, Long memberId)
+    public PaymentsDto refundPayment(Long paymentId, String cancelReason, String mainReason, String detailReason, Long memberId)
             throws CommonExceptionTemplate {
 
         try {
@@ -271,6 +276,14 @@ public class PaymentsService {
                 throw new CommonExceptionTemplate(400, "환불 가능한 상태가 아닙니다");
             }
 
+            ReservationsEntity reservation = reservationsRepository.findById(payment.getReservationsId())
+                    .orElseThrow(() -> new CommonExceptionTemplate(404, "예약 정보를 찾을 수 없습니다"));
+
+            LocalDate today = LocalDate.now();
+            if (reservation.getCheckInDate().isBefore(today)) {
+                throw new CommonExceptionTemplate(400, "체크인 날짜가 지난 예약은 환불할 수 없습니다");
+            }
+
             // 토스에 환불 요청
             TossPaymentResponseDto tossResponse =
                     tossPaymentService.cancelPayment(payment.getTossPaymentKey(), cancelReason);
@@ -284,6 +297,22 @@ public class PaymentsService {
             payment.setUpdatedAt(LocalDateTime.now());
 
             PaymentsEntity updatedPayment = paymentsRepository.save(payment);
+
+            // ✅ 환불 사유 저장 (트랜잭션 내)
+            if (mainReason != null && !mainReason.isEmpty()) {
+                try {
+                    RefundReasonEntity refundReasonEntity = new RefundReasonEntity();
+                    refundReasonEntity.setPaymentId(paymentId);
+                    refundReasonEntity.setMainReason(RefundReasonType.valueOf(mainReason));
+                    refundReasonEntity.setDetailReason(detailReason);
+                    refundReasonEntity.setCreatedAt(LocalDateTime.now());
+
+                    refundReasonRepository.save(refundReasonEntity);
+                    log.info("✅ 환불 사유 저장 완료 - Payment ID: {}, Reason: {}", paymentId, mainReason);
+                } catch (IllegalArgumentException e) {
+                    log.error("유효하지 않은 환불 사유: {}", mainReason);
+                }
+            }
 
             // 예약 상태 업데이트
             reservationsService.updateReservationStatus(payment.getReservationsId(), false);
@@ -317,12 +346,14 @@ public class PaymentsService {
     }
 
     /**
-     * ✅ 부분 환불
+     * ✅ 부분 환불 + 환불 사유 저장
      */
     public PaymentsDto refundPaymentPartial(
             Long paymentId,
             Long refundAmount,
             String cancelReason,
+            String mainReason,
+            String detailReason,
             Long memberId) throws CommonExceptionTemplate {
 
         try {
@@ -354,6 +385,22 @@ public class PaymentsService {
             payment.setUpdatedAt(LocalDateTime.now());
             PaymentsEntity updatedPayment = paymentsRepository.save(payment);
 
+            // ✅ 환불 사유 저장 (트랜잭션 내)
+            if (mainReason != null && !mainReason.isEmpty()) {
+                try {
+                    RefundReasonEntity refundReasonEntity = new RefundReasonEntity();
+                    refundReasonEntity.setPaymentId(paymentId);
+                    refundReasonEntity.setMainReason(RefundReasonType.valueOf(mainReason));
+                    refundReasonEntity.setDetailReason(detailReason);
+                    refundReasonEntity.setCreatedAt(LocalDateTime.now());
+
+                    refundReasonRepository.save(refundReasonEntity);
+                    log.info("✅ 환불 사유 저장 완료 - Payment ID: {}, Reason: {}", paymentId, mainReason);
+                } catch (IllegalArgumentException e) {
+                    log.error("유효하지 않은 환불 사유: {}", mainReason);
+                }
+            }
+
             PaymentsDto resultDto = new PaymentsDto();
             resultDto.copyMembers(updatedPayment);
 
@@ -366,6 +413,7 @@ public class PaymentsService {
             throw new CommonExceptionTemplate(500, "부분 환불 중 오류 발생");
         }
     }
+
     // 4. 최종 결제 금액 계산 메서드 추가
     private Long calculateFinalAmount(ReservationsEntity reservation, Long couponId)
             throws CommonExceptionTemplate {
@@ -409,6 +457,7 @@ public class PaymentsService {
             throw new CommonExceptionTemplate(500, "쿠폰 적용 중 오류가 발생했습니다");
         }
     }
+
     /**
      * ✅ 내 결제 내역 조회
      */

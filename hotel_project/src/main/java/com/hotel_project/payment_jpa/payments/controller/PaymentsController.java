@@ -63,7 +63,7 @@ public class PaymentsController {
 
         return ResponseEntity.ok(ApiResponse.success(200, "결제가 완료되었습니다", result));
     }
-    // ✅ 새로 추가할 엔드포인트
+
     @PostMapping("/confirm")
     @Operation(summary = "결제 승인", description = "결제위젯으로 결제 후 승인 처리")
     public ResponseEntity<ApiResponse<PaymentsDto>> confirmPayment(
@@ -78,7 +78,6 @@ public class PaymentsController {
         Long amount = ((Number) confirmData.get("amount")).longValue();
         Long reservationId = ((Number) confirmData.get("reservationId")).longValue();
 
-        // paymentMethodId는 optional (토스가 결제 처리)
         Object paymentMethodIdObj = confirmData.get("paymentMethodId");
         Long paymentMethodId = (paymentMethodIdObj != null && !"".equals(paymentMethodIdObj)) ?
                 ((Number) paymentMethodIdObj).longValue() : null;
@@ -87,15 +86,15 @@ public class PaymentsController {
         Long couponId = (couponIdObj != null && !"".equals(couponIdObj)) ?
                 ((Number) couponIdObj).longValue() : null;
 
-
         PaymentsDto result = paymentsService.confirmWidgetPayment(
                 paymentKey, orderId, amount, reservationId, paymentMethodId, couponId, memberId
         );
 
         return ResponseEntity.ok(ApiResponse.success(200, "결제가 완료되었습니다", result));
     }
+
     /**
-     * ✅ 전액 환불
+     * ✅ 전액 환불 - mainReason, detailReason 추가
      */
     @PostMapping("/{paymentId}/refund")
     @Operation(summary = "결제 환불", description = "결제를 전액 환불합니다")
@@ -107,15 +106,17 @@ public class PaymentsController {
 
         Long memberId = getMemberIdFromToken(request);
         String cancelReason = requestBody.getOrDefault("cancelReason", "고객 요청");
+        String mainReason = requestBody.get("mainReason");        // ✅ 추가
+        String detailReason = requestBody.get("detailReason");    // ✅ 추가
 
-
-        PaymentsDto result = paymentsService.refundPayment(paymentId, cancelReason, memberId);
+        PaymentsDto result = paymentsService.refundPayment(
+                paymentId, cancelReason, mainReason, detailReason, memberId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "환불이 완료되었습니다", result));
     }
 
     /**
-     * ✅ 부분 환불
+     * ✅ 부분 환불 - mainReason, detailReason 추가
      */
     @PostMapping("/{paymentId}/refund-partial")
     @Operation(summary = "부분 환불", description = "결제를 부분 환불합니다")
@@ -128,9 +129,11 @@ public class PaymentsController {
         Long memberId = getMemberIdFromToken(request);
         Long refundAmount = ((Number) requestBody.get("refundAmount")).longValue();
         String cancelReason = (String) requestBody.getOrDefault("cancelReason", "고객 요청");
+        String mainReason = (String) requestBody.get("mainReason");        // ✅ 추가
+        String detailReason = (String) requestBody.get("detailReason");    // ✅ 추가
 
         PaymentsDto result = paymentsService.refundPaymentPartial(
-                paymentId, refundAmount, cancelReason, memberId);
+                paymentId, refundAmount, cancelReason, mainReason, detailReason, memberId);
 
         return ResponseEntity.ok(ApiResponse.success(200, "부분 환불이 완료되었습니다", result));
     }
