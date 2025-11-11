@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 5s # 5초마다 수집
+
+scrape_configs:
+  - job_name: "springboot-app"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["springboot-app-rev2:8095"]
