@@ -18,93 +18,111 @@ public class JwtUtil {
     @Value("${jwt.secret:hotel_project_secret_key_for_jwt_token_generation}")
     private String secretKey;
 
-    @Value("${jwt.expiration:86400}") // 1일 (초 단위)
+    @Value("${jwt.expiration:86400}")
     private Long expiration;
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    /**
-     * JWT 토큰 생성
-     * @param memberId 회원 ID
-     * @param provider 로그인 제공자 (local, google, kakao, naver)
-     * @return JWT 토큰
-     */
     public String generateToken(Long memberId, String provider) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiry = now.plusSeconds(expiration);
 
+        String tokenType = isSocialProvider(provider) ? "social_login" : "access";
+
         return Jwts.builder()
                 .setSubject(memberId.toString())
                 .claim("provider", provider)
-                .claim("type", "access")
-                .claim("jti", UUID.randomUUID().toString()) // JWT ID 추가 (고유성 보장)
-                .claim("iat_timestamp", now.toString()) // 발급시간 추가
+                .claim("type", tokenType)
+                .claim("jti", UUID.randomUUID().toString())
+                .claim("iat_timestamp", now.toString())
                 .setIssuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
                 .setExpiration(Date.from(expiry.atZone(ZoneId.systemDefault()).toInstant()))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    /**
-     * JWT 토큰에서 회원 ID 추출
-     * @param token JWT 토큰
-     * @return 회원 ID
-     */
+    public String generateSocialSignupToken(String providerId, String provider, String email,
+                                            String firstName, String lastName) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expiry = now.plusHours(1);
+
+        return Jwts.builder()
+                .setSubject(providerId)
+                .claim("provider", provider)
+                .claim("type", "social_signup")
+                .claim("email", email)
+                .claim("firstName", firstName)
+                .claim("lastName", lastName)
+                .claim("jti", UUID.randomUUID().toString())
+                .setIssuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
+                .setExpiration(Date.from(expiry.atZone(ZoneId.systemDefault()).toInstant()))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
     public Long getMemberIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return Long.parseLong(claims.getSubject());
     }
 
-    /**
-     * JWT 토큰에서 Provider 추출
-     * @param token JWT 토큰
-     * @return Provider
-     */
+    public String getProviderIdFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.getSubject();
+    }
+
     public String getProviderFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims.get("provider", String.class);
     }
 
-    /**
-     * JWT 토큰에서 JWT ID 추출
-     * @param token JWT 토큰
-     * @return JWT ID
-     */
+    public String getEmailFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.get("email", String.class);
+    }
+
+    public String getFirstNameFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.get("firstName", String.class);
+    }
+
+    public String getLastNameFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.get("lastName", String.class);
+    }
+
+    public String getTokenType(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.get("type", String.class);
+    }
+
+    public boolean isSocialSignupToken(String token) {
+        try {
+            String type = getTokenType(token);
+            return "social_signup".equals(type);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public String getJwtIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims.get("jti", String.class);
     }
 
-    /**
-     * JWT 토큰의 유효성 검증
-     * @param token JWT 토큰
-     * @return 유효하면 true, 그렇지 않으면 false
-     */
     public boolean validateToken(String token) {
         try {
             getClaimsFromToken(token);
             return true;
         } catch (ExpiredJwtException e) {
-            System.out.println("JWT 토큰이 만료되었습니다: " + e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            System.out.println("지원되지 않는 JWT 토큰입니다: " + e.getMessage());
-        } catch (MalformedJwtException e) {
-            System.out.println("잘못된 JWT 토큰입니다: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            System.out.println("JWT 토큰이 null이거나 비어있습니다: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("JWT 토큰 검증 중 오류가 발생했습니다: " + e.getMessage());
+            // 로그는 실제 운영 환경에서 로거로 기록
+        } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException e) {
+            // 로그는 실제 운영 환경에서 로거로 기록
         }
         return false;
     }
 
-    /**
-     * JWT 토큰의 만료 여부 확인
-     * @param token JWT 토큰
-     * @return 만료되었으면 true, 그렇지 않으면 false
-     */
     public boolean isTokenExpired(String token) {
         try {
             Claims claims = getClaimsFromToken(token);
@@ -114,11 +132,13 @@ public class JwtUtil {
         }
     }
 
-    /**
-     * JWT 토큰에서 Claims 추출
-     * @param token JWT 토큰
-     * @return Claims
-     */
+    public String extractToken(String authorization) throws CommonExceptionTemplate {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new CommonExceptionTemplate(401, "Bearer 토큰이 필요합니다.");
+        }
+        return authorization.substring(7);
+    }
+
     private Claims getClaimsFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -127,14 +147,7 @@ public class JwtUtil {
                 .getBody();
     }
 
-
-    /**
-     * Authorization 헤더에서 토큰 추출
-     */
-    public String extractToken(String authorization) throws CommonExceptionTemplate {
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new CommonExceptionTemplate(401, "Bearer 토큰이 필요합니다.");
-        }
-        return authorization.substring(7);
+    private boolean isSocialProvider(String provider) {
+        return provider.equals("google") || provider.equals("kakao") || provider.equals("naver");
     }
 }

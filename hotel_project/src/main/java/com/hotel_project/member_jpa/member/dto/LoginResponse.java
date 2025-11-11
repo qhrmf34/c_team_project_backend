@@ -15,9 +15,7 @@ public class LoginResponse {
     private String lastName;
     private String email;
     private String provider;
-
-    private Boolean needAdditionalInfo; // 소셜 로그인 후 추가 정보 입력 필요 여부
-
+    private Boolean needAdditionalInfo;
 
     public LoginResponse(String token, Long memberId, String firstName, String lastName, String email, String provider) {
         this.token = token;
