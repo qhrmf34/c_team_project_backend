@@ -31,7 +31,7 @@ public class MemberController {
     private final TokenBlacklistService tokenBlacklistService;
     private final TurnstileService turnstileService;
 
-    // ================= 회원가입 / 로그인 =================
+    // ================= 회원가입/ 로그인=================
     @PostMapping("/signup")
     @Operation(summary = "일반 회원가입", description = "이메일/비밀번호로 회원가입합니다.")
     public ResponseEntity<ApiResponse<LoginResponse>> signup(
@@ -45,7 +45,7 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
-        // Turnstile 검증
+// Turnstile 검증
         turnstileService.verifyToken(signupRequest.getTurnstileToken());
 
         LoginResponse response = memberService.signup(signupRequest);
@@ -65,7 +65,7 @@ public class MemberController {
             throw new CommonExceptionTemplate(400, errorMessages.toString().trim());
         }
 
-        // Turnstile 검증
+// Turnstile 검증
         turnstileService.verifyToken(loginRequest.getTurnstileToken());
 
         LoginResponse response = memberService.login(loginRequest);
@@ -83,7 +83,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(200, "로그아웃이 완료되었습니다.", null));
     }
 
-    // ================= 비밀번호 재설정 관련 API =================
+    // ================= 비밀번호 재설정 관련API =================
     @PostMapping("/forgot-password")
     @Operation(summary = "비밀번호 재설정 요청", description = "이메일로 인증 코드를 전송합니다.")
     public ResponseEntity<ApiResponse<String>> forgotPassword(
@@ -143,7 +143,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.success(200, result, null));
     }
 
-    // ================= 기존 API =================
+    // ================= 기존API =================
     @GetMapping("/profile")
     @Operation(summary = "회원 정보 조회", description = "JWT 토큰으로 회원 정보를 조회합니다.")
     public ResponseEntity<ApiResponse<MemberDto>> getProfile(@RequestHeader("Authorization") String authorization)
@@ -237,5 +237,30 @@ public class MemberController {
 
         String result = memberService.changePassword(currentMember.getId(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success(200, result, null));
+    }
+
+    //소셜 로그인 추가 정보 입력- JWT 기반으로 수정
+    @PostMapping("/complete-social-signup")
+    public ResponseEntity<LoginResponse> completeSocialSignup(
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody CompleteSignupRequest request
+    ) throws CommonExceptionTemplate {
+
+        System.out.println("=== 소셜 회원가입 완료API 호출===");
+
+// Bearer 토큰 추출
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new CommonExceptionTemplate(401, "유효하지 않은 인증 헤더입니다.");
+        }
+
+        String tempToken = authHeader.substring(7);
+        System.out.println("임시 토큰 수신 완료");
+
+// 서비스 호출
+        LoginResponse response = memberService.completeSocialSignup(tempToken, request);
+
+        System.out.println("✓ 소셜 회원가입 완료- 회원ID: " + response.getMemberId());
+
+        return ResponseEntity.ok(response);
     }
 }
