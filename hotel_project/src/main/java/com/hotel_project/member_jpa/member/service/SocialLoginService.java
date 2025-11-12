@@ -70,9 +70,9 @@ public class SocialLoginService {
     }
 
     private boolean checkNeedAdditionalInfo(MemberDto member) {
+        // 전화번호와 도로명 주소만 필수 (상세주소는 선택)
         return isNullOrEmpty(member.getPhoneNumber()) ||
-                isNullOrEmpty(member.getRoadAddress()) ||
-                isNullOrEmpty(member.getDetailAddress());
+                isNullOrEmpty(member.getRoadAddress());
     }
 
     private boolean isNullOrEmpty(String value) {
