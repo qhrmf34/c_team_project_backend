@@ -67,8 +67,14 @@ public class MemberService {
 
         MemberEntity savedMember = memberRepository.save(newMember);
 
-// JWT 토큰 생성
-        String token = jwtUtil.generateToken(savedMember.getId(), savedMember.getProvider().toString());
+        // JWT 토큰 생성
+        String token = jwtUtil.generateToken(
+                savedMember.getId(),
+                savedMember.getProvider().toString(),
+                savedMember.getFirstName(),
+                savedMember.getLastName(),
+                savedMember.getEmail()
+        );
 
         return new LoginResponse(
                 token,
@@ -96,8 +102,14 @@ public class MemberService {
             throw new CommonExceptionTemplate(401, "이메일 또는 비밀번호가 잘못되었습니다.");
         }
 
-// JWT 토큰 생성
-        String token = jwtUtil.generateToken(member.getId(), member.getProvider().toString());
+        // JWT 토큰 생성
+        String token = jwtUtil.generateToken(
+                member.getId(),
+                member.getProvider().toString(),
+                member.getFirstName(),
+                member.getLastName(),
+                member.getEmail()
+        );
 
         return new LoginResponse(
                 token,
@@ -276,7 +288,13 @@ public class MemberService {
      * 소셜 로그인 후 JWT 토큰 생성
      */
     public String generateTokenForSocialLogin(MemberEntity member) {
-        return jwtUtil.generateToken(member.getId(), member.getProvider().toString());
+        return jwtUtil.generateToken(
+                member.getId(),
+                member.getProvider().toString(),
+                member.getFirstName(),
+                member.getLastName(),
+                member.getEmail()
+        );
     }
 
 // MemberService.java에 추가할 메서드들
@@ -412,10 +430,16 @@ public class MemberService {
 
         MemberEntity savedMember = memberRepository.save(newMember);
 
-// 8. 정식JWT 생성
-        String token = jwtUtil.generateToken(savedMember.getId(), provider.toString());
+        //정식JWT 생성
+        String token = jwtUtil.generateToken(
+                savedMember.getId(),
+                provider.toString(),
+                savedMember.getFirstName(),
+                savedMember.getLastName(),
+                savedMember.getEmail()
+        );
 
-// 9. LoginResponse 반환
+        // 9. LoginResponse 반환
         return new LoginResponse(
                 token,
                 savedMember.getId(),

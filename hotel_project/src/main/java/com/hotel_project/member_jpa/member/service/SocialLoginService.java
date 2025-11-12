@@ -35,7 +35,15 @@ public class SocialLoginService {
     }
 
     private LoginResponse handleExistingMember(MemberDto existingMember, Provider provider) {
-        String token = jwtUtil.generateToken(existingMember.getId(), provider.toString());
+        // JWT 토큰 생성 - firstName, lastName, email 포함
+        String token = jwtUtil.generateToken(
+                existingMember.getId(),
+                provider.toString(),
+                existingMember.getFirstName(),
+                existingMember.getLastName(),
+                existingMember.getEmail()
+        );
+
         boolean needsAdditionalInfo = checkNeedAdditionalInfo(existingMember);
 
         return LoginResponse.builder()
