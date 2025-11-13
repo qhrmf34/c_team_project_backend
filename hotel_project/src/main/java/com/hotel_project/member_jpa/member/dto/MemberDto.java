@@ -1,5 +1,6 @@
 package com.hotel_project.member_jpa.member.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -38,7 +39,17 @@ public class MemberDto implements IMember {
     @NotNull(message = "로그인 제공자는 필수 입력입니다.")
     private Provider provider = Provider.local;
 
+    @NotBlank(message = "주소 은 필수 입력입니다.")
+    @Size(max = 50)
+    private String roadAddress;
+
+    @NotBlank(message = "상세 주소 필수 입력입니다.")
+    @Size(max = 50)
+    private String detailAddress;
+
     private String providerId;
+
+    private LocalDateTime deletedAt;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

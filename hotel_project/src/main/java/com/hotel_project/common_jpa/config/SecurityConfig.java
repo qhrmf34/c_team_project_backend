@@ -34,28 +34,28 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // ★★★ OAuth2 로그인을 위해 세션 정책 수정 ★★★
+                // ★★★OAuth2 로그인을 위해 세션 정책 수정 ★★★
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // STATELESS -> IF_REQUIRED로 변경
-                        .maximumSessions(1) // 동시 세션 1개로 제한
+                        .maximumSessions(1) // 동시 세션1개로 제한
                         .maxSessionsPreventsLogin(false) // 새 로그인 시 기존 세션 무효화
                 )
                 .authorizeHttpRequests(auth -> auth
                                 .anyRequest().permitAll()
-                        // ========== 보안 설정 주석 처리 (개발용) ==========
-                        // 모든 요청 허용 - 로그인하지 않아도 모든 페이지 접근 가능
+                        // ========== 보안 설정 주석 처리(개발용) ==========
+                        // 모든 요청 허용- 로그인하지 않아도 모든 페이지 접근 가능
 
-                        // ========== 운영 시 사용할 보안 설정 (주석 처리됨) ==========
+                        // ========== 운영 시 사용할 보안 설정(주석 처리됨) ==========
                         // 인증이 필요 없는 경로들
                         // .requestMatchers("/", "/oauth2/**", "/login/**", "/auth/**").permitAll()
-                        // .requestMatchers("/api/member/signup", "/api/member/login").permitAll()  // 일반 회원가입/로그인
-                        // .requestMatchers("/api/member/forgot-password", "/api/member/verify-reset-code", "/api/member/reset-password").permitAll()  // 비밀번호 재설정
-                        // .requestMatchers("/api/test/**").permitAll()  // 테스트 API
-                        // .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()  // Swagger
+                        // .requestMatchers("/api/member/signup", "/api/member/login").permitAll() // 일반 회원가입/로그인
+                        // .requestMatchers("/api/member/forgot-password", "/api/member/verify-reset-code", "/api/member/reset-password").permitAll() // 비밀번호 재설정
+                        // .requestMatchers("/api/test/**").permitAll() // 테스트API
+                        // .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger
 
                         // 인증이 필요한 경로들
-                        // .requestMatchers("/api/member/profile/**").authenticated()  // 회원 프로필 관련
-                        // .requestMatchers("/api/**").authenticated()  // 기타 API들
+                        // .requestMatchers("/api/member/profile/**").authenticated() // 회원 프로필 관련
+                        // .requestMatchers("/api/**").authenticated() // 기타API들
 
                         // .anyRequest().authenticated()
                 )
@@ -64,18 +64,18 @@ public class SecurityConfig {
                                 .oidcUserService(customOAuth2UserService::loadUser)
                                 .userService(customOAuth2UserService)
                         )
-                        // ★★★ successHandler에서 토큰 처리 ★★★
+                        // ★★★successHandler에서 토큰 처리 ★★★
                         .successHandler((request, response, authentication) -> {
-                            System.out.println("=== 소셜 로그인 성공 핸들러 실행 ===");
+                            System.out.println("=== 소셜 로그인 성공 핸들러 실행===");
                             System.out.println("인증 객체: " + authentication.getName());
-                            System.out.println("사용할 프론트엔드 URL: " + frontendUrl);
+                            System.out.println("사용할 프론트엔드URL: " + frontendUrl);
 
                             try {
                                 // CustomOAuth2UserService에서 생성된 토큰과 사용자 정보 가져오기
                                 LoginResponse loginResponse = (LoginResponse) request.getSession().getAttribute("loginResponse");
 
                                 if (loginResponse != null) {
-                                    // 사용자 정보를 JSON 문자열로 변환
+                                    // 사용자 정보를JSON 문자열로 변환
                                     String userInfoJson = String.format(
                                             "{\"id\":%d,\"firstName\":\"%s\",\"lastName\":\"%s\",\"email\":\"%s\",\"provider\":\"%s\"}",
                                             loginResponse.getMemberId(),
@@ -87,6 +87,8 @@ public class SecurityConfig {
 
                                     // URL 인코딩
                                     String encodedUserInfo = URLEncoder.encode(userInfoJson, StandardCharsets.UTF_8);
+
+                                    Boolean needAdditionalInfo = loginResponse.getNeedAdditionalInfo();
 
                                     // ★★★ 쿠키에서 returnToPayment 확인 ★★★
                                     String returnToPayment = null;
@@ -105,23 +107,25 @@ public class SecurityConfig {
                                     if ("true".equals(returnToPayment)) {
                                         System.out.println("결제 페이지에서 온 소셜 로그인 - /hotelfour로 리다이렉트");
                                         redirectUrl = String.format(
-                                                "%s/hotelfour?login=success&token=%s&userInfo=%s",
+                                                "%s/hotelfour?login=success&token=%s&userInfo=%s&needAdditionalInfo=%s",
                                                 frontendUrl,
                                                 loginResponse.getToken(),
-                                                encodedUserInfo
+                                                encodedUserInfo,
+                                                needAdditionalInfo != null ? needAdditionalInfo : false
                                         );
                                     } else {
                                         // ★★★ 일반 로그인은 기존대로 /auth/callback ★★★
                                         System.out.println("일반 소셜 로그인 - /auth/callback으로 리다이렉트");
                                         redirectUrl = String.format(
-                                                "%s/auth/callback?token=%s&userInfo=%s",
+                                                "%s/auth/callback?token=%s&userInfo=%s&needAdditionalInfo=%s",
                                                 frontendUrl,
                                                 loginResponse.getToken(),
-                                                encodedUserInfo
+                                                encodedUserInfo,
+                                                needAdditionalInfo != null ? needAdditionalInfo : false
                                         );
                                     }
 
-                                    System.out.println("리다이렉트 URL: " + redirectUrl);
+                                    System.out.println("리다이렉트URL: " + redirectUrl);
 
                                     // 세션에서 임시 데이터 제거
                                     request.getSession().removeAttribute("loginResponse");
@@ -138,9 +142,9 @@ public class SecurityConfig {
                                 response.sendRedirect(frontendUrl + "/login?error=redirect_failed");
                             }
                         })
-                        // ★★★ failureHandler는 단순하게 ★★★
+                        // ★★★failureHandler는 단순하게 ★★★
                         .failureHandler((request, response, exception) -> {
-                            System.out.println("=== 소셜 로그인 실패 ===");
+                            System.out.println("=== 소셜 로그인 실패===");
                             System.out.println("오류: " + exception.getMessage());
                             response.sendRedirect(frontendUrl + "/login?error=oauth_failed");
                         })
@@ -163,7 +167,7 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:8080",
                 "http://localhost:3000",
-                "http://localhost:180"  // Docker 프론트엔드 포트 추가
+                "http://localhost:180" // Docker 프론트엔드 포트 추가
         ));
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"

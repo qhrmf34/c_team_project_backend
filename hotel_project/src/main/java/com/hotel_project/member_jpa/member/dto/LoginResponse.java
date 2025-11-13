@@ -15,6 +15,7 @@ public class LoginResponse {
     private String lastName;
     private String email;
     private String provider;
+    private Boolean needAdditionalInfo;
 
     public LoginResponse(String token, Long memberId, String firstName, String lastName, String email, String provider) {
         this.token = token;
@@ -23,5 +24,6 @@ public class LoginResponse {
         this.lastName = lastName;
         this.email = email;
         this.provider = provider;
+        this.needAdditionalInfo = false;
     }
 }

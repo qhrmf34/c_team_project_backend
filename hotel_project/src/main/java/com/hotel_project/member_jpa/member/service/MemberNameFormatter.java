@@ -13,65 +13,57 @@ public class MemberNameFormatter {
         switch (provider.toLowerCase()) {
             case "leave":
                 return "탈퇴한 회원";
-
             case "local":
-                // local: firstName + lastName (이름 + 성)
                 return formatLocalName(firstName, lastName, email);
-
             case "google":
-                // google: lastName + firstName (성 + 이름)
                 return formatGoogleName(firstName, lastName, email);
-
             case "kakao":
                 return formatSingleName(firstName, email, "Kakao User");
-
             case "naver":
                 return formatSingleName(firstName, email, "Naver User");
-
             default:
                 return firstName != null ? firstName : "Anonymous";
         }
     }
 
     private String formatLocalName(String firstName, String lastName, String email) {
-        if (firstName != null && lastName != null) {
+        if (isValid(firstName) && isValid(lastName)) {
             return firstName + " " + lastName;
         }
-        if (firstName != null) {
-            return firstName;
-        }
-        if (lastName != null) {
-            return lastName;
-        }
-        if (email != null) {
-            return email.split("@")[0];
-        }
-        return "User";
+        return getSingleNameOrDefault(firstName, lastName, email, "User");
     }
 
     private String formatGoogleName(String firstName, String lastName, String email) {
-        if (lastName != null && firstName != null) {
+        if (isValid(lastName) && isValid(firstName)) {
             return lastName + " " + firstName;
         }
-        if (firstName != null) {
-            return firstName;
-        }
-        if (lastName != null) {
-            return lastName;
-        }
-        if (email != null) {
-            return email.split("@")[0];
-        }
-        return "Google User";
+        return getSingleNameOrDefault(firstName, lastName, email, "Google User");
     }
 
     private String formatSingleName(String firstName, String email, String defaultName) {
-        if (firstName != null) {
+        if (isValid(firstName)) {
             return firstName;
         }
         if (email != null) {
             return email.split("@")[0];
         }
         return defaultName;
+    }
+
+    private String getSingleNameOrDefault(String firstName, String lastName, String email, String defaultName) {
+        if (isValid(firstName)) {
+            return firstName;
+        }
+        if (isValid(lastName)) {
+            return lastName;
+        }
+        if (email != null) {
+            return email.split("@")[0];
+        }
+        return defaultName;
+    }
+
+    private boolean isValid(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 }
