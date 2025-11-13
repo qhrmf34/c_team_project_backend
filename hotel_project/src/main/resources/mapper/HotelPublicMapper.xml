@@ -4,30 +4,10 @@
 
 <mapper namespace="com.hotel_project.hotel_jpa.hotel.mapper.HotelPublicMapper">
 
-    <!-- ResultMap 정의 -->
-    <resultMap id="HotelSummaryResultMap" type="com.hotel_project.hotel_jpa.hotel.dto.HotelSummaryDto">
-        <id property="id" column="id"/>
-        <result property="title" column="title"/>
-        <result property="image" column="image"/>
-        <result property="imageCount" column="imageCount"/>
-        <result property="price" column="price"/>
-        <result property="currency" column="currency"/>
-        <result property="location" column="location"/>
-        <result property="stars" column="stars"/>
-        <result property="type" column="type"/>
-        <result property="hotelType" column="hotelType"/>
-        <result property="amenitiesCount" column="amenitiesCount"/>
-        <result property="rating" column="rating"/>
-        <result property="ratingText" column="ratingText"/>
-        <result property="reviewCount" column="reviewCount"/>
-        <result property="wishlisted" column="wishlisted"/>
-        <result property="cityName" column="cityName"/>
-        <result property="available" column="available"/>
-    </resultMap>
 
     <!-- 호텔 검색 -->
     <!-- 모든 호텔 표시 + 예약 가능만 카운트 -->
-    <select id="searchHotels" resultMap="HotelSummaryResultMap">
+    <select id="searchHotels" resultType="com.hotel_project.hotel_jpa.hotel.dto.HotelSummaryDto">
         WITH
         <choose>
             <when test="checkIn != null and checkOut != null">
@@ -211,7 +191,9 @@
         </if>
 
         <if test="rating != null and rating > 0">
-            AND h.hotel_rating &gt;= #{rating}
+            AND COALESCE((SELECT AVG(rev.rating)
+            FROM reviews_tbl rev
+            WHERE rev.hotel_id = h.id), 0.0) &gt;= #{rating}
         </if>
 
         <if test="guests != null and guests > 0">

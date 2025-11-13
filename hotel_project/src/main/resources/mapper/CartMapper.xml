@@ -55,7 +55,7 @@
     </resultMap>
 
     <!-- ✅ 찜 목록 조회 (WishlistHotelDto) -->
-    <select id="findWishlistByMemberId" resultMap="WishlistHotelResultMap">
+    <select id="findWishlistByMemberId" resultType="com.hotel_project.member_jpa.cart.dto.WishlistHotelDto">
         SELECT
         c.id AS cart_id,
         c.member_id,
