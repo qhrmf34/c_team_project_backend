@@ -28,23 +28,19 @@ public class SocialLoginService {
         MemberDto existingMember = memberMapper.findByProviderAndProviderId(provider, userInfo.getProviderId());
 
         if (existingMember != null) {
-            return handleExistingMember(existingMember, provider);
+            return handleExistingMember(existingMember);
         } else {
             return handleNewMember(userInfo, provider);
         }
     }
 
-    private LoginResponse handleExistingMember(MemberDto existingMember, Provider provider) {
-        // JWT 토큰 생성 - firstName, lastName, email 포함
-        String token = jwtUtil.generateToken(
-                existingMember.getId(),
-                provider.toString(),
-                existingMember.getFirstName(),
-                existingMember.getLastName(),
-                existingMember.getEmail()
-        );
-
-        boolean needsAdditionalInfo = checkNeedAdditionalInfo(existingMember);
+    /**
+     * ✅ 기존 회원 처리 - memberId로 토큰 생성
+     * 기존 회원은 이미 가입 완료했으므로 needAdditionalInfo = false
+     */
+    private LoginResponse handleExistingMember(MemberDto existingMember) {
+        // ✅ JWT 토큰 생성 (memberId만)
+        String token = jwtUtil.generateToken(existingMember.getId());
 
         return LoginResponse.builder()
                 .token(token)
@@ -52,12 +48,17 @@ public class SocialLoginService {
                 .firstName(existingMember.getFirstName())
                 .lastName(existingMember.getLastName())
                 .email(existingMember.getEmail())
-                .provider(provider.toString())
-                .needAdditionalInfo(needsAdditionalInfo)
+                .provider(existingMember.getProvider().toString())
+                .needAdditionalInfo(false)  // ✅ 기존 회원은 무조건 false
                 .build();
     }
 
+    /**
+     * ✅ 신규 회원 처리 - OAuth 정보를 임시 토큰에 포함
+     * 신규 회원은 추가 정보 입력 필요
+     */
     private LoginResponse handleNewMember(SocialUserInfo userInfo, Provider provider) {
+        // ✅ 임시 JWT 생성 (OAuth 정보 포함)
         String tempToken = jwtUtil.generateSocialSignupToken(
                 userInfo.getProviderId(),
                 provider.toString(),
@@ -73,15 +74,11 @@ public class SocialLoginService {
                 .lastName(userInfo.getLastName())
                 .email(userInfo.getEmail())
                 .provider(provider.toString())
-                .needAdditionalInfo(true)
+                .needAdditionalInfo(true)  // ✅ 신규 회원은 true
                 .build();
     }
 
-    private boolean checkNeedAdditionalInfo(MemberDto member) {
-// 전화번호와 도로명 주소만 필수(상세주소는 선택)
-        return isNullOrEmpty(member.getPhoneNumber()) ||
-                isNullOrEmpty(member.getRoadAddress());
-    }
+
 
     private boolean isNullOrEmpty(String value) {
         return value == null || value.trim().isEmpty();

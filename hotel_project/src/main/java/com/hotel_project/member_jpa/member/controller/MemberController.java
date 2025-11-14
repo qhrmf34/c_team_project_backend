@@ -263,4 +263,34 @@ public class MemberController {
 
         return ResponseEntity.ok(response);
     }
+
+    // MemberController.java에 추가할 메서드
+
+    @GetMapping("/info")
+    @Operation(summary = "사용자 정보 조회 (간단)", description = "JWT 토큰으로 기본 사용자 정보를 조회합니다.")
+    public ResponseEntity<ApiResponse<UserInfo>> getUserInfo(@RequestHeader("Authorization") String authorization)
+            throws CommonExceptionTemplate {
+        String token = jwtUtil.extractToken(authorization);
+
+        if (!jwtUtil.validateToken(token)) {
+            throw new CommonExceptionTemplate(401, "유효하지 않은 토큰입니다.");
+        }
+
+        Long memberId = jwtUtil.getMemberIdFromToken(token);
+        MemberDto member = memberService.getMemberDtoByToken(token);
+
+        if (member == null) {
+            throw new CommonExceptionTemplate(404, "회원 정보를 찾을 수 없습니다.");
+        }
+
+        UserInfo userInfo = UserInfo.builder()
+                .id(member.getId())
+                .firstName(member.getFirstName())
+                .lastName(member.getLastName())
+                .email(member.getEmail())
+                .provider(member.getProvider().toString())
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(200, "사용자 정보 조회 완료", userInfo));
+    }
 }
