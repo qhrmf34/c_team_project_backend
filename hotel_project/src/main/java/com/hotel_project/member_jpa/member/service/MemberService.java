@@ -26,15 +26,75 @@ public class MemberService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    // ========== ✅ 공통 유효성 검사 메서드 ==========
+
+    /**
+     * ✅ 비밀번호 유효성 검사 (공통 메서드)
+     */
+    private void validatePassword(String password) throws CommonExceptionTemplate {
+        if (password == null || password.isEmpty()) {
+            throw new CommonExceptionTemplate(400, "비밀번호는 필수 입력입니다.");
+        }
+
+        if (password.length() < 8) {
+            throw new CommonExceptionTemplate(400, "비밀번호는 최소 8자 이상이어야 합니다.");
+        }
+
+        if (password.length() > 255) {
+            throw new CommonExceptionTemplate(400, "비밀번호는 255자 이하로 입력해야 합니다.");
+        }
+
+        // 영문 체크
+        boolean hasLetter = password.matches(".*[a-zA-Z].*");
+        // 숫자 체크
+        boolean hasDigit = password.matches(".*\\d.*");
+        // 특수문자 체크
+        boolean hasSpecial = password.matches(".*[!@#$%^&*(),.?\":{}|<>].*");
+
+        if (!hasLetter || !hasDigit || !hasSpecial) {
+            throw new CommonExceptionTemplate(400,
+                    "비밀번호는 영문, 숫자, 특수문자를 모두 포함해야 합니다.");
+        }
+    }
+
+    /**
+     * ✅ 전화번호 유효성 검사 (공통 메서드)
+     */
+    private void validatePhoneNumber(String phoneNumber) throws CommonExceptionTemplate {
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            throw new CommonExceptionTemplate(400, "전화번호는 필수 입력입니다.");
+        }
+
+        // 하이픈 제거
+        String cleanPhone = phoneNumber.replace("-", "");
+
+        // 한국 휴대폰 번호 형식 체크 (010, 011, 016, 017, 018, 019로 시작하는 10~11자리)
+        if (!cleanPhone.matches("^01[016789]\\d{7,8}$")) {
+            throw new CommonExceptionTemplate(400,
+                    "올바른 휴대폰 번호 형식이 아닙니다. (예: 01012345678)");
+        }
+    }
+
+    // ========== 회원가입 / 로그인 ==========
+
     /**
      * ✅ 일반 회원가입
      */
     public LoginResponse signup(SignupRequest signupRequest) throws CommonExceptionTemplate {
+        // 비밀번호 확인
         if (!signupRequest.getPassword().equals(signupRequest.getConfirmPassword())) {
             throw new CommonExceptionTemplate(400, "비밀번호가 일치하지 않습니다.");
         }
 
-        if (memberRepository.existsByPhoneNumber(signupRequest.getPhoneNumber())) {
+        // ✅ 비밀번호 유효성 검사
+        validatePassword(signupRequest.getPassword());
+
+        // ✅ 전화번호 유효성 검사
+        validatePhoneNumber(signupRequest.getPhoneNumber());
+
+        // 전화번호 중복 체크 (하이픈 제거 후)
+        String cleanPhone = signupRequest.getPhoneNumber().replace("-", "");
+        if (memberRepository.existsByPhoneNumber(cleanPhone)) {
             throw new CommonExceptionTemplate(409, "이미 사용 중인 전화번호입니다.");
         }
 
@@ -46,7 +106,7 @@ public class MemberService {
         newMember.setFirstName(signupRequest.getFirstName());
         newMember.setLastName(signupRequest.getLastName());
         newMember.setEmail(signupRequest.getEmail());
-        newMember.setPhoneNumber(signupRequest.getPhoneNumber());
+        newMember.setPhoneNumber(cleanPhone); // ✅ 하이픈 제거된 전화번호 저장
         newMember.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         newMember.setProvider(Provider.local);
         newMember.setRoadAddress(signupRequest.getRoadAddress());
@@ -115,6 +175,9 @@ public class MemberService {
             throw new CommonExceptionTemplate(400, "소셜 로그인 계정은 비밀번호를 재설정할 수 없습니다.");
         }
 
+        // ✅ 비밀번호 유효성 검사
+        validatePassword(newPassword);
+
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.copyMembers(memberDto);
         memberEntity.setPassword(passwordEncoder.encode(newPassword));
@@ -136,6 +199,9 @@ public class MemberService {
         if (memberDto.getProvider() != Provider.local) {
             throw new CommonExceptionTemplate(400, "소셜 로그인 계정은 비밀번호를 재설정할 수 없습니다.");
         }
+
+        // ✅ 비밀번호 유효성 검사
+        validatePassword(newPassword);
 
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.copyMembers(memberDto);
@@ -194,12 +260,20 @@ public class MemberService {
         }
 
         if (memberDto.getPhoneNumber() != null &&
-                !memberDto.getPhoneNumber().equals(existingMember.getPhoneNumber()) &&
-                memberRepository.existsByPhoneNumberAndIdNot(memberDto.getPhoneNumber(), memberId)) {
-            throw new CommonExceptionTemplate(409, "이미 사용 중인 전화번호입니다.");
+                !memberDto.getPhoneNumber().equals(existingMember.getPhoneNumber())) {
+            // ✅ 전화번호 변경 시 유효성 검사
+            validatePhoneNumber(memberDto.getPhoneNumber());
+
+            String cleanPhone = memberDto.getPhoneNumber().replace("-", "");
+            if (memberRepository.existsByPhoneNumberAndIdNot(cleanPhone, memberId)) {
+                throw new CommonExceptionTemplate(409, "이미 사용 중인 전화번호입니다.");
+            }
+            memberDto.setPhoneNumber(cleanPhone);
         }
 
         if (memberDto.getPassword() != null && existingMember.getProvider() == Provider.local) {
+            // ✅ 비밀번호 변경 시 유효성 검사
+            validatePassword(memberDto.getPassword());
             memberDto.setPassword(passwordEncoder.encode(memberDto.getPassword()));
         }
 
@@ -262,6 +336,9 @@ public class MemberService {
                 throw new CommonExceptionTemplate(403, "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.");
             }
 
+            // ✅ 비밀번호 유효성 검사
+            validatePassword(newPassword);
+
             String encodedPassword = passwordEncoder.encode(newPassword);
 
             member.setPassword(encodedPassword);
@@ -321,8 +398,12 @@ public class MemberService {
             throw new CommonExceptionTemplate(409, "이미 가입된 회원입니다.");
         }
 
-        // 5. 전화번호 중복 체크
-        if (memberRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+        // 5. ✅ 전화번호 유효성 검사
+        validatePhoneNumber(request.getPhoneNumber());
+
+        // 전화번호 중복 체크 (하이픈 제거 후)
+        String cleanPhone = request.getPhoneNumber().replace("-", "");
+        if (memberRepository.existsByPhoneNumber(cleanPhone)) {
             throw new CommonExceptionTemplate(409, "이미 사용 중인 전화번호입니다.");
         }
 
@@ -347,7 +428,7 @@ public class MemberService {
         newMember.setProvider(provider);
         newMember.setProviderId(providerId);
         newMember.setEmail(finalEmail);
-        newMember.setPhoneNumber(request.getPhoneNumber());
+        newMember.setPhoneNumber(cleanPhone); // ✅ 하이픈 제거된 전화번호 저장
         newMember.setFirstName(firstNameFromToken);  // ✅ 토큰에서
         newMember.setLastName(lastNameFromToken);    // ✅ 토큰에서
         newMember.setRoadAddress(request.getRoadAddress());
