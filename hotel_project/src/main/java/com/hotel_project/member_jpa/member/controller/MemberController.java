@@ -162,9 +162,9 @@ public class MemberController {
         String token = jwtUtil.extractToken(authorization);
         MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
-        if (currentMember.getProvider() != Provider.local) {
-            throw new CommonExceptionTemplate(403,
-                    "소셜 로그인 계정은 회원 정보를 수정할 수 없습니다. Provider: " + currentMember.getProvider());
+        // ✅ 소셜 계정은 이름만 수정 불가 (이메일, 전화번호, 주소는 가능)
+        if (currentMember.getProvider() != Provider.local && memberDto.getFirstName() != null) {
+            throw new CommonExceptionTemplate(403, "소셜 로그인 계정은 이름을 변경할 수 없습니다.");
         }
 
         MemberDto updatedProfile = memberService.updateMemberAndReturnDto(currentMember.getId(), memberDto);
@@ -180,7 +180,33 @@ public class MemberController {
         String result = memberService.deleteMember(member.getId());
         return ResponseEntity.ok(ApiResponse.success(200, "회원 탈퇴가 완료되었습니다.", result));
     }
+    // 회원 탈퇴
+    @PostMapping("/withdraw")
+    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 진행합니다. (로컬 계정은 비밀번호 필요)")
+    public ResponseEntity<ApiResponse<String>> withdrawMember(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody(required = false) WithdrawRequest request
+    ) throws CommonExceptionTemplate {
+        String token = jwtUtil.extractToken(authorization);
+        MemberDto currentMember = memberService.getMemberDtoByToken(token);
 
+        // 로컬 계정은 비밀번호 필수
+        String password = null;
+        if (currentMember.getProvider() == Provider.local) {
+            if (request == null || request.getPassword() == null || request.getPassword().isEmpty()) {
+                throw new CommonExceptionTemplate(400, "비밀번호를 입력해주세요.");
+            }
+            password = request.getPassword();
+        }
+
+        String result = memberService.withdrawMember(currentMember.getId(), password);
+
+        // 탈퇴 후 토큰 블랙리스트 추가
+        String jwtId = jwtUtil.getJwtIdFromToken(token);
+        tokenBlacklistService.addToBlacklist(jwtId);
+
+        return ResponseEntity.ok(ApiResponse.success(200, result, null));
+    }
     @PostMapping("/match-password")
     @Operation(summary = "현재 비밀번호 확인", description = "현재 비밀번호가 일치하는지 확인합니다.")
     public ResponseEntity<ApiResponse<String>> matchPassword(
@@ -292,5 +318,12 @@ public class MemberController {
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(200, "사용자 정보 조회 완료", userInfo));
+    }
+
+    @PostMapping("/admin/cleanup-withdrawn")
+    @Operation(summary = "탈퇴 회원 즉시 정리 (관리자용)", description = "1시간 경과한 탈퇴 회원 정보를 즉시 삭제합니다.")
+    public ResponseEntity<ApiResponse<String>> cleanupWithdrawnMembers() {
+        memberService.cleanupWithdrawnMembers();
+        return ResponseEntity.ok(ApiResponse.success(200, "탈퇴 회원 정리가 완료되었습니다.", null));
     }
 }

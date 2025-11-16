@@ -6,12 +6,15 @@ import com.hotel_project.common_jpa.util.JwtUtil;
 import com.hotel_project.member_jpa.member.dto.*;
 import com.hotel_project.member_jpa.member.mapper.MemberMapper;
 import com.hotel_project.member_jpa.member.repository.MemberRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Transactional
@@ -74,39 +77,74 @@ public class MemberService {
                     "올바른 휴대폰 번호 형식이 아닙니다. (예: 01012345678)");
         }
     }
+    /**
+     * ✅ 이메일 유효성 검사 (공통 메서드)
+     */
+    private void validateEmail(String email) throws CommonExceptionTemplate {
+        if (email == null || email.isEmpty()) {
+            throw new CommonExceptionTemplate(400, "이메일은 필수 입력입니다.");
+        }
 
+        // 기본 이메일 형식 체크
+        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            throw new CommonExceptionTemplate(400, "올바른 이메일 형식이 아닙니다.");
+        }
+
+        // .social 도메인 사용 금지 (내부 자동 생성용)
+        if (email.toLowerCase().endsWith(".social")) {
+            throw new CommonExceptionTemplate(400, "사용할 수 없는 이메일 도메인입니다.");
+        }
+
+        // 이메일 길이 체크
+        if (email.length() > 100) {
+            throw new CommonExceptionTemplate(400, "이메일은 100자 이하로 입력해야 합니다.");
+        }
+    }
     // ========== 회원가입 / 로그인 ==========
 
     /**
      * ✅ 일반 회원가입
      */
     public LoginResponse signup(SignupRequest signupRequest) throws CommonExceptionTemplate {
-        // 비밀번호 확인
         if (!signupRequest.getPassword().equals(signupRequest.getConfirmPassword())) {
             throw new CommonExceptionTemplate(400, "비밀번호가 일치하지 않습니다.");
         }
 
-        // ✅ 비밀번호 유효성 검사
+        validateEmail(signupRequest.getEmail());
         validatePassword(signupRequest.getPassword());
-
-        // ✅ 전화번호 유효성 검사
         validatePhoneNumber(signupRequest.getPhoneNumber());
 
-        // 전화번호 중복 체크 (하이픈 제거 후)
         String cleanPhone = signupRequest.getPhoneNumber().replace("-", "");
         if (memberRepository.existsByPhoneNumber(cleanPhone)) {
             throw new CommonExceptionTemplate(409, "이미 사용 중인 전화번호입니다.");
         }
 
+        // ✅ 탈퇴 회원 체크 (이메일로만 검사)
+        MemberDto withdrawnMember = memberMapper.findByEmailAndProvider(
+                signupRequest.getEmail(), Provider.leave);
+
+        if (withdrawnMember != null && withdrawnMember.getDeletedAt() != null) {
+            LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+            if (withdrawnMember.getDeletedAt().isAfter(oneHourAgo)) {
+                throw new CommonExceptionTemplate(403,
+                        "탈퇴 후 1시간 동안은 재가입이 불가능합니다. 잠시 후 다시 시도해주세요.");
+            }
+        }
+
+        // ✅ 일반 이메일 중복 체크 (leave가 아닌 경우만)
         if (memberRepository.existsByEmail(signupRequest.getEmail())) {
-            throw MemberException.DUPLICATE_DATA.getException();
+            MemberDto existingMember = memberMapper.findByEmailAndProvider(
+                    signupRequest.getEmail(), Provider.local);
+            if (existingMember != null) {
+                throw new CommonExceptionTemplate(409, "이미 사용 중인 이메일입니다.");
+            }
         }
 
         MemberEntity newMember = new MemberEntity();
         newMember.setFirstName(signupRequest.getFirstName());
         newMember.setLastName(signupRequest.getLastName());
         newMember.setEmail(signupRequest.getEmail());
-        newMember.setPhoneNumber(cleanPhone); // ✅ 하이픈 제거된 전화번호 저장
+        newMember.setPhoneNumber(cleanPhone);
         newMember.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         newMember.setProvider(Provider.local);
         newMember.setRoadAddress(signupRequest.getRoadAddress());
@@ -117,7 +155,6 @@ public class MemberService {
 
         MemberEntity savedMember = memberRepository.save(newMember);
 
-        // ✅ JWT 토큰 생성 (memberId만)
         String token = jwtUtil.generateToken(savedMember.getId());
 
         return LoginResponse.builder()
@@ -129,7 +166,6 @@ public class MemberService {
                 .provider(savedMember.getProvider().toString())
                 .build();
     }
-
     /**
      * ✅ 일반 로그인
      */
@@ -138,6 +174,11 @@ public class MemberService {
 
         if (member == null) {
             throw new CommonExceptionTemplate(401, "이메일 또는 비밀번호가 잘못되었습니다.");
+        }
+
+        // ✅ 탈퇴 회원 체크
+        if (member.getProvider() == Provider.leave) {
+            throw new CommonExceptionTemplate(403, "탈퇴한 회원입니다.");
         }
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
@@ -227,6 +268,11 @@ public class MemberService {
             throw MemberException.NOT_EXIST_DATA.getException();
         }
 
+        // ✅ 탈퇴 회원 체크
+        if (member.getProvider() == Provider.leave) {
+            throw new CommonExceptionTemplate(403, "탈퇴한 회원입니다.");
+        }
+
         member.setPassword(null);
         return member;
     }
@@ -250,18 +296,38 @@ public class MemberService {
             throw MemberException.NOT_EXIST_DATA.getException();
         }
 
+        if (existingMemberDto.getProvider() == Provider.leave) {
+            throw new CommonExceptionTemplate(403, "탈퇴한 회원입니다.");
+        }
+
         MemberEntity existingMember = new MemberEntity();
         existingMember.copyMembers(existingMemberDto);
 
-        if (memberDto.getEmail() != null &&
-                !memberDto.getEmail().equals(existingMember.getEmail()) &&
-                memberRepository.existsByEmailAndIdNot(memberDto.getEmail(), memberId)) {
-            throw MemberException.DUPLICATE_DATA.getException();
+        // ✅ 이름 변경 (로컬 계정만 가능)
+        if (memberDto.getFirstName() != null && existingMember.getProvider() != Provider.local) {
+            throw new CommonExceptionTemplate(403, "소셜 로그인 계정은 이름을 변경할 수 없습니다.");
         }
 
+        // ✅ 이메일 변경 (카카오, 네이버만 가능)
+        if (memberDto.getEmail() != null &&
+                !memberDto.getEmail().equals(existingMember.getEmail())) {
+
+            if (existingMember.getProvider() == Provider.google) {
+                throw new CommonExceptionTemplate(403, "Google 계정은 이메일을 변경할 수 없습니다.");
+            }
+
+            if (existingMember.getProvider() == Provider.local) {
+                throw new CommonExceptionTemplate(403, "일반 계정은 이메일을 변경할 수 없습니다.");
+            }
+
+            if (memberRepository.existsByEmailAndIdNot(memberDto.getEmail(), memberId)) {
+                throw new CommonExceptionTemplate(409, "이미 사용 중인 이메일입니다.");
+            }
+        }
+
+        // ✅ 전화번호 변경 (모든 계정 가능)
         if (memberDto.getPhoneNumber() != null &&
                 !memberDto.getPhoneNumber().equals(existingMember.getPhoneNumber())) {
-            // ✅ 전화번호 변경 시 유효성 검사
             validatePhoneNumber(memberDto.getPhoneNumber());
 
             String cleanPhone = memberDto.getPhoneNumber().replace("-", "");
@@ -271,17 +337,108 @@ public class MemberService {
             memberDto.setPhoneNumber(cleanPhone);
         }
 
+        // ✅ 비밀번호 변경 (로컬 계정만 가능)
         if (memberDto.getPassword() != null && existingMember.getProvider() == Provider.local) {
-            // ✅ 비밀번호 변경 시 유효성 검사
             validatePassword(memberDto.getPassword());
             memberDto.setPassword(passwordEncoder.encode(memberDto.getPassword()));
         }
 
         memberDto.setUpdatedAt(LocalDateTime.now());
+
+        // ✅ CRITICAL: provider, providerId는 절대 변경하면 안됨!
+        memberDto.setProvider(null);
+        memberDto.setProviderId(null);
+
         existingMember.copyNotNullMembers(memberDto);
 
         memberRepository.save(existingMember);
         return "update ok";
+    }
+
+
+    /**
+     * ✅ 회원 탈퇴 (즉시 삭제가 아닌 소프트 삭제)
+     */
+    @Transactional
+    public String withdrawMember(Long memberId, String password) throws CommonExceptionTemplate {
+        if (memberId == null) {
+            throw MemberException.INVALID_ID.getException();
+        }
+
+        MemberDto memberDto = memberMapper.findById(memberId);
+        if (memberDto == null) {
+            throw MemberException.NOT_EXIST_DATA.getException();
+        }
+
+        // ✅ 이미 탈퇴한 회원 체크
+        if (memberDto.getProvider() == Provider.leave) {
+            throw new CommonExceptionTemplate(400, "이미 탈퇴한 회원입니다.");
+        }
+
+        // ✅ 로컬 계정만 비밀번호 확인
+        if (memberDto.getProvider() == Provider.local) {
+            if (password == null || !passwordEncoder.matches(password, memberDto.getPassword())) {
+                throw new CommonExceptionTemplate(401, "비밀번호가 일치하지 않습니다.");
+            }
+        }
+
+        // ✅ Provider를 leave로 변경 & deletedAt 설정
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.copyMembers(memberDto);
+        memberEntity.setProvider(Provider.leave);
+        memberEntity.setDeletedAt(LocalDateTime.now());
+        memberEntity.setUpdatedAt(LocalDateTime.now());
+
+        memberRepository.save(memberEntity);
+
+        return "회원 탈퇴가 완료되었습니다. 1시간 후 모든 정보가 삭제됩니다.";
+    }
+    /**
+     * ✅ 스케줄러: 탈퇴 후 1시간 경과 회원 정보 삭제 (매 30분마다 실행)
+     */
+    @Scheduled(cron = "0 0/30 * * * ?")  // 매 30분마다 실행
+    @Transactional
+    public void cleanupWithdrawnMembers() {
+        System.out.println("========================================");
+        System.out.println("✅ 탈퇴 회원 정리 스케줄러 시작: " + LocalDateTime.now());
+        System.out.println("========================================");
+
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+
+        List<MemberEntity> withdrawnMembers = memberRepository.findByProviderAndDeletedAtBefore(
+                Provider.leave, oneHourAgo
+        );
+
+        System.out.println("✅ 정리 대상 회원 수: " + withdrawnMembers.size());
+
+        for (MemberEntity member : withdrawnMembers) {
+            System.out.println("✅ 회원 정보 삭제 중 - ID: " + member.getId() + ", deletedAt: " + member.getDeletedAt());
+
+            // ✅ 모든 정보를 null로 변경 (이름은 "탈퇴회원"으로)
+            member.setFirstName("탈퇴회원");
+            member.setLastName(null);
+            member.setEmail(null);
+            member.setPhoneNumber(null);
+            member.setPassword(null);
+            member.setProviderId(null);
+            member.setRoadAddress(null);
+            member.setDetailAddress(null);
+            member.setUpdatedAt(LocalDateTime.now());
+
+            memberRepository.save(member);
+
+            System.out.println("✅ 탈퇴 회원 정보 삭제 완료: ID=" + member.getId());
+        }
+
+        if (!withdrawnMembers.isEmpty()) {
+            System.out.println("========================================");
+            System.out.println("✅ 총 " + withdrawnMembers.size() + "명의 탈퇴 회원 정보 삭제 완료");
+            System.out.println("========================================");
+        } else {
+            System.out.println("========================================");
+            System.out.println("✅ 정리할 탈퇴 회원이 없습니다.");
+            System.out.println("========================================");
+        }
     }
 
     public String deleteMember(Long memberId) throws CommonExceptionTemplate {
@@ -359,24 +516,19 @@ public class MemberService {
 
     /**
      * ✅ 소셜 로그인 후 회원가입 완료
-     * - 임시 토큰에서 사용자 정보 추출 (아직 DB에 없어서)
-     * - CompleteSignupRequest에서 전화번호, 주소 정보 받음
      */
     @Transactional
     public LoginResponse completeSocialSignup(String tempToken, CompleteSignupRequest request)
             throws CommonExceptionTemplate {
 
-        // 1. JWT 토큰 검증
         if (!jwtUtil.validateToken(tempToken)) {
             throw new CommonExceptionTemplate(401, "유효하지 않은 토큰입니다.");
         }
 
-        // 2. 토큰 타입 확인
         if (!jwtUtil.isSocialSignupToken(tempToken)) {
             throw new CommonExceptionTemplate(400, "소셜 회원가입 토큰이 아닙니다.");
         }
 
-        // 3. ✅ 토큰에서 OAuth 정보 추출
         String providerId = jwtUtil.getProviderIdFromToken(tempToken);
         String providerStr = jwtUtil.getProviderFromToken(tempToken);
         String emailFromToken = jwtUtil.getEmailFromToken(tempToken);
@@ -388,49 +540,61 @@ public class MemberService {
         System.out.println("=== 소셜 회원가입 처리 시작 ===");
         System.out.println("Provider: " + provider);
         System.out.println("ProviderId: " + providerId);
-        System.out.println("FirstName: " + firstNameFromToken);
-        System.out.println("LastName: " + lastNameFromToken);
-        System.out.println("Email: " + emailFromToken);
 
-        // 4. 이미 가입된 회원인지 확인
+        // ✅ 1. 탈퇴 회원 체크 (providerId로만 검사)
+        List<MemberEntity> withdrawnMembers = memberRepository.findByProviderId(providerId);
+        for (MemberEntity withdrawnMember : withdrawnMembers) {
+            if (withdrawnMember.getProvider() == Provider.leave &&
+                    withdrawnMember.getDeletedAt() != null) {
+                LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+                if (withdrawnMember.getDeletedAt().isAfter(oneHourAgo)) {
+                    throw new CommonExceptionTemplate(403,
+                            "탈퇴 후 1시간 동안은 재가입이 불가능합니다. 잠시 후 다시 시도해주세요.");
+                }
+            }
+        }
+
+        // ✅ 2. 기존 정상 회원 확인 (provider + providerId)
         MemberDto existingMember = memberMapper.findByProviderAndProviderId(provider, providerId);
         if (existingMember != null) {
             throw new CommonExceptionTemplate(409, "이미 가입된 회원입니다.");
         }
 
-        // 5. ✅ 전화번호 유효성 검사
         validatePhoneNumber(request.getPhoneNumber());
 
-        // 전화번호 중복 체크 (하이픈 제거 후)
         String cleanPhone = request.getPhoneNumber().replace("-", "");
         if (memberRepository.existsByPhoneNumber(cleanPhone)) {
             throw new CommonExceptionTemplate(409, "이미 사용 중인 전화번호입니다.");
         }
 
-        // 6. ✅ 이메일 처리
+        // ✅ 이메일 처리
         String finalEmail;
+
         if (provider == Provider.google) {
-            // Google: 토큰의 이메일 사용
             finalEmail = emailFromToken;
             if (finalEmail == null || finalEmail.isEmpty()) {
                 throw new CommonExceptionTemplate(400, "Google 로그인 시 이메일은 필수입니다.");
             }
-            if (memberRepository.existsByEmail(finalEmail)) {
-                throw new CommonExceptionTemplate(409, "이미 사용 중인 이메일입니다.");
-            }
         } else {
-            // Kakao, Naver: 랜덤 이메일 생성
-            finalEmail = generateUniqueRandomEmail(provider, providerId);
+            // ✅ Kakao, Naver: 사용자가 입력한 이메일 사용
+            finalEmail = request.getEmail();
+            if (finalEmail == null || finalEmail.isEmpty()) {
+                throw new CommonExceptionTemplate(400, "이메일을 입력해주세요.");
+            }
+            validateEmail(finalEmail);
         }
 
-        // 7. ✅ 신규 회원 생성 (토큰에서 가져온 정보 + request 정보 결합)
+        if (memberRepository.existsByEmail(finalEmail)) {
+            throw new CommonExceptionTemplate(409, "이미 사용 중인 이메일입니다.");
+        }
+
         MemberEntity newMember = new MemberEntity();
         newMember.setProvider(provider);
         newMember.setProviderId(providerId);
         newMember.setEmail(finalEmail);
-        newMember.setPhoneNumber(cleanPhone); // ✅ 하이픈 제거된 전화번호 저장
-        newMember.setFirstName(firstNameFromToken);  // ✅ 토큰에서
-        newMember.setLastName(lastNameFromToken);    // ✅ 토큰에서
+        newMember.setPhoneNumber(cleanPhone);
+        newMember.setFirstName(firstNameFromToken);
+        newMember.setLastName(lastNameFromToken);
         newMember.setRoadAddress(request.getRoadAddress());
         newMember.setDetailAddress(request.getDetailAddress());
         newMember.setPassword(null);
@@ -439,10 +603,8 @@ public class MemberService {
 
         MemberEntity savedMember = memberRepository.save(newMember);
 
-        // 8. ✅ 정식 JWT 생성 (memberId만)
         String token = jwtUtil.generateToken(savedMember.getId());
 
-        // 9. LoginResponse 반환
         return LoginResponse.builder()
                 .token(token)
                 .memberId(savedMember.getId())
@@ -453,36 +615,44 @@ public class MemberService {
                 .build();
     }
 
-    /**
-     * ✅ 랜덤 이메일 생성 (Kakao, Naver용)
-     */
-    private String generateUniqueRandomEmail(Provider provider, String providerId) {
-        String hash = Integer.toHexString(providerId.hashCode());
-        if (hash.startsWith("-")) {
-            hash = hash.substring(1);
-        }
-        String timestamp = String.valueOf(System.currentTimeMillis()).substring(8);
-
-        String email = String.format("%s_%s_%s@%s.social",
-                provider.toString().toLowerCase(),
-                hash,
-                timestamp,
-                provider.toString().toLowerCase()
-        );
-
-        int attempt = 0;
-        while (memberRepository.existsByEmail(email) && attempt < 10) {
-            timestamp = String.valueOf(System.currentTimeMillis()).substring(8);
-            email = String.format("%s_%s_%s_%d@%s.social",
-                    provider.toString().toLowerCase(),
-                    hash,
-                    timestamp,
-                    attempt,
-                    provider.toString().toLowerCase()
-            );
-            attempt++;
-        }
-
-        return email;
+    @PostConstruct
+    public void initCleanup() {
+        System.out.println("========================================");
+        System.out.println("✅ 서버 시작 - 탈퇴 회원 정리 시작");
+        System.out.println("========================================");
+        cleanupWithdrawnMembers();
     }
+
+//    /**
+//     * ✅ 랜덤 이메일 생성 (Kakao, Naver용)
+//     */
+//    private String generateUniqueRandomEmail(Provider provider, String providerId) {
+//        String hash = Integer.toHexString(providerId.hashCode());
+//        if (hash.startsWith("-")) {
+//            hash = hash.substring(1);
+//        }
+//        String timestamp = String.valueOf(System.currentTimeMillis()).substring(8);
+//
+//        String email = String.format("%s_%s_%s@%s.social",
+//                provider.toString().toLowerCase(),
+//                hash,
+//                timestamp,
+//                provider.toString().toLowerCase()
+//        );
+//
+//        int attempt = 0;
+//        while (memberRepository.existsByEmail(email) && attempt < 10) {
+//            timestamp = String.valueOf(System.currentTimeMillis()).substring(8);
+//            email = String.format("%s_%s_%s_%d@%s.social",
+//                    provider.toString().toLowerCase(),
+//                    hash,
+//                    timestamp,
+//                    attempt,
+//                    provider.toString().toLowerCase()
+//            );
+//            attempt++;
+//        }
+//
+//        return email;
+//    }
 }
