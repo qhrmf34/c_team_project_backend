@@ -30,6 +30,29 @@ public class MemberImageService {
         String projectRoot = System.getProperty("user.dir");
         return projectRoot + File.separator + "uploads";
     }
+    /**
+     * ✅ 특정 회원의 프로필 이미지 조회 (관리자용)
+     */
+    public MemberImageDto getProfileImageByMemberId(Long memberId) {
+        Optional<MemberImageEntity> imageEntity = memberImageRepository
+                .findByMemberEntity_IdAndImageType(memberId, ImageType.profile);
+
+        if (imageEntity.isPresent()) {
+            MemberImageEntity entity = imageEntity.get();
+            return MemberImageDto.builder()
+                    .id(entity.getId())
+                    .memberId(entity.getMemberId())
+                    .imageType(entity.getImageType())
+                    .memberImageName(entity.getMemberImageName())
+                    .memberImagePath(entity.getMemberImagePath())
+                    .memberImageSize(entity.getMemberImageSize())
+                    .createdAt(entity.getCreatedAt())
+                    .build();
+        }
+
+        return null;
+    }
+
 
     // 프로필/배경 이미지 조회
     public String getMemberImage(Long memberId, ImageType imageType) {
