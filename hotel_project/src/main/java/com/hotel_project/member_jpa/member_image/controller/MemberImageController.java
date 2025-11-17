@@ -5,6 +5,7 @@ import com.hotel_project.common_jpa.exception.MemberException;
 import com.hotel_project.common_jpa.util.ApiResponse;
 import com.hotel_project.common_jpa.util.JwtUtil;
 import com.hotel_project.member_jpa.member_image.dto.ImageType;
+import com.hotel_project.member_jpa.member_image.dto.MemberImageDto;
 import com.hotel_project.member_jpa.member_image.service.MemberImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,7 +39,19 @@ public class MemberImageController {
 
         return ResponseEntity.ok(ApiResponse.success(200, "success", result));
     }
-
+    // ✅ 특정 회원의 프로필 이미지 조회 (관리자용)
+    @GetMapping("/profile/member/{memberId}")
+    public ResponseEntity<ApiResponse<MemberImageDto>> getProfileImageByMemberId(
+            @PathVariable Long memberId
+    ) {
+        try {
+            MemberImageDto image = memberImageService.getProfileImageByMemberId(memberId);
+            return ResponseEntity.ok(ApiResponse.success(200, "프로필 이미지 조회 완료", image));
+        } catch (Exception e) {
+            // 이미지 없으면 null 반환
+            return ResponseEntity.ok(ApiResponse.success(200, "프로필 이미지 없음", null));
+        }
+    }
     @GetMapping("/background")
     @Operation(summary = "배경 이미지 조회")
     public ResponseEntity<ApiResponse<Map<String, String>>> getBackgroundImage(
