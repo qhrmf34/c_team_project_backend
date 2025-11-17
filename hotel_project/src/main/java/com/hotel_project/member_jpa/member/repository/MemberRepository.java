@@ -5,6 +5,10 @@ import com.hotel_project.member_jpa.member.dto.Provider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 
@@ -19,4 +23,13 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 
     // ID 존재 여부 체크
     boolean existsById(Long id);
+
+    // 탈퇴 회원 정리용
+    List<MemberEntity> findByProviderAndDeletedAtBefore(Provider provider, LocalDateTime dateTime);
+
+    // providerId로 모든 회원 조회 (탈퇴 회원 포함)
+    List<MemberEntity> findByProviderId(String providerId);
+
+    // 이메일로 회원 조회
+    Optional<MemberEntity> findByEmail(String email);
 }

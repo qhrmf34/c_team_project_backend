@@ -12,15 +12,21 @@ public class MemberNameFormatter {
 
         switch (provider.toLowerCase()) {
             case "leave":
-                return "탈퇴한 회원";
+                // firstName만 반환 (항상 "탈퇴회원"으로 설정되어 있음)
+                return firstName != null ? firstName : "탈퇴한 회원";
+
             case "local":
                 return formatLocalName(firstName, lastName, email);
+
             case "google":
                 return formatGoogleName(firstName, lastName, email);
+
             case "kakao":
                 return formatSingleName(firstName, email, "Kakao User");
+
             case "naver":
                 return formatSingleName(firstName, email, "Naver User");
+
             default:
                 return firstName != null ? firstName : "Anonymous";
         }

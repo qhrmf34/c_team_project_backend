@@ -3,40 +3,29 @@
 
 <mapper namespace="com.hotel_project.member_jpa.member.mapper.MemberMapper">
 
-    <!-- Result Map 정의 -->
-    <resultMap id="memberResultMap" type="com.hotel_project.member_jpa.member.dto.MemberDto">
-        <id property="id" column="id"/>
-        <result property="firstName" column="first_name"/>
-        <result property="lastName" column="last_name"/>
-        <result property="email" column="email"/>
-        <result property="phoneNumber" column="phone_number"/>
-        <result property="password" column="password"/>
-        <result property="provider" column="provider"/>
-        <result property="providerId" column="provider_id"/>
-        <result property="createdAt" column="created_at"/>
-        <result property="updatedAt" column="updated_at"/>
-    </resultMap>
 
     <!-- ID로 회원 조회 -->
-    <select id="findById" parameterType="Long" resultMap="memberResultMap">
+    <select id="findById" parameterType="Long" resultType="com.hotel_project.member_jpa.member.dto.MemberDto">
         SELECT id, first_name, last_name, email, phone_number, password,
-               provider, provider_id, created_at, updated_at
+               provider, provider_id, road_address, detail_address,
+               created_at, updated_at
         FROM member_tbl
         WHERE id = #{id}
     </select>
 
     <!-- 이메일과 Provider로 회원 조회 (일반 로그인용) -->
-    <select id="findByEmailAndProvider" resultMap="memberResultMap">
+    <select id="findByEmailAndProvider" resultType="com.hotel_project.member_jpa.member.dto.MemberDto">
         SELECT id, first_name, last_name, email, phone_number, password,
-               provider, provider_id, created_at, updated_at
+               provider, provider_id, road_address, detail_address,
+               created_at, updated_at
         FROM member_tbl
         WHERE email = #{email} AND provider = #{provider}
     </select>
-
     <!-- Provider와 ProviderId로 회원 조회 (소셜 로그인용) -->
-    <select id="findByProviderAndProviderId" resultMap="memberResultMap">
+    <select id="findByProviderAndProviderId" resultType="com.hotel_project.member_jpa.member.dto.MemberDto">
         SELECT id, first_name, last_name, email, phone_number, password,
-               provider, provider_id, created_at, updated_at
+               provider, provider_id, road_address, detail_address,
+               created_at, updated_at
         FROM member_tbl
         WHERE provider = #{provider} AND provider_id = #{providerId}
     </select>

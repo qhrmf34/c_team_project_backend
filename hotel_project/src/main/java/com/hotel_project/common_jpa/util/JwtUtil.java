@@ -26,35 +26,17 @@ public class JwtUtil {
     }
 
     /**
-     * JWT 토큰 생성 (전체 정보 포함)
+     * ✅ JWT 토큰 생성 (memberId만 포함)
      * @param memberId 회원 ID
-     * @param provider 로그인 제공자 (local, google, kakao, naver)
-     * @param firstName 이름
-     * @param lastName 성
-     * @param email 이메일
      * @return JWT 토큰
      */
-    public String generateToken(Long memberId, String provider, String firstName, String lastName, String email) {
+    public String generateToken(Long memberId) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiry = now.plusSeconds(expiration);
 
-        // provider가 소셜인지 확인
-        String tokenType;
-        if (provider.equals("google") || provider.equals("kakao") || provider.equals("naver")) {
-            tokenType = "social_login"; // 소셜 로그인
-        } else {
-            tokenType = "access"; // 일반 로그인
-        }
-
         return Jwts.builder()
                 .setSubject(memberId.toString())
-                .claim("provider", provider)
-                .claim("type", tokenType)
-                .claim("firstName", firstName != null ? firstName : "")
-                .claim("lastName", lastName != null ? lastName : "")
-                .claim("email", email != null ? email : "")
                 .claim("jti", UUID.randomUUID().toString())
-                .claim("iat_timestamp", now.toString())
                 .setIssuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
                 .setExpiration(Date.from(expiry.atZone(ZoneId.systemDefault()).toInstant()))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
@@ -62,26 +44,27 @@ public class JwtUtil {
     }
 
     /**
-     * 소셜 로그인 신규 회원용 임시 JWT 토큰 생성
-     * DB에 저장되기 전 signup 페이지에서 사용하는 토큰
+     * ✅ 소셜 로그인 신규 회원용 임시 JWT 토큰 생성
+     * providerId, provider와 함께 사용자 기본 정보 포함 (DB 저장 전이라 예외적으로 정보 포함)
      * @param providerId 소셜 로그인 provider ID
      * @param provider 소셜 로그인 제공자 (google, kakao, naver)
-     * @param email 이메일 (Google만 제공)
+     * @param email 이메일
      * @param firstName 이름
      * @param lastName 성
      * @return 임시 JWT 토큰
      */
-    public String generateSocialSignupToken(String providerId, String provider, String email, String firstName, String lastName) {
+    public String generateSocialSignupToken(String providerId, String provider,
+                                            String email, String firstName, String lastName) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiry = now.plusHours(1); // 1시간 유효
 
         return Jwts.builder()
-                .setSubject(providerId) // providerId를subject로
+                .setSubject(providerId)
                 .claim("provider", provider)
-                .claim("type", "social_signup") // 임시 토큰 타입
-                .claim("email", email)
-                .claim("firstName", firstName)
-                .claim("lastName", lastName)
+                .claim("type", "social_signup")
+                .claim("email", email != null ? email : "")
+                .claim("firstName", firstName != null ? firstName : "")
+                .claim("lastName", lastName != null ? lastName : "")
                 .claim("jti", UUID.randomUUID().toString())
                 .setIssuedAt(Date.from(now.atZone(ZoneId.systemDefault()).toInstant()))
                 .setExpiration(Date.from(expiry.atZone(ZoneId.systemDefault()).toInstant()))
@@ -90,9 +73,7 @@ public class JwtUtil {
     }
 
     /**
-     * JWT 토큰에서 회원 ID 추출
-     * @param token JWT 토큰
-     * @return 회원 ID
+     * ✅ JWT 토큰에서 회원 ID 추출
      */
     public Long getMemberIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
@@ -100,20 +81,15 @@ public class JwtUtil {
     }
 
     /**
-     * JWT 토큰에서 providerId 추출 (소셜 회원가입 토큰용)
-     * @param token JWT 토큰
-     * @return providerId
+     * ✅ JWT 토큰에서 providerId 추출 (소셜 회원가입 토큰용)
      */
     public String getProviderIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
-        return claims.getSubject(); // 소셜 회원가입 토큰은 subject가 providerId
+        return claims.getSubject();
     }
 
     /**
-     * JWT 토큰에서 특정 Claim 추출 (공통 메서드)
-     * @param token JWT 토큰
-     * @param claimKey Claim 키
-     * @return Claim 값
+     * ✅ JWT 토큰에서 특정 Claim 추출
      */
     private String getClaimFromToken(String token, String claimKey) {
         Claims claims = getClaimsFromToken(token);
@@ -121,53 +97,49 @@ public class JwtUtil {
     }
 
     /**
-     * JWT 토큰에서 Provider 추출
+     * ✅ JWT 토큰에서 Provider 추출 (소셜 회원가입 토큰용)
      */
     public String getProviderFromToken(String token) {
         return getClaimFromToken(token, "provider");
     }
 
     /**
-     * JWT 토큰에서 이메일 추출
+     * ✅ JWT 토큰에서 이메일 추출 (소셜 회원가입 토큰용)
      */
     public String getEmailFromToken(String token) {
         return getClaimFromToken(token, "email");
     }
 
     /**
-     * JWT 토큰에서 firstName 추출
+     * ✅ JWT 토큰에서 firstName 추출 (소셜 회원가입 토큰용)
      */
     public String getFirstNameFromToken(String token) {
         return getClaimFromToken(token, "firstName");
     }
 
     /**
-     * JWT 토큰에서 lastName 추출
+     * ✅ JWT 토큰에서 lastName 추출 (소셜 회원가입 토큰용)
      */
     public String getLastNameFromToken(String token) {
         return getClaimFromToken(token, "lastName");
     }
 
     /**
-     * JWT 토큰 타입 확인
+     * ✅ JWT 토큰 타입 확인
      */
     public String getTokenType(String token) {
         return getClaimFromToken(token, "type");
     }
 
     /**
-     * JWT 토큰에서 JWT ID 추출
+     * ✅ JWT 토큰에서 JWT ID 추출
      */
     public String getJwtIdFromToken(String token) {
         return getClaimFromToken(token, "jti");
     }
 
-    // ========== ✅ 여기까지 리팩토링 완료 ==========
-
     /**
-     * 소셜 회원가입 토큰인지 확인
-     * @param token JWT 토큰
-     * @return 소셜 회원가입 토큰이면 true
+     * ✅ 소셜 회원가입 토큰인지 확인
      */
     public boolean isSocialSignupToken(String token) {
         try {
@@ -179,9 +151,7 @@ public class JwtUtil {
     }
 
     /**
-     * JWT 토큰의 유효성 검증
-     * @param token JWT 토큰
-     * @return 유효하면 true, 그렇지 않으면 false
+     * ✅ JWT 토큰의 유효성 검증
      */
     public boolean validateToken(String token) {
         try {
@@ -202,9 +172,7 @@ public class JwtUtil {
     }
 
     /**
-     * JWT 토큰의 만료 여부 확인
-     * @param token JWT 토큰
-     * @return 만료되었으면 true, 그렇지 않으면 false
+     * ✅ JWT 토큰의 만료 여부 확인
      */
     public boolean isTokenExpired(String token) {
         try {
@@ -216,9 +184,7 @@ public class JwtUtil {
     }
 
     /**
-     * JWT 토큰에서 Claims 추출
-     * @param token JWT 토큰
-     * @return Claims
+     * ✅ JWT 토큰에서 Claims 추출
      */
     private Claims getClaimsFromToken(String token) {
         return Jwts.parserBuilder()
@@ -229,7 +195,7 @@ public class JwtUtil {
     }
 
     /**
-     * Authorization 헤더에서 토큰 추출
+     * ✅ Authorization 헤더에서 토큰 추출
      */
     public String extractToken(String authorization) throws CommonExceptionTemplate {
         if (authorization == null || !authorization.startsWith("Bearer ")) {

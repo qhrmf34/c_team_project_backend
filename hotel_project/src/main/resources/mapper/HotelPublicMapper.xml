@@ -4,30 +4,10 @@
 
 <mapper namespace="com.hotel_project.hotel_jpa.hotel.mapper.HotelPublicMapper">
 
-    <!-- ResultMap 정의 -->
-    <resultMap id="HotelSummaryResultMap" type="com.hotel_project.hotel_jpa.hotel.dto.HotelSummaryDto">
-        <id property="id" column="id"/>
-        <result property="title" column="title"/>
-        <result property="image" column="image"/>
-        <result property="imageCount" column="imageCount"/>
-        <result property="price" column="price"/>
-        <result property="currency" column="currency"/>
-        <result property="location" column="location"/>
-        <result property="stars" column="stars"/>
-        <result property="type" column="type"/>
-        <result property="hotelType" column="hotelType"/>
-        <result property="amenitiesCount" column="amenitiesCount"/>
-        <result property="rating" column="rating"/>
-        <result property="ratingText" column="ratingText"/>
-        <result property="reviewCount" column="reviewCount"/>
-        <result property="wishlisted" column="wishlisted"/>
-        <result property="cityName" column="cityName"/>
-        <result property="available" column="available"/>
-    </resultMap>
 
     <!-- 호텔 검색 -->
     <!-- 모든 호텔 표시 + 예약 가능만 카운트 -->
-    <select id="searchHotels" resultMap="HotelSummaryResultMap">
+    <select id="searchHotels" resultType="com.hotel_project.hotel_jpa.hotel.dto.HotelSummaryDto">
         WITH
         <choose>
             <when test="checkIn != null and checkOut != null">
@@ -211,7 +191,9 @@
         </if>
 
         <if test="rating != null and rating > 0">
-            AND h.hotel_rating &gt;= #{rating}
+            AND COALESCE((SELECT AVG(rev.rating)
+            FROM reviews_tbl rev
+            WHERE rev.hotel_id = h.id), 0.0) &gt;= #{rating}
         </if>
 
         <if test="guests != null and guests > 0">
@@ -265,25 +247,56 @@
             </foreach>
         </if>
 
+        <!--GROUP BY로 중복 제거 -->
+        GROUP BY h.id, c.city_name, co.country_name
+        <choose>
+            <when test="checkIn != null and checkOut != null">
+                , mhp.min_total_price, mhp.avg_nightly_price, bp.min_total_price, bp.avg_nightly_price, ha.has_available_room
+            </when>
+            <otherwise>
+                , bp.min_total_price, bp.avg_nightly_price
+            </otherwise>
+        </choose>
+
         ORDER BY
         <choose>
             <when test="checkIn != null and checkOut != null">
-                -- ✅ 예약 가능한 호텔 먼저 표시 (available = TRUE 먼저)
                 CASE WHEN ha.has_available_room = 1 THEN 0 ELSE 1 END,
             </when>
         </choose>
         <choose>
             <when test="sortBy == 'price_asc'">
-                COALESCE(mhp.avg_nightly_price, bp.avg_nightly_price) ASC
+                COALESCE(
+                <choose>
+                    <when test="checkIn != null and checkOut != null">
+                        mhp.avg_nightly_price,
+                    </when>
+                </choose>
+                bp.avg_nightly_price
+                ) ASC
             </when>
             <when test="sortBy == 'price_desc'">
-                COALESCE(mhp.avg_nightly_price, bp.avg_nightly_price) DESC
+                COALESCE(
+                <choose>
+                    <when test="checkIn != null and checkOut != null">
+                        mhp.avg_nightly_price,
+                    </when>
+                </choose>
+                bp.avg_nightly_price
+                ) DESC
             </when>
             <when test="sortBy == 'rating'">
-                h.hotel_rating DESC
+                <!-- ✅ rating 정렬 수정: 서브쿼리 대신 집계 -->
+                ROUND(COALESCE((SELECT AVG(rev.rating)
+                FROM reviews_tbl rev
+                WHERE rev.hotel_id = h.id), 0.0), 1) DESC
             </when>
             <otherwise>
-                h.hotel_rating DESC, h.hotel_star DESC
+                <!-- ✅ 기본 정렬도 rating으로 변경 -->
+                ROUND(COALESCE((SELECT AVG(rev.rating)
+                FROM reviews_tbl rev
+                WHERE rev.hotel_id = h.id), 0.0), 1) DESC,
+                h.hotel_star DESC
             </otherwise>
         </choose>
 
