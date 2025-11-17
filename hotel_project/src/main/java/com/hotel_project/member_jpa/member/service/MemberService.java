@@ -444,9 +444,19 @@ public class MemberService {
                 Provider.leave, oneHourAgo
         );
 
-        System.out.println("✅ 정리 대상 회원 수: " + withdrawnMembers.size());
+        System.out.println("✅ 조회된 탈퇴 회원 수: " + withdrawnMembers.size());
+
+        int processedCount = 0;
+        int skippedCount = 0;
 
         for (MemberEntity member : withdrawnMembers) {
+            // ✅ 이미 정리된 회원인지 체크 (firstName이 "탈퇴회원"이고 email이 null이면 이미 정리됨)
+            if ("탈퇴회원".equals(member.getFirstName()) && member.getEmail() == null) {
+                System.out.println("⏭️  회원 정보 이미 정리됨 (스킵) - ID: " + member.getId());
+                skippedCount++;
+                continue;
+            }
+
             System.out.println("✅ 회원 정보 삭제 중 - ID: " + member.getId() + ", deletedAt: " + member.getDeletedAt());
 
             // ✅ 모든 정보를 null로 변경 (이름은 "탈퇴회원"으로)
@@ -463,17 +473,12 @@ public class MemberService {
             memberRepository.save(member);
 
             System.out.println("✅ 탈퇴 회원 정보 삭제 완료: ID=" + member.getId());
+            processedCount++;
         }
 
-        if (!withdrawnMembers.isEmpty()) {
-            System.out.println("========================================");
-            System.out.println("✅ 총 " + withdrawnMembers.size() + "명의 탈퇴 회원 정보 삭제 완료");
-            System.out.println("========================================");
-        } else {
-            System.out.println("========================================");
-            System.out.println("✅ 정리할 탈퇴 회원이 없습니다.");
-            System.out.println("========================================");
-        }
+        System.out.println("========================================");
+        System.out.println("✅ 총 " + processedCount + "명 정리 완료, 기존 탈퇴회원은 " + skippedCount + "명");
+        System.out.println("========================================");
     }
 
     public String deleteMember(Long memberId) throws CommonExceptionTemplate {
