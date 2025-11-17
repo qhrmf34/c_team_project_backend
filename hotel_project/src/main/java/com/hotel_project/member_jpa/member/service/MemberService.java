@@ -6,7 +6,6 @@ import com.hotel_project.common_jpa.util.JwtUtil;
 import com.hotel_project.member_jpa.member.dto.*;
 import com.hotel_project.member_jpa.member.mapper.MemberMapper;
 import com.hotel_project.member_jpa.member.repository.MemberRepository;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -655,13 +654,13 @@ public class MemberService {
                 .build();
     }
 
-    @PostConstruct
-    public void initCleanup() {
-        System.out.println("========================================");
-        System.out.println("✅ 서버 시작 - 탈퇴 회원 정리 시작");
-        System.out.println("========================================");
-        cleanupWithdrawnMembers();
-    }
+//    @PostConstruct
+//    public void initCleanup() {
+//        System.out.println("========================================");
+//        System.out.println("✅ 서버 시작 - 탈퇴 회원 정리 시작");
+//        System.out.println("========================================");
+//        cleanupWithdrawnMembers();
+//    }
 
 //    /**
 //     * ✅ 랜덤 이메일 생성 (Kakao, Naver용)
