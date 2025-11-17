@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
@@ -28,4 +29,7 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 
     // providerId로 모든 회원 조회 (탈퇴 회원 포함)
     List<MemberEntity> findByProviderId(String providerId);
+
+    // 이메일로 회원 조회
+    Optional<MemberEntity> findByEmail(String email);
 }

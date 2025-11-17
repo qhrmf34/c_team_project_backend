@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -119,23 +120,25 @@ public class MemberService {
             throw new CommonExceptionTemplate(409, "이미 사용 중인 전화번호입니다.");
         }
 
-        // ✅ 탈퇴 회원 체크 (이메일로만 검사)
-        MemberDto withdrawnMember = memberMapper.findByEmailAndProvider(
-                signupRequest.getEmail(), Provider.leave);
+        // ✅ 이메일 중복 체크 (email만으로 검사)
+        Optional<MemberEntity> existingMember = memberRepository.findByEmail(signupRequest.getEmail());
 
-        if (withdrawnMember != null && withdrawnMember.getDeletedAt() != null) {
-            LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
-            if (withdrawnMember.getDeletedAt().isAfter(oneHourAgo)) {
-                throw new CommonExceptionTemplate(403,
-                        "탈퇴 후 1시간 동안은 재가입이 불가능합니다. 잠시 후 다시 시도해주세요.");
-            }
-        }
+        if (existingMember.isPresent()) {
+            MemberEntity member = existingMember.get();
 
-        // ✅ 일반 이메일 중복 체크 (leave가 아닌 경우만)
-        if (memberRepository.existsByEmail(signupRequest.getEmail())) {
-            MemberDto existingMember = memberMapper.findByEmailAndProvider(
-                    signupRequest.getEmail(), Provider.local);
-            if (existingMember != null) {
+            // provider가 'leave'인 경우
+            if (member.getProvider() == Provider.leave) {
+                // 1시간 이내 탈퇴한 경우 재가입 불가
+                if (member.getDeletedAt() != null) {
+                    LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+                    if (member.getDeletedAt().isAfter(oneHourAgo)) {
+                        throw new CommonExceptionTemplate(403,
+                                "탈퇴 후 1시간 동안은 재가입이 불가능합니다. 잠시 후 다시 시도해주세요.");
+                    }
+                }
+                // 1시간 경과했으면 재가입 허용 (통과)
+            } else {
+                // provider가 'leave'가 아닌 경우 중복 에러
                 throw new CommonExceptionTemplate(409, "이미 사용 중인 이메일입니다.");
             }
         }
@@ -166,26 +169,38 @@ public class MemberService {
                 .provider(savedMember.getProvider().toString())
                 .build();
     }
+
     /**
-     * ✅ 일반 로그인
+     * 일반 로그인
      */
     public LoginResponse login(LoginRequest loginRequest) throws CommonExceptionTemplate {
-        MemberDto member = memberMapper.findByEmailAndProvider(loginRequest.getEmail(), Provider.local);
+        // 먼저 이메일로만 조회 (provider 무관)
+        Optional<MemberEntity> memberEntity = memberRepository.findByEmail(loginRequest.getEmail());
 
-        if (member == null) {
+        if (memberEntity.isEmpty()) {
             throw new CommonExceptionTemplate(401, "이메일 또는 비밀번호가 잘못되었습니다.");
         }
 
-        // ✅ 탈퇴 회원 체크
+        MemberEntity member = memberEntity.get();
+
+        //  2. 탈퇴 회원 체크
         if (member.getProvider() == Provider.leave) {
-            throw new CommonExceptionTemplate(403, "탈퇴한 회원입니다.");
+            throw new CommonExceptionTemplate(403, "탈퇴한 회원입니다. 재가입 후 이용해주세요.");
         }
 
+        //  3. provider가 'local'인지 확인
+        if (member.getProvider() != Provider.local) {
+            String providerName = getProviderDisplayName(member.getProvider());
+            throw new CommonExceptionTemplate(401,
+                    String.format("해당 이메일은 %s(으)로 가입된 계정입니다.", providerName));
+        }
+
+        //  4. 비밀번호 확인
         if (!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
             throw new CommonExceptionTemplate(401, "이메일 또는 비밀번호가 잘못되었습니다.");
         }
 
-        // ✅ JWT 토큰 생성 (memberId만)
+        //  JWT 토큰 생성 (memberId만)
         String token = jwtUtil.generateToken(member.getId());
 
         return LoginResponse.builder()
@@ -196,6 +211,26 @@ public class MemberService {
                 .email(member.getEmail())
                 .provider(member.getProvider().toString())
                 .build();
+    }
+
+    /**
+     * Provider 표시명 반환 (헬퍼 메서드 추가)
+     */
+    private String getProviderDisplayName(Provider provider) {
+        switch (provider) {
+            case google:
+                return "Google";
+            case kakao:
+                return "Kakao";
+            case naver:
+                return "Naver";
+            case local:
+                return "일반 로그인";
+            case leave:
+                return "탈퇴";
+            default:
+                return "소셜 로그인";
+        }
     }
 
     // ========== 비밀번호 재설정 ==========
