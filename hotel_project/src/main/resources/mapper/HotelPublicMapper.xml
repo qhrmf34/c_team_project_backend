@@ -72,11 +72,9 @@
                 FROM room_tbl
                 GROUP BY hotel_id
                 ),
-                -- ✅ 호텔별 예약 가능 여부 체크 (room_pricing 있고 + 결제 예약 없어야 가능)
                 hotel_availability AS (
                 SELECT
                 rp.hotel_id,
-                -- room_prices에 있고 + 예약되지 않은 방이 있으면 1
                 MAX(CASE
                 WHEN NOT EXISTS (
                 SELECT 1
@@ -93,7 +91,7 @@
                 ) THEN 1
                 ELSE 0
                 END) as has_available_room
-                FROM room_prices rp  -- ✅ room_prices (room_pricing 있는 것만)
+                FROM room_prices rp
                 GROUP BY rp.hotel_id
                 )
             </when>
@@ -109,7 +107,8 @@
             </otherwise>
         </choose>
 
-        SELECT
+        -- ✅ DISTINCT 추가로 중복 제거
+        SELECT DISTINCT
         h.id,
         h.hotel_name as title,
         (SELECT hi.hotel_image_path
@@ -123,7 +122,6 @@
 
         <choose>
             <when test="checkIn != null and checkOut != null">
-                -- room_pricing 있으면 우선, 없으면 base_price
                 COALESCE(mhp.min_total_price, bp.min_total_price) as price,
             </when>
             <otherwise>
@@ -139,26 +137,21 @@
         (SELECT COUNT(*)
         FROM hotel_amenities_tbl ha
         WHERE ha.hotel_id = h.id) as amenitiesCount,
-        -- 리뷰 테이블에서 실제 평균 평점 계산
         ROUND(COALESCE((SELECT AVG(rev.rating)
         FROM reviews_tbl rev
         WHERE rev.hotel_id = h.id), 0.0), 1) as rating,
 
         NULL as ratingText,
 
-        -- 리뷰 개수도 실제 값으로
         (SELECT COUNT(*)
         FROM reviews_tbl rev
         WHERE rev.hotel_id = h.id) as reviewCount,
 
-
         <choose>
             <when test="checkIn != null and checkOut != null">
-                -- ✅ 예약 가능한 방이 있으면 TRUE, 없으면 FALSE
                 CASE WHEN ha.has_available_room = 1 THEN TRUE ELSE FALSE END as available
             </when>
             <otherwise>
-                -- 날짜 선택 안 함: 항상 TRUE
                 TRUE as available
             </otherwise>
         </choose>
@@ -247,17 +240,7 @@
             </foreach>
         </if>
 
-        <!--GROUP BY로 중복 제거 -->
-        GROUP BY h.id, c.city_name, co.country_name
-        <choose>
-            <when test="checkIn != null and checkOut != null">
-                , mhp.min_total_price, mhp.avg_nightly_price, bp.min_total_price, bp.avg_nightly_price, ha.has_available_room
-            </when>
-            <otherwise>
-                , bp.min_total_price, bp.avg_nightly_price
-            </otherwise>
-        </choose>
-
+        -- ✅ GROUP BY 제거 (DISTINCT로 대체)
         ORDER BY
         <choose>
             <when test="checkIn != null and checkOut != null">
@@ -286,16 +269,10 @@
                 ) DESC
             </when>
             <when test="sortBy == 'rating'">
-                <!-- ✅ rating 정렬 수정: 서브쿼리 대신 집계 -->
-                ROUND(COALESCE((SELECT AVG(rev.rating)
-                FROM reviews_tbl rev
-                WHERE rev.hotel_id = h.id), 0.0), 1) DESC
+                (SELECT AVG(rev.rating) FROM reviews_tbl rev WHERE rev.hotel_id = h.id) DESC
             </when>
             <otherwise>
-                <!-- ✅ 기본 정렬도 rating으로 변경 -->
-                ROUND(COALESCE((SELECT AVG(rev.rating)
-                FROM reviews_tbl rev
-                WHERE rev.hotel_id = h.id), 0.0), 1) DESC,
+                (SELECT AVG(rev.rating) FROM reviews_tbl rev WHERE rev.hotel_id = h.id) DESC,
                 h.hotel_star DESC
             </otherwise>
         </choose>
