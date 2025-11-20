@@ -24,7 +24,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Value("${FRONTEND_URL:http://localhost:8080}")
+    @Value("${FRONTEND_URL:https://mjc813k.softagape.com}")
     private String frontendUrl;
 
     @Bean
@@ -125,7 +125,9 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:8080",
                 "http://localhost:3000",
-                "http://localhost:180"
+                "http://localhost:180",
+                "https://mjc813k.softagape.com",
+                "http://mjc813k.softagape.com"
         ));
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
